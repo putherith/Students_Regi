@@ -1,0 +1,3072 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ប្រព័ន្ធចុះឈ្មោះសិស្ស</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f6f7f9;
+            --surface: #ffffff;
+            --surface-muted: #f1f5f4;
+            --border: #d8dfdc;
+            --text: #17211d;
+            --muted: #647067;
+            --primary: #0f766e;
+            --primary-dark: #115e59;
+            --primary-soft: #d9f3ef;
+            --blue: #2563eb;
+            --blue-soft: #dbeafe;
+            --green: #15803d;
+            --green-soft: #dcfce7;
+            --amber: #b45309;
+            --amber-soft: #fef3c7;
+            --red: #b91c1c;
+            --red-soft: #fee2e2;
+            --shadow: 0 18px 45px rgba(23, 33, 29, 0.08);
+            --radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Kantumruy Pro", Arial, sans-serif;
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button:disabled,
+        input:disabled,
+        select:disabled {
+            cursor: not-allowed;
+            opacity: 0.68;
+        }
+
+        .app {
+            width: 100%;
+            max-width: none;
+            margin: 0 auto;
+            padding: 18px 28px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 0 18px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .brand-mark {
+            width: 46px;
+            height: 46px;
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+            border-radius: var(--radius);
+            color: #ffffff;
+            background: var(--primary);
+        }
+
+        .brand-mark ion-icon {
+            width: 26px;
+            height: 26px;
+        }
+
+        h1,
+        h2,
+        h3,
+        p {
+            margin: 0;
+        }
+
+        h1 {
+            font-size: clamp(1.25rem, 2vw, 1.9rem);
+            line-height: 1.25;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            margin-top: 2px;
+            color: var(--muted);
+            font-size: 0.94rem;
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 40px;
+            padding: 0 12px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            color: var(--muted);
+            background: var(--surface);
+            min-width: 0;
+            white-space: nowrap;
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 999px;
+            background: var(--amber);
+        }
+
+        .status-pill.connected .status-dot {
+            background: var(--green);
+        }
+
+        .status-pill.error .status-dot {
+            background: var(--red);
+        }
+
+        .btn {
+            min-height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1px solid transparent;
+            border-radius: var(--radius);
+            padding: 0 14px;
+            font-weight: 700;
+            color: var(--text);
+            background: var(--surface);
+            min-width: 0;
+            transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn ion-icon {
+            width: 19px;
+            height: 19px;
+            flex: 0 0 auto;
+        }
+
+        .btn span {
+            min-width: 0;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            border-color: var(--border);
+            color: var(--primary-dark);
+            background: var(--primary-soft);
+        }
+
+        .btn-ghost {
+            border-color: var(--border);
+        }
+
+        .btn-danger {
+            color: #ffffff;
+            background: var(--red);
+        }
+
+        .btn-small {
+            min-height: 34px;
+            padding: 0 10px;
+            font-size: 0.9rem;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            min-height: 36px;
+            padding: 0;
+            border-color: var(--border);
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .metric {
+            min-height: 76px;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--surface);
+            box-shadow: 0 8px 22px rgba(23, 33, 29, 0.04);
+        }
+
+        .metric-label {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .metric-value {
+            margin-top: 6px;
+            font-size: 1.48rem;
+            line-height: 1;
+            font-weight: 700;
+        }
+
+        .metric-text {
+            font-size: 1rem;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
+            gap: 14px;
+            align-items: start;
+        }
+
+        .panel {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--surface);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 66px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            background: #fbfcfc;
+        }
+
+        .panel-title {
+            font-size: 1.12rem;
+            font-weight: 700;
+        }
+
+        .panel-subtitle {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        form {
+            padding: 16px;
+        }
+
+        .form-section {
+            padding: 0 0 18px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-section:last-of-type {
+            border-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            margin-bottom: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .field-full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #25342e;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .required::after {
+            content: " *";
+            color: var(--red);
+        }
+
+        input,
+        select {
+            width: 100%;
+            min-height: 42px;
+            border: 1px solid #cfd8d4;
+            border-radius: var(--radius);
+            padding: 0 11px;
+            color: var(--text);
+            background: #ffffff;
+            outline: none;
+            transition: border-color 160ms ease, box-shadow 160ms ease;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
+        }
+
+        .segment {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .segment label {
+            margin: 0;
+        }
+
+        .segment input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .segment span {
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #cfd8d4;
+            border-radius: var(--radius);
+            color: var(--muted);
+            background: #ffffff;
+            font-weight: 700;
+        }
+
+        .segment input:checked + span {
+            border-color: var(--primary);
+            color: var(--primary-dark);
+            background: var(--primary-soft);
+        }
+
+        .check-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 36px;
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .check-row input {
+            width: 18px;
+            min-height: 18px;
+            accent-color: var(--primary);
+        }
+
+        .form-actions {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            padding-top: 2px;
+        }
+
+        .toolbar {
+            display: grid;
+            grid-template-columns: minmax(220px, 1fr) minmax(130px, 160px) minmax(130px, 170px) minmax(190px, 240px);
+            gap: 10px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .pager {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+            background: #fbfcfc;
+        }
+
+        .pager-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .pager-info {
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .page-size {
+            width: auto;
+            min-width: 112px;
+        }
+
+        .search-field {
+            position: relative;
+        }
+
+        .search-field ion-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            width: 19px;
+            height: 19px;
+            color: var(--muted);
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .search-field input {
+            padding-left: 40px;
+        }
+
+        .table-wrap {
+            max-height: 650px;
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 900px;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            color: var(--muted);
+            background: var(--surface-muted);
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        td {
+            font-size: 0.94rem;
+        }
+
+        .student-name {
+            font-weight: 700;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 28px;
+            padding: 0 9px;
+            border-radius: 999px;
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            background: var(--primary-soft);
+            white-space: nowrap;
+        }
+
+        .badge-blue {
+            color: #1d4ed8;
+            background: var(--blue-soft);
+        }
+
+        .class-group-row td {
+            padding: 10px 14px;
+            color: var(--primary-dark);
+            background: var(--primary-soft);
+            font-weight: 700;
+        }
+
+        .class-group-meta {
+            margin-left: 8px;
+            color: var(--muted);
+            font-size: 0.86rem;
+            font-weight: 600;
+        }
+
+        .row-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .cards-list {
+            display: none;
+            padding: 12px;
+            gap: 10px;
+        }
+
+        .student-card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px;
+            background: #ffffff;
+        }
+
+        .class-card-group {
+            display: grid;
+            gap: 10px;
+        }
+
+        .class-card-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 1px solid #b9ded7;
+            border-radius: var(--radius);
+            color: var(--primary-dark);
+            background: var(--primary-soft);
+            font-weight: 700;
+        }
+
+        .student-card-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .student-card-meta {
+            display: grid;
+            gap: 6px;
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .empty {
+            padding: 34px 16px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .history-panel {
+            margin-top: 14px;
+        }
+
+        .history-list {
+            display: grid;
+            gap: 10px;
+            max-height: 260px;
+            overflow: auto;
+            padding: 14px 16px 16px;
+        }
+
+        .history-item {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 12px;
+            background: #ffffff;
+        }
+
+        .history-action {
+            font-weight: 700;
+        }
+
+        .history-added {
+            color: var(--green);
+        }
+
+        .history-edited {
+            color: var(--amber);
+        }
+
+        .history-deleted {
+            color: var(--red);
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 40;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(13, 21, 18, 0.54);
+        }
+
+        .modal.is-open {
+            display: flex;
+        }
+
+        .modal-dialog {
+            width: min(460px, 100%);
+            border-radius: var(--radius);
+            background: var(--surface);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-icon {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            margin-bottom: 12px;
+            border-radius: var(--radius);
+            color: var(--red);
+            background: var(--red-soft);
+        }
+
+        .modal-icon ion-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 14px 20px;
+            border-top: 1px solid var(--border);
+            background: #fbfcfc;
+        }
+
+        .toast {
+            position: fixed;
+            right: 18px;
+            top: 18px;
+            z-index: 60;
+            max-width: min(440px, calc(100vw - 36px));
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: var(--radius);
+            color: #ffffff;
+            background: var(--primary);
+            box-shadow: var(--shadow);
+            transform: translateX(calc(100% + 28px));
+            opacity: 0;
+            visibility: hidden;
+            transition: transform 180ms ease, opacity 180ms ease, visibility 180ms ease;
+        }
+
+        .toast.is-visible {
+            transform: translateX(0);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .toast.success {
+            background: var(--green);
+        }
+
+        .toast.error {
+            background: var(--red);
+        }
+
+        .toast.warning {
+            background: var(--amber);
+        }
+
+        .hidden-file {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+            clip-path: inset(50%);
+        }
+
+        .is-hidden {
+            display: none !important;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.45);
+            border-top-color: #ffffff;
+            border-radius: 999px;
+            animation: spin 700ms linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 1100px) {
+            .metrics {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .app {
+                padding: 12px;
+            }
+
+            .topbar,
+            .panel-header {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .top-actions {
+                display: grid;
+                grid-template-columns: 1fr;
+                justify-content: stretch;
+            }
+
+            .top-actions .btn,
+            .status-pill {
+                width: 100%;
+            }
+
+            .metrics {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .metric {
+                min-height: 82px;
+            }
+
+            .metric-value {
+                font-size: 1.45rem;
+            }
+
+            .field-grid,
+            .toolbar,
+            .pager,
+            .form-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .pager {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .pager-controls {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .pager-controls .page-size {
+                grid-column: 1 / -1;
+                width: 100%;
+            }
+
+            .table-wrap {
+                display: none;
+            }
+
+            .cards-list {
+                display: grid;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .app {
+                width: 100%;
+                max-width: none;
+                padding: 10px;
+            }
+
+            .brand > div,
+            .panel-header > div {
+                min-width: 0;
+            }
+
+            h1,
+            .subtitle,
+            .panel-title,
+            .panel-subtitle {
+                overflow-wrap: anywhere;
+            }
+
+            .metrics,
+            .segment {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="app">
+        <header class="topbar">
+            <div class="brand">
+                <div class="brand-mark" aria-hidden="true">
+                    <ion-icon name="school-outline"></ion-icon>
+                </div>
+                <div>
+                    <h1>ប្រព័ន្ធចុះឈ្មោះសិស្ស</h1>
+                    <p class="subtitle">គ្រប់គ្រងបញ្ជីសិស្ស ស្វែងរក Import Print និងទាញយក CSV</p>
+                </div>
+            </div>
+            <div class="top-actions">
+                <div id="connection-status" class="status-pill" role="status">
+                    <span class="status-dot"></span>
+                    <span id="connection-text">កំពុងភ្ជាប់...</span>
+                </div>
+                <button id="sheet-settings-btn" class="btn btn-ghost" type="button">
+                    <ion-icon name="grid-outline" aria-hidden="true"></ion-icon>
+                    <span>Google Sheet</span>
+                </button>
+                <button id="backup-now-btn" class="btn btn-ghost" type="button">
+                    <ion-icon name="cloud-done-outline" aria-hidden="true"></ion-icon>
+                    <span>Backup</span>
+                </button>
+                <button id="prepared-import-btn" class="btn btn-secondary is-hidden" type="button">
+                    <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+                    <span>បញ្ចូលឈ្មោះ</span>
+                </button>
+                <button id="download-template-btn" class="btn btn-ghost" type="button">
+                    <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+                    <span>គំរូ Excel</span>
+                </button>
+                <button id="import-file-btn" class="btn btn-secondary" type="button">
+                    <ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon>
+                    <span>Import</span>
+                </button>
+                <input id="import-file-input" class="hidden-file" type="file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
+                <button id="print-list-btn" class="btn btn-ghost" type="button">
+                    <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
+                    <span>បោះពុម្ពបញ្ជី</span>
+                </button>
+                <button id="download-csv-btn" class="btn btn-primary" type="button">
+                    <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
+                    <span>ទាញយក CSV</span>
+                </button>
+            </div>
+        </header>
+
+        <section class="metrics" aria-label="ស្ថិតិសិស្ស">
+            <div class="metric">
+                <p class="metric-label">សរុប</p>
+                <p id="total-students" class="metric-value">0</p>
+            </div>
+            <div class="metric">
+                <p class="metric-label">ប្រុស</p>
+                <p id="male-students" class="metric-value">0</p>
+            </div>
+            <div class="metric">
+                <p class="metric-label">ស្រី</p>
+                <p id="female-students" class="metric-value">0</p>
+            </div>
+            <div class="metric">
+                <p class="metric-label">ធ្វើបច្ចុប្បន្នភាព</p>
+                <p id="last-sync" class="metric-value">--:--</p>
+            </div>
+        </section>
+
+        <section class="layout">
+            <section class="panel form-panel" id="form-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 id="form-title" class="panel-title">បញ្ចូលសិស្សថ្មី</h2>
+                        <p id="form-subtitle" class="panel-subtitle">ព័ត៌មានដែលមាន * ត្រូវតែបំពេញ</p>
+                    </div>
+                </div>
+
+                <form id="registration-form" autocomplete="off">
+                    <input type="hidden" id="editing-id" value="">
+
+                    <div class="form-section">
+                        <h3 class="section-title">ព័ត៌មានសិស្ស</h3>
+                        <div class="field-grid">
+                            <div class="field-full">
+                                <label for="studentCode">លេខសម្គាល់សិស្ស</label>
+                                <input id="studentCode" name="studentCode" type="text" placeholder="បង្កើតស្វ័យប្រវត្តិពេលរក្សាទុក" readonly>
+                            </div>
+                            <div class="field-full">
+                                <label for="studentName" class="required">ឈ្មោះសិស្ស</label>
+                                <input id="studentName" name="studentName" type="text" required>
+                            </div>
+                            <div>
+                                <label class="required">ភេទ</label>
+                                <div class="segment" role="radiogroup" aria-label="ភេទ">
+                                    <label>
+                                        <input type="radio" name="gender" value="ប្រុស" checked>
+                                        <span>ប្រុស</span>
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="gender" value="ស្រី">
+                                        <span>ស្រី</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="dob" class="required">ថ្ងៃខែឆ្នាំកំណើត</label>
+                                <input id="dob" name="dob" type="date" required>
+                            </div>
+                            <div>
+                                <label for="fatherName">ឈ្មោះឳពុក</label>
+                                <input id="fatherName" name="fatherName" type="text">
+                            </div>
+                            <div>
+                                <label for="motherName">ឈ្មោះម្តាយ</label>
+                                <input id="motherName" name="motherName" type="text">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">ទីកន្លែងកំណើត</h3>
+                        <div class="field-grid">
+                            <div>
+                                <label for="pobProvince">ខេត្ត/រាជធានី</label>
+                                <select id="pobProvince" name="pobProvince"></select>
+                            </div>
+                            <div>
+                                <label for="pobDistrict">ស្រុក/ខណ្ឌ</label>
+                                <select id="pobDistrict" name="pobDistrict" disabled></select>
+                            </div>
+                            <div>
+                                <label for="pobCommune">ឃុំ/សង្កាត់</label>
+                                <select id="pobCommune" name="pobCommune" disabled></select>
+                            </div>
+                            <div>
+                                <label for="pobVillage">ភូមិ</label>
+                                <select id="pobVillage" name="pobVillage" disabled></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">អាសយដ្ឋានបច្ចុប្បន្ន</h3>
+                        <label class="check-row" for="same-address">
+                            <input id="same-address" type="checkbox">
+                            <span>ដូចទីកន្លែងកំណើត</span>
+                        </label>
+                        <div class="field-grid">
+                            <div>
+                                <label for="currentProvince">ខេត្ត/រាជធានី</label>
+                                <select id="currentProvince" name="currentProvince"></select>
+                            </div>
+                            <div>
+                                <label for="currentDistrict">ស្រុក/ខណ្ឌ</label>
+                                <select id="currentDistrict" name="currentDistrict" disabled></select>
+                            </div>
+                            <div>
+                                <label for="currentCommune">ឃុំ/សង្កាត់</label>
+                                <select id="currentCommune" name="currentCommune" disabled></select>
+                            </div>
+                            <div>
+                                <label for="currentVillage">ភូមិ</label>
+                                <select id="currentVillage" name="currentVillage" disabled></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">ការសិក្សា និងទំនាក់ទំនង</h3>
+                        <div class="field-grid">
+                            <div class="field-full">
+                                <label for="fromSchool">មកពីសាលា</label>
+                                <select id="fromSchool" name="fromSchool">
+                                    <option value="">ជ្រើសរើសសាលា</option>
+                                    <option value="បឋមព្រៃមេលង">បឋមព្រៃមេលង</option>
+                                    <option value="បឋមព្រៃម្លូ">បឋមព្រៃម្លូ</option>
+                                    <option value="បឋមអង្គសិរីម៉ាលី">បឋមអង្គសិរីម៉ាលី</option>
+                                    <option value="បឋមបន្ទាយធ្លាយ">បឋមបន្ទាយធ្លាយ</option>
+                                    <option value="បឋមព្រឹក្សា">បឋមព្រឹក្សា</option>
+                                    <option value="បឋមកែវកាំភ្លើង">បឋមកែវកាំភ្លើង</option>
+                                    <option value="បឋមទេពនិមិ្មត">បឋមទេពនិមិ្មត</option>
+                                    <option value="បឋមព្រៃបាយ">បឋមព្រៃបាយ</option>
+                                    <option value="បឋមអណ្តូងសំរិត">បឋមអណ្តូងសំរិត</option>
+                                    <option value="វិទ្យាល័យសុខអានព្រៃមេលង">វិទ្យាល័យសុខអានព្រៃមេលង</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="className">ថ្នាក់</label>
+                                <input id="className" name="className" type="text" placeholder="12A">
+                            </div>
+                            <div>
+                                <label for="gpa">មធ្យមភាគ</label>
+                                <input id="gpa" name="gpa" type="number" min="0" max="100" step="0.01" placeholder="85">
+                            </div>
+                            <div class="field-full">
+                                <label for="contact" class="required">លេខទូរស័ព្ទ</label>
+                                <input id="contact" name="contact" type="tel" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button id="save-student-btn" class="btn btn-primary" type="submit">
+                            <ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon>
+                            <span>រក្សាទុក</span>
+                        </button>
+                        <button id="clear-form-btn" class="btn btn-ghost" type="button">
+                            <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
+                            <span>សម្អាត</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">បញ្ជីសិស្ស</h2>
+                        <p id="result-summary" class="panel-subtitle">កំពុងផ្ទុកទិន្នន័យ...</p>
+                    </div>
+                </div>
+
+                <div class="toolbar">
+                    <div class="search-field">
+                        <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+                        <input id="search-input" type="search" placeholder="ស្វែងរក">
+                    </div>
+                    <select id="gender-filter" aria-label="តម្រងភេទ">
+                        <option value="">ភេទទាំងអស់</option>
+                        <option value="ប្រុស">ប្រុស</option>
+                        <option value="ស្រី">ស្រី</option>
+                    </select>
+                    <select id="class-filter" aria-label="តម្រងថ្នាក់">
+                        <option value="">ថ្នាក់ទាំងអស់</option>
+                    </select>
+                    <select id="school-filter" aria-label="តម្រងសាលា">
+                        <option value="">សាលាទាំងអស់</option>
+                    </select>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>ឈ្មោះ</th>
+                                <th>ភេទ</th>
+                                <th>ថ្នាក់</th>
+                                <th>សាលា</th>
+                                <th>ទំនាក់ទំនង</th>
+                                <th>អាសយដ្ឋាន</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="student-list">
+                            <tr>
+                                <td colspan="8" class="empty">កំពុងផ្ទុកទិន្នន័យ...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="student-cards" class="cards-list">
+                    <div class="empty">កំពុងផ្ទុកទិន្នន័យ...</div>
+                </div>
+
+                <div class="pager" aria-label="ការបែងចែកទំព័រ">
+                    <div id="page-info" class="pager-info">ទំព័រ 1</div>
+                    <div class="pager-controls">
+                        <button id="prev-page-btn" class="btn btn-ghost btn-small" type="button">
+                            <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+                            <span>មុន</span>
+                        </button>
+                        <button id="next-page-btn" class="btn btn-ghost btn-small" type="button">
+                            <span>បន្ទាប់</span>
+                            <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+                        </button>
+                        <select id="page-size-select" class="page-size" aria-label="ចំនួនក្នុងមួយទំព័រ">
+                            <option value="25">25 / ទំព័រ</option>
+                            <option value="50">50 / ទំព័រ</option>
+                            <option value="100">100 / ទំព័រ</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <section class="panel history-panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">ប្រវត្តិសកម្មភាព</h2>
+                    <p class="panel-subtitle">សកម្មភាពចុងក្រោយ</p>
+                </div>
+            </div>
+            <div id="history-log" class="history-list">
+                <p class="empty">មិនទាន់មានសកម្មភាព...</p>
+            </div>
+        </section>
+    </main>
+
+    <div id="delete-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="delete-title">
+        <div class="modal-dialog">
+            <div class="modal-body">
+                <div class="modal-icon" aria-hidden="true">
+                    <ion-icon name="warning-outline"></ion-icon>
+                </div>
+                <h2 id="delete-title" class="panel-title">លុបសិស្ស</h2>
+                <p class="subtitle">តើអ្នកចង់លុប <strong id="delete-student-name">សិស្សនេះ</strong> មែនទេ?</p>
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-delete-btn" class="btn btn-ghost" type="button">បោះបង់</button>
+                <button id="confirm-delete-btn" class="btn btn-danger" type="button">
+                    <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+                    <span>លុប</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sheet-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+        <div class="modal-dialog">
+            <div class="modal-body">
+                <div class="modal-icon" aria-hidden="true" style="color: var(--primary); background: var(--primary-soft);">
+                    <ion-icon name="grid-outline"></ion-icon>
+                </div>
+                <h2 id="sheet-title" class="panel-title">ភ្ជាប់ Google Sheet</h2>
+                <p class="subtitle">បញ្ចូល Apps Script Web App URL ដើម្បី sync ទិន្នន័យ add/update/delete/import ទៅ Google Sheet។</p>
+                <div style="margin-top: 14px;">
+                    <label for="sheet-url-input">Apps Script Web App URL</label>
+                    <input id="sheet-url-input" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="clear-sheet-url-btn" class="btn btn-ghost" type="button">សម្អាត URL</button>
+                <button id="cancel-sheet-url-btn" class="btn btn-ghost" type="button">បោះបង់</button>
+                <button id="save-sheet-url-btn" class="btn btn-primary" type="button">
+                    <ion-icon name="save-outline" aria-hidden="true"></ion-icon>
+                    <span>រក្សាទុក</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite">
+        <ion-icon id="toast-icon" name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
+        <span id="toast-message"></span>
+    </div>
+
+    <script src="./students1-import-data.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, addDoc, updateDoc, deleteDoc, getDocs, getCountFromServer, onSnapshot, collection, query, serverTimestamp, orderBy, limit as limitQuery, startAfter, where, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDFB0kfef0sCNNlk9MMb_iZbJ4OuL65uZ0",
+            authDomain: "students-6aeaf.firebaseapp.com",
+            projectId: "students-6aeaf",
+            storageBucket: "students-6aeaf.firebasestorage.app",
+            messagingSenderId: "426236093458",
+            appId: "1:426236093458:web:86cdefdab78637173664cb",
+            measurementId: "G-XFMENW1N3B"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const DEFAULT_GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxusXYk2wISGmhKvCr4YX3BIuEZ5f-QqDSGSP-5AFqp5CPOaj1mBNpmBM4XVGCdYXHf/exec";
+        const GOOGLE_SCRIPT_STORAGE_KEY = "studentRegistrationGoogleScriptUrl";
+        const BACKUP_TIME_STORAGE_KEY = "studentRegistrationLastBackupAt";
+        const STUDENT_CODE_PREFIX = "STU";
+
+        let userId = null;
+        let studentsCollectionRef = null;
+        let historyCollectionRef = null;
+        let unsubscribeStudents = null;
+        let unsubscribeHistory = null;
+        let allStudents = [];
+        let visibleStudents = [];
+        let totalStudentsCount = 0;
+        let pageSize = 25;
+        let currentPageIndex = 0;
+        let pageCursors = [null];
+        let hasNextPage = false;
+        let isLoadingPage = false;
+        let studentToDeleteId = null;
+        let toastTimeout = null;
+
+        const cambodiaData = {
+            "ខេត្តតាកែវ": {
+                "ក្រុងដូនកែវ": {
+                    "បារាយណ៍": ["បារាយណ៍", "ដើមផ្ដៀក", "ព្រៃព្រិច", "ព្រៃខ្លា", "ត្រពាំងសាលា", "ឡូរី", "ជ្រោយ", "ស្នោ"],
+                    "រកាក្នុង": ["រកាក្នុងទី១", "រកាក្នុងទី២", "អូរុន", "ចំការសំរោង", "ធ្នង់", "សុភី", "ត្រពាំងសាប"],
+                    "រកាក្រៅ": ["រកាក្រៅ", "ថ្មី", "តាឌុក", "តាដោ", "ត្រាំ", "ប្រហូត"]
+                },
+                "ស្រុកបាទី": {
+                    "ចំបក់": ["រលួស", "ត្រពាំងលើក", "ព្រៃរំពាក់", "ត្រពាំងក្រឡាញ់", "ត្រពាំងឈូក", "ត្រពាំងកក់", "ព្រៃជន្លួញ", "ត្រពាំងធំ", "ត្រពាំងព្រិច", "ថ្មី", "ក្រាំងអំពិល"],
+                    "ចំប៉ី": ["ចំប៉ី", "ព្រៃផ្គាំ", "កក់", "ស្រែឫស្សី", "ត្រពាំងឈូក", "ថ្មី", "ត្រពាំងរាំង", "ត្រពាំងរនៀម", "ត្រពាំងទា", "ព្រៃមូល"]
+                },
+                "ស្រុកកោះអណ្តែត": {
+                    "រមេញ": ["រមេញខាងត្បូង", "រមេញខាងជើង", "ដើមចាន់", "មានរិទ្ធ", "ដើមជ្រៃ", "ប្រឡាយមាស", "បត់រកា", "សំរោង", "ប្រាសាទ", "ដើមពោធិ៍"],
+                    "ពេជសារ": ["តាអូរ", "ជន្លូស", "ទួលមាស", "ព្រៃធំ", "ដំណាក់", "ត្របាយ", "កោះអណ្ដែត", "ក្រាំង", "តាអោក", "ពោធិ៍", "ពាន", "តាសៅ", "សិលា", "ស្នែ", "ចុងអន្ទង", "អង្គញ់", "តាប៉ិ", "កោះខ្ទម"],
+                    "ព្រៃខ្លា": ["ស្រម៉", "ស្រែបឹង", "ព្រៃមេលងខាងត្បូង", "ព្រៃមេលងខាងជើង", "កន្សោមអក", "ចំបក់", "សំភ្លី", "គរ", "ក្រាំងប្ញស្សី", "ព្រៃខ្លាខាងជើង", "ព្រៃខ្លាខាងត្បូង", "បន្ទាយធ្លាយ", "កែវកាំភ្លើង", "ទួលកណ្តាល", "ជំរុំ"],
+                    "ក្រពុំឈូក": ["ដើមដូង", "បេង", "ក្រពុំឈូក", "ព្រៃម្លូ", "ពានី", "តាពរ", "តាអ៊ុយ", "កោះមាន់", "វត្តស្លា", "ជ្រោយពោន", "ខ្លាគ្រហឹម ក", "ខ្លាគ្រហឹម ខ", "ត្រពាំងទនេ្ល"],
+                    "គោកធ្លក": ["គោកធ្លក", "ត្រពាំងឈូក", "ត្រពាំងក្រសាំង", "ត្រពាំងប្រិយ៍", "ព្រៃរនាម", "ព្រៃរោង", "ត្រពាំងស្យា", "ត្រពាំងត្នោត", "ត្រពាំងវែង"],
+                    "កំពែង": ["កំពែង", "ត្រពាំងឈូក", "ត្រពាំងក្រសាំង", "ត្រពាំងប្រិយ៍", "ព្រៃរនាម", "ព្រៃរោង", "ត្រពាំងស្យា", "ត្រពាំងត្នោត", "ត្រពាំងវែង"]
+                },
+                "ស្រុកព្រៃកប្បាស": {
+                    "អង្កាញ់": ["អង្កាញ់", "ត្រពាំងធ្នង់", "ព្រៃបាយ", "តាអាំ", "ត្រពាំងខ្ទុំ", "ត្រពាំងក្ដុល", "ត្រពាំងរំដេញ", "តាអ៊ុយ"],
+                    "បានៀវ": ["បានៀវ", "ព្រៃកប្បាស", "គោកទ្រា", "ព្រៃវិហារ", "ព្រៃចំបក់", "ត្រពាំងស្មៅ"],
+                    "ចំប៉ា": ["ចំប៉ា", "ព្រៃផ្អាវ", "ត្រពាំងអង្គ", "ក្រាំងឈើនៀង", "ត្រពាំងធំ", "តានប់"],
+                    "ចារ": ["ចារ", "សេរីវង្ស", "ព្រៃក្ដី", "ត្រពាំងសង្កែ", "ព្រៃរំពាក់"],
+                    "កំពែង": ["កំពែង", "ទួលស្បូវ", "ត្រពាំងឈូក", "ត្រពាំងក្រសាំង", "ព្រៃរនាម", "ព្រៃរោង"],
+                    "កំពង់រាប": ["កំពង់រាប", "ព្រែកហាប", "ព្រែកអាំ", "ព្រែកយួន"],
+                    "ព្រៃផ្តៅ": ["តាឌឹម", "ត្រពោន", "តាជិន", "តាចាន់", "តារៀន", "ពងអណ្ដើក"],
+                    "ព្រៃល្វា": ["ព្រៃល្វា", "ត្រពាំងក្ដី", "ត្រពាំងខ្យង", "ត្រពាំងឈូក", "ត្រពាំងស្មៅ"],
+                    "ស្នោ": ["ស្នោ", "ព្រៃមាស", "ត្រពាំងខ្នារ", "ត្រពាំងជ្រៃ", "ត្រពាំងទា"],
+                    "តាំងយ៉ាប": ["តាំងយ៉ាប", "ត្រពាំងខ្ទុំ", "ព្រៃធំ", "ត្រពាំងក្រូច", "ព្រៃទទឹង"]
+                }
+            }
+        };
+
+        const els = {
+            status: document.getElementById("connection-status"),
+            statusText: document.getElementById("connection-text"),
+            totalStudents: document.getElementById("total-students"),
+            maleStudents: document.getElementById("male-students"),
+            femaleStudents: document.getElementById("female-students"),
+            lastSync: document.getElementById("last-sync"),
+            latestStudentCode: document.getElementById("latest-student-code"),
+            backupStatus: document.getElementById("backup-status"),
+            dashboardMeta: document.getElementById("dashboard-meta"),
+            classDashboard: document.getElementById("class-dashboard"),
+            backupNowBtn: document.getElementById("backup-now-btn"),
+            backupSheetState: document.getElementById("backup-sheet-state"),
+            backupUpdatedAt: document.getElementById("backup-updated-at"),
+            preparedImportBtn: document.getElementById("prepared-import-btn"),
+            registrationForm: document.getElementById("registration-form"),
+            editingId: document.getElementById("editing-id"),
+            formPanel: document.getElementById("form-panel"),
+            formTitle: document.getElementById("form-title"),
+            formSubtitle: document.getElementById("form-subtitle"),
+            saveBtn: document.getElementById("save-student-btn"),
+            clearBtn: document.getElementById("clear-form-btn"),
+            sameAddress: document.getElementById("same-address"),
+            studentList: document.getElementById("student-list"),
+            studentCards: document.getElementById("student-cards"),
+            resultSummary: document.getElementById("result-summary"),
+            searchInput: document.getElementById("search-input"),
+            genderFilter: document.getElementById("gender-filter"),
+            classFilter: document.getElementById("class-filter"),
+            schoolFilter: document.getElementById("school-filter"),
+            pageInfo: document.getElementById("page-info"),
+            prevPageBtn: document.getElementById("prev-page-btn"),
+            nextPageBtn: document.getElementById("next-page-btn"),
+            pageSizeSelect: document.getElementById("page-size-select"),
+            fromSchool: document.getElementById("fromSchool"),
+            historyLog: document.getElementById("history-log"),
+            sheetSettingsBtn: document.getElementById("sheet-settings-btn"),
+            sheetModal: document.getElementById("sheet-modal"),
+            sheetUrlInput: document.getElementById("sheet-url-input"),
+            clearSheetUrlBtn: document.getElementById("clear-sheet-url-btn"),
+            cancelSheetUrlBtn: document.getElementById("cancel-sheet-url-btn"),
+            saveSheetUrlBtn: document.getElementById("save-sheet-url-btn"),
+            downloadTemplateBtn: document.getElementById("download-template-btn"),
+            importFileBtn: document.getElementById("import-file-btn"),
+            importFileInput: document.getElementById("import-file-input"),
+            printListBtn: document.getElementById("print-list-btn"),
+            downloadCsvBtn: document.getElementById("download-csv-btn"),
+            deleteModal: document.getElementById("delete-modal"),
+            deleteStudentName: document.getElementById("delete-student-name"),
+            confirmDeleteBtn: document.getElementById("confirm-delete-btn"),
+            cancelDeleteBtn: document.getElementById("cancel-delete-btn"),
+            toast: document.getElementById("toast"),
+            toastIcon: document.getElementById("toast-icon"),
+            toastMessage: document.getElementById("toast-message")
+        };
+
+        const pobGroup = {
+            province: document.getElementById("pobProvince"),
+            district: document.getElementById("pobDistrict"),
+            commune: document.getElementById("pobCommune"),
+            village: document.getElementById("pobVillage")
+        };
+
+        const currentGroup = {
+            province: document.getElementById("currentProvince"),
+            district: document.getElementById("currentDistrict"),
+            commune: document.getElementById("currentCommune"),
+            village: document.getElementById("currentVillage")
+        };
+
+        const fieldIds = [
+            "studentCode",
+            "studentName",
+            "dob",
+            "fatherName",
+            "motherName",
+            "pobProvince",
+            "pobDistrict",
+            "pobCommune",
+            "pobVillage",
+            "currentProvince",
+            "currentDistrict",
+            "currentCommune",
+            "currentVillage",
+            "fromSchool",
+            "className",
+            "gpa",
+            "contact"
+        ];
+
+        const escapeMap = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        };
+
+        function escapeHtml(value) {
+            return String(value ?? "").replace(/[&<>"']/g, (char) => escapeMap[char]);
+        }
+
+        function getValue(id) {
+            return document.getElementById(id).value.trim();
+        }
+
+        function setValue(id, value) {
+            document.getElementById(id).value = value || "";
+        }
+
+        function timestampMillis(value) {
+            return value && typeof value.toMillis === "function" ? value.toMillis() : 0;
+        }
+
+        function formatDate(value) {
+            if (!value) return "";
+            const parts = String(value).split("-");
+            return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : value;
+        }
+
+        function normalizeDateValue(value) {
+            if (!value) return "";
+            if (value instanceof Date && !Number.isNaN(value.getTime())) {
+                return value.toISOString().slice(0, 10);
+            }
+            if (typeof value === "number" && Number.isFinite(value)) {
+                const date = new Date(Math.round((value - 25569) * 86400 * 1000));
+                return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
+            }
+
+            const text = String(value).trim();
+            const iso = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+            if (iso) {
+                return `${iso[1]}-${iso[2].padStart(2, "0")}-${iso[3].padStart(2, "0")}`;
+            }
+
+            const local = text.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})$/);
+            if (local) {
+                const year = local[3].length === 2 ? `20${local[3]}` : local[3];
+                return `${year}-${local[2].padStart(2, "0")}-${local[1].padStart(2, "0")}`;
+            }
+
+            return text;
+        }
+
+        function normalizeText(value) {
+            return String(value || "")
+                .trim()
+                .toLocaleLowerCase("km-KH")
+                .replace(/\s+/g, "");
+        }
+
+        function normalizePhone(value) {
+            const digits = String(value || "").replace(/[^\d]/g, "");
+            if (digits.startsWith("855")) return `0${digits.slice(3)}`;
+            return digits;
+        }
+
+        function normalizeGenderValue(value) {
+            const text = String(value || "").trim().toLowerCase();
+            if (!text) return "";
+            if (text === "ស្រី" || text === "female" || text === "f") return "ស្រី";
+            if (text === "ប្រុស" || text === "male" || text === "m") return "ប្រុស";
+            return String(value || "").trim();
+        }
+
+        function studentDisplayId(student = {}, fallback = "") {
+            return student.studentCode || student.studentId || fallback || student.id || "";
+        }
+
+        function studentVisibleId(student = {}) {
+            return student.studentCode || student.studentId || "";
+        }
+
+        function findDuplicateStudent(student, ignoreId = "", source = allStudents) {
+            const codeKey = normalizeText(student.studentCode);
+            const nameKey = normalizeText(student.studentName);
+            const classKey = normalizeText(student.className);
+            const dobKey = normalizeDateValue(student.dob);
+            const phoneKey = normalizePhone(student.contact);
+
+            for (const existing of source) {
+                if (existing.id && existing.id === ignoreId) continue;
+                if (codeKey && normalizeText(existing.studentCode || existing.studentId) === codeKey) {
+                    return { type: "studentCode", student: existing };
+                }
+                if (phoneKey && normalizePhone(existing.contact) === phoneKey) {
+                    return { type: "phone", student: existing };
+                }
+                if (nameKey && dobKey && normalizeText(existing.studentName) === nameKey && normalizeDateValue(existing.dob) === dobKey) {
+                    return { type: "student", student: existing };
+                }
+                if (nameKey && classKey && normalizeText(existing.studentName) === nameKey && normalizeText(existing.className) === classKey) {
+                    return { type: "student", student: existing };
+                }
+            }
+
+            return null;
+        }
+
+        function duplicateMessage(duplicate) {
+            if (!duplicate) return "";
+            if (duplicate.type === "studentCode") {
+                return `លេខសម្គាល់នេះមានរួចហើយ: ${studentDisplayId(duplicate.student)}`;
+            }
+            if (duplicate.type === "phone") {
+                return `លេខទូរស័ព្ទនេះមានរួចហើយ: ${duplicate.student.studentName || "មិនមានឈ្មោះ"}`;
+            }
+            return `សិស្សនេះមានរួចហើយ: ${duplicate.student.studentName || "មិនមានឈ្មោះ"}`;
+        }
+
+        function normalizedStudentFields(student) {
+            return {
+                studentCodeNormalized: normalizeText(student.studentCode),
+                studentNameNormalized: normalizeText(student.studentName),
+                dobNormalized: normalizeDateValue(student.dob),
+                contactNormalized: normalizePhone(student.contact)
+            };
+        }
+
+        function snapshotDuplicate(snapshot, ignoreId, type) {
+            for (const item of snapshot.docs) {
+                if (item.id !== ignoreId) return { type, student: { id: item.id, ...item.data() } };
+            }
+            return null;
+        }
+
+        async function findDuplicateStudentOnServer(student, ignoreId = "", localSource = []) {
+            const localDuplicate = findDuplicateStudent(student, ignoreId, localSource);
+            if (localDuplicate) return localDuplicate;
+            if (!studentsCollectionRef) return null;
+
+            const name = String(student.studentName || "").trim();
+            const code = String(student.studentCode || "").trim();
+            const codeKey = normalizeText(student.studentCode);
+            const nameKey = normalizeText(student.studentName);
+            const classKey = normalizeText(student.className);
+            const dobKey = normalizeDateValue(student.dob);
+            const phone = String(student.contact || "").trim();
+            const phoneKey = normalizePhone(student.contact);
+
+            const checks = [];
+            if (codeKey) checks.push({ type: "studentCode", queryRef: query(studentsCollectionRef, where("studentCodeNormalized", "==", codeKey), limitQuery(3)) });
+            if (code) checks.push({ type: "studentCode", queryRef: query(studentsCollectionRef, where("studentCode", "==", code), limitQuery(3)) });
+            if (phoneKey) checks.push({ type: "phone", queryRef: query(studentsCollectionRef, where("contactNormalized", "==", phoneKey), limitQuery(3)) });
+            if (phone) checks.push({ type: "phone", queryRef: query(studentsCollectionRef, where("contact", "==", phone), limitQuery(3)) });
+            if (nameKey && dobKey) checks.push({ type: "student", queryRef: query(studentsCollectionRef, where("studentNameNormalized", "==", nameKey), limitQuery(25)), dobKey });
+            if (name && dobKey) checks.push({ type: "student", queryRef: query(studentsCollectionRef, where("studentName", "==", name), limitQuery(25)), dobKey });
+            if (nameKey && classKey) checks.push({ type: "student", queryRef: query(studentsCollectionRef, where("studentNameNormalized", "==", nameKey), limitQuery(25)) });
+            if (name && classKey) checks.push({ type: "student", queryRef: query(studentsCollectionRef, where("studentName", "==", name), limitQuery(25)) });
+
+            for (const check of checks) {
+                const snapshot = await getDocs(check.queryRef);
+                if (check.type === "student") {
+                    const filteredDocs = snapshot.docs.filter((item) => {
+                        const data = item.data();
+                        const dobMatches = check.dobKey && normalizeDateValue(data.dobNormalized || data.dob) === check.dobKey;
+                        const classMatches = classKey && normalizeText(data.className) === classKey;
+                        return dobMatches || classMatches;
+                    });
+                    const duplicate = snapshotDuplicate({ docs: filteredDocs }, ignoreId, check.type);
+                    if (duplicate) return duplicate;
+                } else {
+                    const duplicate = snapshotDuplicate(snapshot, ignoreId, check.type);
+                    if (duplicate) return duplicate;
+                }
+            }
+
+            return null;
+        }
+
+        function formatTime(date = new Date()) {
+            return date.toLocaleTimeString("km-KH", { hour: "2-digit", minute: "2-digit" });
+        }
+
+        function formatDateTime(value) {
+            if (!value) return "មិនទាន់មាន";
+            const date = value instanceof Date ? value : new Date(value);
+            return Number.isNaN(date.getTime()) ? "មិនទាន់មាន" : date.toLocaleString("km-KH");
+        }
+
+        async function studentCodeExists(code) {
+            if (!studentsCollectionRef || !code) return false;
+            const snapshot = await getDocs(query(studentsCollectionRef, where("studentCode", "==", code), limitQuery(1)));
+            return !snapshot.empty;
+        }
+
+        async function generateStudentCode(reservedCodes = new Set()) {
+            let nextNumber = Math.max(totalStudentsCount, allStudents.length) + reservedCodes.size + 1;
+            try {
+                if (studentsCollectionRef) {
+                    const countSnap = await getCountFromServer(query(studentsCollectionRef));
+                    nextNumber = countSnap.data().count + reservedCodes.size + 1;
+                }
+            } catch (error) {
+                console.warn("Could not count students for code generation:", error);
+            }
+
+            for (let attempt = 0; attempt < 250; attempt += 1) {
+                const code = `${STUDENT_CODE_PREFIX}-${String(nextNumber + attempt).padStart(4, "0")}`;
+                if (!reservedCodes.has(code) && !(await studentCodeExists(code))) return code;
+            }
+
+            return `${STUDENT_CODE_PREFIX}-${Date.now().toString().slice(-8)}`;
+        }
+
+        function addressText(student, prefix) {
+            return [
+                student[`${prefix}Village`],
+                student[`${prefix}Commune`],
+                student[`${prefix}District`],
+                student[`${prefix}Province`]
+            ].filter(Boolean).join(", ");
+        }
+
+        function setStatus(text, state = "") {
+            els.status.className = `status-pill ${state}`.trim();
+            els.statusText.textContent = text;
+        }
+
+        function getGoogleScriptUrl() {
+            return localStorage.getItem(GOOGLE_SCRIPT_STORAGE_KEY) || DEFAULT_GOOGLE_SCRIPT_URL;
+        }
+
+        function openSheetModal() {
+            els.sheetUrlInput.value = getGoogleScriptUrl();
+            els.sheetModal.classList.add("is-open");
+        }
+
+        function closeSheetModal() {
+            els.sheetModal.classList.remove("is-open");
+        }
+
+        function saveSheetUrl() {
+            const value = els.sheetUrlInput.value.trim();
+            if (!value) {
+                localStorage.removeItem(GOOGLE_SCRIPT_STORAGE_KEY);
+                closeSheetModal();
+                updateBackupInfo();
+                showToast("បានប្រើ Google Sheet URL ដើម");
+                return;
+            }
+
+            if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/i.test(value)) {
+                showToast("URL ត្រូវតែជា Apps Script Web App URL ដែលបញ្ចប់ដោយ /exec", "warning");
+                return;
+            }
+
+            localStorage.setItem(GOOGLE_SCRIPT_STORAGE_KEY, value);
+            closeSheetModal();
+            updateBackupInfo();
+            showToast("បានរក្សាទុក Google Sheet URL");
+        }
+
+        function showToast(message, type = "success") {
+            clearTimeout(toastTimeout);
+            const iconByType = {
+                success: "checkmark-circle-outline",
+                error: "alert-circle-outline",
+                warning: "warning-outline"
+            };
+            els.toast.className = `toast ${type} is-visible`;
+            els.toastIcon.setAttribute("name", iconByType[type] || iconByType.success);
+            els.toastMessage.textContent = message;
+            toastTimeout = setTimeout(() => {
+                els.toast.classList.remove("is-visible");
+            }, 3200);
+        }
+
+        function populateSelect(select, items, placeholder, selectedValue = "") {
+            const values = [...new Set((items || []).filter(Boolean))];
+            if (selectedValue && !values.includes(selectedValue)) values.push(selectedValue);
+            select.innerHTML = "";
+            select.append(new Option(placeholder, ""));
+            values.forEach((item) => select.append(new Option(item, item)));
+            select.value = selectedValue || "";
+        }
+
+        function resetAddressGroup(group) {
+            populateSelect(group.province, Object.keys(cambodiaData), "ជ្រើសរើសខេត្ត/រាជធានី");
+            populateSelect(group.district, [], "ជ្រើសរើសស្រុក/ខណ្ឌ");
+            populateSelect(group.commune, [], "ជ្រើសរើសឃុំ/សង្កាត់");
+            populateSelect(group.village, [], "ជ្រើសរើសភូមិ");
+            group.district.disabled = true;
+            group.commune.disabled = true;
+            group.village.disabled = true;
+        }
+
+        function setAddressGroup(group, address) {
+            const province = address.province || "";
+            const district = address.district || "";
+            const commune = address.commune || "";
+            const village = address.village || "";
+            populateSelect(group.province, Object.keys(cambodiaData), "ជ្រើសរើសខេត្ត/រាជធានី", province);
+            populateSelect(group.district, province ? Object.keys(cambodiaData[province] || {}) : [], "ជ្រើសរើសស្រុក/ខណ្ឌ", district);
+            group.district.disabled = !province;
+            populateSelect(group.commune, province && district ? Object.keys(cambodiaData[province]?.[district] || {}) : [], "ជ្រើសរើសឃុំ/សង្កាត់", commune);
+            group.commune.disabled = !(province && district);
+            populateSelect(group.village, province && district && commune ? (cambodiaData[province]?.[district]?.[commune] || []) : [], "ជ្រើសរើសភូមិ", village);
+            group.village.disabled = !(province && district && commune);
+        }
+
+        function readAddressGroup(group) {
+            return {
+                province: group.province.value,
+                district: group.district.value,
+                commune: group.commune.value,
+                village: group.village.value
+            };
+        }
+
+        function lockCurrentAddress(locked) {
+            if (locked) {
+                Object.values(currentGroup).forEach((select) => {
+                    select.disabled = true;
+                });
+                return;
+            }
+
+            const province = currentGroup.province.value;
+            const district = currentGroup.district.value;
+            const commune = currentGroup.commune.value;
+            currentGroup.province.disabled = false;
+            currentGroup.district.disabled = !province;
+            currentGroup.commune.disabled = !(province && district);
+            currentGroup.village.disabled = !(province && district && commune);
+        }
+
+        function syncCurrentAddressFromBirth() {
+            setAddressGroup(currentGroup, readAddressGroup(pobGroup));
+            lockCurrentAddress(els.sameAddress.checked);
+        }
+
+        function setupAddressListeners(group, onChange) {
+            group.province.addEventListener("change", () => {
+                const province = group.province.value;
+                populateSelect(group.district, province ? Object.keys(cambodiaData[province] || {}) : [], "ជ្រើសរើសស្រុក/ខណ្ឌ");
+                populateSelect(group.commune, [], "ជ្រើសរើសឃុំ/សង្កាត់");
+                populateSelect(group.village, [], "ជ្រើសរើសភូមិ");
+                group.district.disabled = !province;
+                group.commune.disabled = true;
+                group.village.disabled = true;
+                onChange?.();
+            });
+
+            group.district.addEventListener("change", () => {
+                const province = group.province.value;
+                const district = group.district.value;
+                populateSelect(group.commune, province && district ? Object.keys(cambodiaData[province]?.[district] || {}) : [], "ជ្រើសរើសឃុំ/សង្កាត់");
+                populateSelect(group.village, [], "ជ្រើសរើសភូមិ");
+                group.commune.disabled = !(province && district);
+                group.village.disabled = true;
+                onChange?.();
+            });
+
+            group.commune.addEventListener("change", () => {
+                const province = group.province.value;
+                const district = group.district.value;
+                const commune = group.commune.value;
+                populateSelect(group.village, province && district && commune ? (cambodiaData[province]?.[district]?.[commune] || []) : [], "ជ្រើសរើសភូមិ");
+                group.village.disabled = !(province && district && commune);
+                onChange?.();
+            });
+
+            group.village.addEventListener("change", () => onChange?.());
+        }
+
+        function collectStudentPayload() {
+            if (els.sameAddress.checked) syncCurrentAddressFromBirth();
+            return {
+                studentCode: getValue("studentCode"),
+                studentName: getValue("studentName"),
+                gender: document.querySelector('input[name="gender"]:checked')?.value || "ប្រុស",
+                dob: getValue("dob"),
+                fatherName: getValue("fatherName"),
+                motherName: getValue("motherName"),
+                pobProvince: pobGroup.province.value,
+                pobDistrict: pobGroup.district.value,
+                pobCommune: pobGroup.commune.value,
+                pobVillage: pobGroup.village.value,
+                currentProvince: currentGroup.province.value,
+                currentDistrict: currentGroup.district.value,
+                currentCommune: currentGroup.commune.value,
+                currentVillage: currentGroup.village.value,
+                fromSchool: els.fromSchool.value,
+                className: getValue("className"),
+                gpa: getValue("gpa"),
+                contact: getValue("contact")
+            };
+        }
+
+        function addressesMatch(student) {
+            return ["Province", "District", "Commune", "Village"].every((part) => {
+                return (student[`pob${part}`] || "") === (student[`current${part}`] || "");
+            });
+        }
+
+        function setEditMode(studentId) {
+            els.editingId.value = studentId || "";
+            if (studentId) {
+                els.formTitle.textContent = "កែសម្រួលសិស្ស";
+                els.formSubtitle.textContent = "កំពុងកែព័ត៌មានសិស្សដែលបានជ្រើស";
+                els.saveBtn.innerHTML = '<ion-icon name="save-outline" aria-hidden="true"></ion-icon><span>រក្សាទុកកំណែ</span>';
+                els.clearBtn.innerHTML = '<ion-icon name="close-outline" aria-hidden="true"></ion-icon><span>បោះបង់</span>';
+            } else {
+                els.formTitle.textContent = "បញ្ចូលសិស្សថ្មី";
+                els.formSubtitle.textContent = "ព័ត៌មានដែលមាន * ត្រូវតែបំពេញ";
+                els.saveBtn.innerHTML = '<ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon><span>រក្សាទុក</span>';
+                els.clearBtn.innerHTML = '<ion-icon name="refresh-outline" aria-hidden="true"></ion-icon><span>សម្អាត</span>';
+            }
+        }
+
+        function resetForm() {
+            els.registrationForm.reset();
+            setEditMode("");
+            resetAddressGroup(pobGroup);
+            resetAddressGroup(currentGroup);
+            els.sameAddress.checked = false;
+            lockCurrentAddress(false);
+        }
+
+        function ensureSchoolOption(value) {
+            if (!value) return;
+            const exists = Array.from(els.fromSchool.options).some((option) => option.value === value);
+            if (!exists) els.fromSchool.append(new Option(value, value));
+        }
+
+        function loadStudentIntoForm(studentId) {
+            const student = allStudents.find((item) => item.id === studentId);
+            if (!student) {
+                showToast("រកមិនឃើញទិន្នន័យសិស្ស", "error");
+                return;
+            }
+
+            fieldIds.forEach((id) => setValue(id, student[id] || ""));
+            ensureSchoolOption(student.fromSchool);
+            els.fromSchool.value = student.fromSchool || "";
+            document.querySelectorAll('input[name="gender"]').forEach((input) => {
+                input.checked = input.value === (student.gender || "ប្រុស");
+            });
+
+            setAddressGroup(pobGroup, {
+                province: student.pobProvince,
+                district: student.pobDistrict,
+                commune: student.pobCommune,
+                village: student.pobVillage
+            });
+            setAddressGroup(currentGroup, {
+                province: student.currentProvince,
+                district: student.currentDistrict,
+                commune: student.currentCommune,
+                village: student.currentVillage
+            });
+
+            els.sameAddress.checked = addressesMatch(student);
+            lockCurrentAddress(els.sameAddress.checked);
+            setEditMode(studentId);
+            els.formPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        async function updateStats() {
+            if (!studentsCollectionRef) {
+                els.totalStudents.textContent = allStudents.length;
+                els.maleStudents.textContent = allStudents.filter((student) => student.gender === "ប្រុស").length;
+                els.femaleStudents.textContent = allStudents.filter((student) => student.gender === "ស្រី").length;
+                els.lastSync.textContent = formatTime();
+                return;
+            }
+
+            try {
+                const [totalSnap, maleSnap, femaleSnap] = await Promise.all([
+                    getCountFromServer(query(studentsCollectionRef)),
+                    getCountFromServer(query(studentsCollectionRef, where("gender", "==", "ប្រុស"))),
+                    getCountFromServer(query(studentsCollectionRef, where("gender", "==", "ស្រី")))
+                ]);
+                totalStudentsCount = totalSnap.data().count;
+                els.totalStudents.textContent = totalStudentsCount;
+                els.maleStudents.textContent = maleSnap.data().count;
+                els.femaleStudents.textContent = femaleSnap.data().count;
+            } catch (error) {
+                console.error("Error loading counts:", error);
+                totalStudentsCount = Math.max(totalStudentsCount, allStudents.length);
+                els.totalStudents.textContent = totalStudentsCount;
+                els.maleStudents.textContent = allStudents.filter((student) => student.gender === "ប្រុស").length;
+                els.femaleStudents.textContent = allStudents.filter((student) => student.gender === "ស្រី").length;
+            } finally {
+                els.lastSync.textContent = formatTime();
+            }
+        }
+
+        function buildSchoolFilter() {
+            const selected = els.schoolFilter.value;
+            const formSchools = Array.from(els.fromSchool.options).map((option) => option.value).filter(Boolean);
+            const dataSchools = allStudents.map((student) => student.fromSchool).filter(Boolean);
+            const schools = [...new Set([...formSchools, ...dataSchools])].sort((a, b) => a.localeCompare(b, "km-KH"));
+            els.schoolFilter.innerHTML = '<option value="">សាលាទាំងអស់</option>';
+            schools.forEach((school) => els.schoolFilter.append(new Option(school, school)));
+            els.schoolFilter.value = schools.includes(selected) ? selected : "";
+        }
+
+        function buildClassFilter() {
+            const selected = els.classFilter.value;
+            const classes = [...new Set(allStudents.map((student) => student.className).filter(Boolean))]
+                .sort((a, b) => a.localeCompare(b, "km-KH", { numeric: true }));
+            els.classFilter.innerHTML = '<option value="">ថ្នាក់ទាំងអស់</option>';
+            classes.forEach((className) => els.classFilter.append(new Option(className, className)));
+            els.classFilter.value = classes.includes(selected) ? selected : "";
+        }
+
+        function groupedByClass(students) {
+            const groups = new Map();
+            students.forEach((student) => {
+                const className = student.className || "មិនទាន់បញ្ចូលថ្នាក់";
+                if (!groups.has(className)) groups.set(className, []);
+                groups.get(className).push(student);
+            });
+            return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b, "km-KH", { numeric: true }));
+        }
+
+        function updateBackupInfo(backupAt = localStorage.getItem(BACKUP_TIME_STORAGE_KEY)) {
+            const hasUrl = Boolean(getGoogleScriptUrl());
+            if (els.backupSheetState) els.backupSheetState.textContent = hasUrl ? "ភ្ជាប់រួច" : "មិនទាន់ភ្ជាប់";
+            if (els.backupStatus) els.backupStatus.textContent = backupAt ? formatDateTime(backupAt) : "មិនទាន់";
+            if (els.backupUpdatedAt) els.backupUpdatedAt.textContent = backupAt ? formatDateTime(backupAt) : "មិនទាន់មាន";
+        }
+
+        function renderDashboard() {
+            const loadedTotal = allStudents.length;
+            const latest = allStudents[0] ? studentVisibleId(allStudents[0]) : "--";
+            if (els.latestStudentCode) els.latestStudentCode.textContent = latest || "--";
+            if (els.dashboardMeta) els.dashboardMeta.textContent = `បង្ហាញ ${loadedTotal} នាក់ក្នុងទំព័រនេះ${totalStudentsCount ? ` / សរុបទាំងអស់ ${totalStudentsCount}` : ""}`;
+            if (!els.classDashboard) {
+                updateBackupInfo();
+                return;
+            }
+
+            const groups = groupedByClass(allStudents).slice(0, 10);
+            if (groups.length === 0) {
+                els.classDashboard.innerHTML = '<p class="empty">មិនទាន់មានទិន្នន័យ</p>';
+                updateBackupInfo();
+                return;
+            }
+
+            els.classDashboard.innerHTML = groups.map(([className, students]) => {
+                const female = students.filter((student) => student.gender === "ស្រី").length;
+                const male = students.filter((student) => student.gender === "ប្រុស").length;
+                return `
+                    <div class="class-summary-row">
+                        <strong>${escapeHtml(className)}</strong>
+                        <span>សរុប ${students.length}</span>
+                        <span>ប្រុស ${male}</span>
+                        <span>ស្រី ${female}</span>
+                    </div>
+                `;
+            }).join("");
+            updateBackupInfo();
+        }
+
+        function studentSearchText(student) {
+            return [
+                studentDisplayId(student),
+                student.studentName,
+                student.gender,
+                student.dob,
+                student.fatherName,
+                student.motherName,
+                student.fromSchool,
+                student.className,
+                student.gpa,
+                student.contact,
+                addressText(student, "pob"),
+                addressText(student, "current")
+            ].filter(Boolean).join(" ").toLowerCase();
+        }
+
+        function applyFilters() {
+            const term = els.searchInput.value.trim().toLowerCase();
+            const gender = els.genderFilter.value;
+            const className = els.classFilter.value;
+            const school = els.schoolFilter.value;
+
+            visibleStudents = allStudents.filter((student) => {
+                const matchesSearch = !term || studentSearchText(student).includes(term);
+                const matchesGender = !gender || student.gender === gender;
+                const matchesClass = !className || student.className === className;
+                const matchesSchool = !school || student.fromSchool === school;
+                return matchesSearch && matchesGender && matchesClass && matchesSchool;
+            });
+
+            renderStudentViews();
+        }
+
+        function hasActiveFilters() {
+            return Boolean(els.searchInput.value.trim() || els.genderFilter.value || els.classFilter.value || els.schoolFilter.value);
+        }
+
+        function updatePager() {
+            const start = totalStudentsCount === 0 ? 0 : (currentPageIndex * pageSize) + 1;
+            const end = Math.min((currentPageIndex * pageSize) + allStudents.length, totalStudentsCount || ((currentPageIndex * pageSize) + allStudents.length));
+            const totalText = totalStudentsCount ? ` / ${totalStudentsCount}` : "";
+            els.pageInfo.textContent = `ទំព័រ ${currentPageIndex + 1} (${start}-${end}${totalText})`;
+            els.prevPageBtn.disabled = isLoadingPage || currentPageIndex === 0;
+            els.nextPageBtn.disabled = isLoadingPage || !hasNextPage;
+            els.pageSizeSelect.disabled = isLoadingPage;
+        }
+
+        function renderStudentViews() {
+            els.resultSummary.textContent = `${visibleStudents.length} / ${allStudents.length} នាក់ ក្នុងទំព័រនេះ`;
+            updatePager();
+
+            if (visibleStudents.length === 0) {
+                els.studentList.innerHTML = '<tr><td colspan="8" class="empty">មិនមានទិន្នន័យ</td></tr>';
+                els.studentCards.innerHTML = '<div class="empty">មិនមានទិន្នន័យ</div>';
+                return;
+            }
+
+            let rowNumber = 0;
+            els.studentList.innerHTML = groupedByClass(visibleStudents).map(([className, students]) => {
+                const rows = students.map((student) => {
+                    rowNumber += 1;
+                    const currentAddress = addressText(student, "current");
+                    return `
+                        <tr>
+                            <td>${rowNumber}</td>
+                            <td>
+                                <div class="student-name">${escapeHtml(student.studentName)}</div>
+                                <div class="muted">${escapeHtml(studentVisibleId(student) || "-")} • ${escapeHtml(formatDate(student.dob))}</div>
+                            </td>
+                            <td><span class="badge">${escapeHtml(student.gender || "")}</span></td>
+                            <td>${escapeHtml(student.className || "-")}</td>
+                            <td>${escapeHtml(student.fromSchool || "-")}</td>
+                            <td>${escapeHtml(student.contact || "-")}</td>
+                            <td>${escapeHtml(currentAddress || "-")}</td>
+                            <td>
+                                <div class="row-actions">
+                                    <button class="btn btn-icon print-student-btn" type="button" title="បោះពុម្ព" aria-label="បោះពុម្ព" data-id="${escapeHtml(student.id)}">
+                                        <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
+                                    </button>
+                                    <button class="btn btn-icon edit-btn" type="button" title="កែសម្រួល" aria-label="កែសម្រួល" data-id="${escapeHtml(student.id)}">
+                                        <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
+                                    </button>
+                                    <button class="btn btn-icon delete-btn" type="button" title="លុប" aria-label="លុប" data-id="${escapeHtml(student.id)}">
+                                        <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join("");
+                return `
+                    <tr class="class-group-row">
+                        <td colspan="8">ថ្នាក់ ${escapeHtml(className)} <span class="class-group-meta">${students.length} នាក់</span></td>
+                    </tr>
+                    ${rows}
+                `;
+            }).join("");
+
+            let cardNumber = 0;
+            els.studentCards.innerHTML = groupedByClass(visibleStudents).map(([className, students]) => {
+                const cards = students.map((student) => {
+                    cardNumber += 1;
+                    return `
+                        <article class="student-card">
+                            <div class="student-card-head">
+                                     <div>
+                                         <div class="student-name">${cardNumber}. ${escapeHtml(student.studentName)}</div>
+                                     <div class="muted">${escapeHtml(studentVisibleId(student) || "-")} • ${escapeHtml(formatDate(student.dob))}</div>
+                                     </div>
+                                <span class="badge badge-blue">${escapeHtml(student.gender || "")}</span>
+                            </div>
+                            <div class="student-card-meta">
+                                <div>ថ្នាក់: ${escapeHtml(student.className || "-")}</div>
+                                <div>សាលា: ${escapeHtml(student.fromSchool || "-")}</div>
+                                <div>ទូរស័ព្ទ: ${escapeHtml(student.contact || "-")}</div>
+                                <div>អាសយដ្ឋាន: ${escapeHtml(addressText(student, "current") || "-")}</div>
+                            </div>
+                            <div class="row-actions" style="margin-top: 12px;">
+                                <button class="btn btn-small print-student-btn" type="button" data-id="${escapeHtml(student.id)}">
+                                    <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
+                                    <span>Print</span>
+                                </button>
+                                <button class="btn btn-small edit-btn" type="button" data-id="${escapeHtml(student.id)}">
+                                    <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
+                                    <span>កែ</span>
+                                </button>
+                                <button class="btn btn-small delete-btn" type="button" data-id="${escapeHtml(student.id)}">
+                                    <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+                                    <span>លុប</span>
+                                </button>
+                            </div>
+                        </article>
+                    `;
+                }).join("");
+                return `
+                    <section class="class-card-group">
+                        <div class="class-card-title">
+                            <span>ថ្នាក់ ${escapeHtml(className)}</span>
+                            <span>${students.length} នាក់</span>
+                        </div>
+                        ${cards}
+                    </section>
+                `;
+            }).join("");
+        }
+
+        function renderStudents(docs) {
+            const pageDocs = docs.slice(0, pageSize);
+            allStudents = pageDocs
+                .map((item) => ({ id: item.id, ...item.data() }))
+                .sort((a, b) => timestampMillis(b.createdAt) - timestampMillis(a.createdAt));
+            hasNextPage = docs.length > pageSize;
+            pageCursors[currentPageIndex + 1] = pageDocs.length ? pageDocs[pageDocs.length - 1] : null;
+            buildSchoolFilter();
+            buildClassFilter();
+            renderDashboard();
+            applyFilters();
+        }
+
+        function setPageLoading(isLoading) {
+            isLoadingPage = isLoading;
+            if (isLoading) {
+                els.studentList.innerHTML = '<tr><td colspan="8" class="empty">កំពុងផ្ទុកទិន្នន័យ...</td></tr>';
+                els.studentCards.innerHTML = '<div class="empty">កំពុងផ្ទុកទិន្នន័យ...</div>';
+            }
+            updatePager();
+        }
+
+        async function loadStudentsPage(pageIndex = currentPageIndex) {
+            if (!studentsCollectionRef) return;
+            setPageLoading(true);
+
+            try {
+                const cursor = pageCursors[pageIndex] || null;
+                const parts = [studentsCollectionRef, orderBy("createdAt", "desc")];
+                if (cursor) parts.push(startAfter(cursor));
+                parts.push(limitQuery(pageSize + 1));
+
+                const snapshot = await getDocs(query(...parts));
+                currentPageIndex = pageIndex;
+                renderStudents(snapshot.docs);
+                setStatus("បានភ្ជាប់", "connected");
+            } catch (error) {
+                console.error("Error loading student page:", error);
+                setStatus("មានបញ្ហា", "error");
+                els.studentList.innerHTML = '<tr><td colspan="8" class="empty">ផ្ទុកទិន្នន័យមិនបាន</td></tr>';
+                els.studentCards.innerHTML = '<div class="empty">ផ្ទុកទិន្នន័យមិនបាន</div>';
+            } finally {
+                setPageLoading(false);
+            }
+        }
+
+        function resetPagination() {
+            currentPageIndex = 0;
+            pageCursors = [null];
+            hasNextPage = false;
+        }
+
+        async function refreshStudents({ reset = false } = {}) {
+            if (reset) resetPagination();
+            await updateStats();
+            await loadStudentsPage(currentPageIndex);
+        }
+
+        function renderHistory(docs) {
+            const logs = docs
+                .map((item) => ({ id: item.id, ...item.data() }))
+                .sort((a, b) => timestampMillis(b.timestamp) - timestampMillis(a.timestamp))
+                .slice(0, 20);
+
+            if (logs.length === 0) {
+                els.historyLog.innerHTML = '<p class="empty">មិនទាន់មានសកម្មភាព...</p>';
+                return;
+            }
+
+            const actionMap = {
+                added: { text: "បានបន្ថែម", className: "history-added" },
+                edited: { text: "បានកែសម្រួល", className: "history-edited" },
+                deleted: { text: "បានលុប", className: "history-deleted" },
+                backup: { text: "បាន Backup", className: "history-added" }
+            };
+
+            els.historyLog.innerHTML = logs.map((log) => {
+                const action = actionMap[log.action] || { text: log.action || "សកម្មភាព", className: "" };
+                const timestamp = log.timestamp?.toDate ? log.timestamp.toDate().toLocaleString("km-KH") : "កំពុងដំណើរការ...";
+                return `
+                    <div class="history-item">
+                        <p><span class="history-action ${action.className}">${action.text}</span> <strong>${escapeHtml(log.studentName || "")}</strong></p>
+                        <p class="muted">${escapeHtml(timestamp)}</p>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        async function syncGoogleSheet(action, student = {}, studentId = "", students = null) {
+            const googleScriptUrl = getGoogleScriptUrl();
+            if (!googleScriptUrl) return;
+
+            try {
+                const body = {
+                    action,
+                    studentId,
+                    student: { ...student, studentId },
+                    sentAt: new Date().toISOString()
+                };
+                if (Array.isArray(students)) {
+                    body.students = students.map((item) => ({
+                        studentId: studentDisplayId(item, item.id),
+                        student: { ...item, studentId: studentDisplayId(item, item.id) }
+                    }));
+                }
+                await fetch(googleScriptUrl, {
+                    method: "POST",
+                    mode: "no-cors",
+                    cache: "no-cache",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify(body),
+                    redirect: "follow"
+                });
+                if (["upsert", "delete", "backup"].includes(action)) {
+                    const backupAt = new Date().toISOString();
+                    localStorage.setItem(BACKUP_TIME_STORAGE_KEY, backupAt);
+                    updateBackupInfo(backupAt);
+                }
+            } catch (error) {
+                console.error("Error sending data to Google Sheet:", error);
+                showToast("បរាជ័យក្នុងការរក្សាទុកទៅ Google Sheet", "error");
+            }
+        }
+
+        async function logHistory(action, studentName, details = {}) {
+            if (!historyCollectionRef) return;
+            try {
+                await addDoc(historyCollectionRef, {
+                    action,
+                    studentName,
+                    details: JSON.stringify(details),
+                    timestamp: serverTimestamp()
+                });
+            } catch (error) {
+                console.error("Error logging history:", error);
+            }
+        }
+
+        function setSaving(isSaving) {
+            els.saveBtn.disabled = isSaving;
+            els.clearBtn.disabled = isSaving;
+            if (isSaving) {
+                els.saveBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span><span>កំពុងរក្សាទុក...</span>';
+            } else {
+                setEditMode(els.editingId.value);
+            }
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            if (!els.registrationForm.reportValidity()) return;
+            if (!studentsCollectionRef || !userId) {
+                showToast("មូលដ្ឋានទិន្នន័យមិនទាន់ភ្ជាប់", "warning");
+                return;
+            }
+
+            const editingId = els.editingId.value;
+            const payload = collectStudentPayload();
+            const duplicate = await findDuplicateStudentOnServer(payload, editingId, allStudents);
+            if (duplicate) {
+                showToast(duplicateMessage(duplicate), "warning");
+                return;
+            }
+
+            setSaving(true);
+
+            try {
+                if (editingId) {
+                    if (!payload.studentCode) {
+                        const existing = allStudents.find((item) => item.id === editingId);
+                        payload.studentCode = studentDisplayId(existing, editingId);
+                    }
+                    const docRef = doc(db, `users/${userId}/students`, editingId);
+                    await updateDoc(docRef, { ...payload, ...normalizedStudentFields(payload), updatedAt: serverTimestamp() });
+                    await logHistory("edited", payload.studentName, { studentId: payload.studentCode, recordId: editingId });
+                    await syncGoogleSheet("upsert", { ...payload, recordId: editingId }, payload.studentCode || editingId);
+                    showToast("បានកែសម្រួលព័ត៌មានសិស្ស");
+                } else {
+                    payload.studentCode = await generateStudentCode();
+                    const docRef = await addDoc(studentsCollectionRef, { ...payload, ...normalizedStudentFields(payload), createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+                    await logHistory("added", payload.studentName, { studentId: payload.studentCode, recordId: docRef.id, ...payload });
+                    await syncGoogleSheet("upsert", { ...payload, recordId: docRef.id }, payload.studentCode);
+                    showToast(`បានបន្ថែមសិស្សថ្មី (${payload.studentCode})`);
+                }
+                resetForm();
+                await refreshStudents({ reset: !editingId });
+            } catch (error) {
+                console.error("Error saving student:", error);
+                showToast("រក្សាទុកមិនបាន", "error");
+            } finally {
+                setSaving(false);
+            }
+        }
+
+        function openDeleteModal(studentId) {
+            const student = allStudents.find((item) => item.id === studentId);
+            if (!student) return;
+            studentToDeleteId = studentId;
+            els.deleteStudentName.textContent = student.studentName || "សិស្សនេះ";
+            els.deleteModal.classList.add("is-open");
+        }
+
+        function closeDeleteModal() {
+            studentToDeleteId = null;
+            els.deleteModal.classList.remove("is-open");
+        }
+
+        async function handleDeleteStudent() {
+            if (!studentToDeleteId || !userId) return;
+            const student = allStudents.find((item) => item.id === studentToDeleteId);
+            const studentName = student?.studentName || "Unknown";
+            els.confirmDeleteBtn.disabled = true;
+
+            try {
+                await deleteDoc(doc(db, `users/${userId}/students`, studentToDeleteId));
+                await logHistory("deleted", studentName, { studentId: studentDisplayId(student, studentToDeleteId), recordId: studentToDeleteId });
+                await syncGoogleSheet("delete", student || { studentName }, studentDisplayId(student, studentToDeleteId));
+                closeDeleteModal();
+                showToast("បានលុបសិស្ស");
+                if (els.editingId.value === studentToDeleteId) resetForm();
+                await refreshStudents();
+            } catch (error) {
+                console.error("Error deleting student:", error);
+                showToast("លុបមិនបាន", "error");
+            } finally {
+                els.confirmDeleteBtn.disabled = false;
+            }
+        }
+
+        function handleStudentAction(event) {
+            const button = event.target.closest("button");
+            if (!button) return;
+            const studentId = button.dataset.id;
+            if (button.classList.contains("print-student-btn")) printStudent(studentId);
+            if (button.classList.contains("edit-btn")) loadStudentIntoForm(studentId);
+            if (button.classList.contains("delete-btn")) openDeleteModal(studentId);
+        }
+
+        function printWindow(title, content) {
+            const win = window.open("", "_blank", "width=1100,height=800");
+            if (!win) {
+                showToast("Browser បានរារាំងផ្ទាំង Print", "warning");
+                return;
+            }
+
+            win.document.write(`
+                <!DOCTYPE html>
+                <html lang="km">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>${escapeHtml(title)}</title>
+                    <link rel="preconnect" href="https://fonts.googleapis.com">
+                    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+                    <style>
+                        @page { size: A4; margin: 14mm; }
+                        * { box-sizing: border-box; }
+                        body { margin: 0; color: #111827; font-family: "Kantumruy Pro", Arial, sans-serif; line-height: 1.55; }
+                        h1 { margin: 0 0 6px; text-align: center; font-size: 24px; }
+                        h2 { margin: 20px 0 10px; font-size: 17px; }
+                        .meta { margin-bottom: 18px; text-align: center; color: #6b7280; font-size: 12px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { padding: 8px 9px; border: 1px solid #d1d5db; text-align: left; vertical-align: top; }
+                        th { background: #eef2f1; font-weight: 700; }
+                        .print-class-row td { background: #d9f3ef; color: #115e59; font-weight: 700; }
+                        .form-table th { width: 32%; }
+                        .signature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 60px; margin-top: 42px; text-align: center; }
+                        .signature-line { margin-top: 56px; border-top: 1px solid #111827; padding-top: 8px; }
+                        .print-actions { margin: 0 0 16px; text-align: right; }
+                        .print-actions button { min-height: 38px; border: 0; border-radius: 6px; padding: 0 14px; color: white; background: #0f766e; font: inherit; font-weight: 700; cursor: pointer; }
+                        @media print { .print-actions { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-actions"><button onclick="window.print()">Print / Save PDF</button></div>
+                    ${content}
+                </body>
+                </html>
+            `);
+            win.document.close();
+            setTimeout(() => {
+                win.focus();
+                win.print();
+            }, 350);
+        }
+
+        function studentRows(student) {
+            return [
+                ["លេខសម្គាល់សិស្ស", studentVisibleId(student)],
+                ["ឈ្មោះសិស្ស", student.studentName],
+                ["ភេទ", student.gender],
+                ["ថ្ងៃខែឆ្នាំកំណើត", formatDate(student.dob)],
+                ["ទីកន្លែងកំណើត", addressText(student, "pob")],
+                ["ឈ្មោះឳពុក", student.fatherName],
+                ["ឈ្មោះម្តាយ", student.motherName],
+                ["អាសយដ្ឋានបច្ចុប្បន្ន", addressText(student, "current")],
+                ["មកពីសាលា", student.fromSchool],
+                ["ថ្នាក់", student.className],
+                ["មធ្យមភាគ", student.gpa],
+                ["លេខទូរស័ព្ទ", student.contact]
+            ];
+        }
+
+        function printStudent(studentId) {
+            const student = allStudents.find((item) => item.id === studentId);
+            if (!student) {
+                showToast("រកមិនឃើញទិន្នន័យសិស្ស", "warning");
+                return;
+            }
+
+            const rows = studentRows(student).map(([label, value]) => `
+                <tr>
+                    <th>${escapeHtml(label)}</th>
+                    <td>${escapeHtml(value || "-")}</td>
+                </tr>
+            `).join("");
+
+            printWindow("ពាក្យចុះឈ្មោះសិស្ស", `
+                <h1>ពាក្យចុះឈ្មោះសិស្ស</h1>
+                <p class="meta">បោះពុម្ពថ្ងៃទី ${escapeHtml(new Date().toLocaleString("km-KH"))}</p>
+                <table class="form-table"><tbody>${rows}</tbody></table>
+                <div class="signature-grid">
+                    <div>
+                        <div>ហត្ថលេខាមាតាបិតា/អាណាព្យាបាល</div>
+                        <div class="signature-line">ឈ្មោះ និងហត្ថលេខា</div>
+                    </div>
+                    <div>
+                        <div>អ្នកទទួលពាក្យ</div>
+                        <div class="signature-line">ឈ្មោះ និងហត្ថលេខា</div>
+                    </div>
+                </div>
+            `);
+        }
+
+        function printStudentList() {
+            const rows = hasActiveFilters() ? visibleStudents : allStudents;
+            if (rows.length === 0) {
+                showToast("មិនមានទិន្នន័យសម្រាប់បោះពុម្ព", "warning");
+                return;
+            }
+
+            let printIndex = 0;
+            const body = groupedByClass(rows).map(([className, students]) => {
+                const studentRowsHtml = students.map((student) => {
+                    printIndex += 1;
+                    return `
+                        <tr>
+                            <td>${printIndex}</td>
+                            <td>${escapeHtml(studentVisibleId(student) || "")}</td>
+                            <td>${escapeHtml(student.studentName || "")}</td>
+                            <td>${escapeHtml(student.gender || "")}</td>
+                            <td>${escapeHtml(formatDate(student.dob) || "")}</td>
+                            <td>${escapeHtml(student.className || "")}</td>
+                            <td>${escapeHtml(student.fromSchool || "")}</td>
+                            <td>${escapeHtml(student.contact || "")}</td>
+                            <td>${escapeHtml(addressText(student, "current") || "")}</td>
+                        </tr>
+                    `;
+                }).join("");
+                return `
+                    <tr class="print-class-row">
+                        <td colspan="9">ថ្នាក់ ${escapeHtml(className)} - ${students.length} នាក់</td>
+                    </tr>
+                    ${studentRowsHtml}
+                `;
+            }).join("");
+
+            printWindow("បញ្ជីសិស្ស", `
+                <h1>បញ្ជីសិស្ស</h1>
+                <p class="meta">សរុប ${rows.length} នាក់ | បោះពុម្ពថ្ងៃទី ${escapeHtml(new Date().toLocaleString("km-KH"))}</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>លេខសម្គាល់</th>
+                            <th>ឈ្មោះ</th>
+                            <th>ភេទ</th>
+                            <th>ថ្ងៃកំណើត</th>
+                            <th>ថ្នាក់</th>
+                            <th>សាលា</th>
+                            <th>ទូរស័ព្ទ</th>
+                            <th>អាសយដ្ឋាន</th>
+                        </tr>
+                    </thead>
+                    <tbody>${body}</tbody>
+                </table>
+            `);
+        }
+
+        const importAliases = {
+            studentCode: ["លេខសម្គាល់សិស្ស", "លេខសិស្ស", "studentCode", "student id", "id"],
+            studentName: ["ឈ្មោះសិស្ស", "ឈ្មោះពេញ", "ឈ្មោះ", "studentName", "student name", "name", "full name"],
+            gender: ["ភេទ", "gender", "sex"],
+            dob: ["ថ្ងៃខែឆ្នាំកំណើត", "ថ្ងៃកំណើត", "dob", "date of birth", "birthdate"],
+            pobVillage: ["ភូមិ (កំណើត)", "ភូមិកំណើត", "pobVillage"],
+            pobCommune: ["ឃុំ/សង្កាត់ (កំណើត)", "ឃុំសង្កាត់កំណើត", "pobCommune"],
+            pobDistrict: ["ស្រុក/ខណ្ឌ (កំណើត)", "ស្រុកខណ្ឌកំណើត", "pobDistrict"],
+            pobProvince: ["ខេត្ត/ក្រុង (កំណើត)", "ខេត្តរាជធានីកំណើត", "pobProvince"],
+            fatherName: ["ឈ្មោះឳពុក", "ឈ្មោះឪពុក", "fatherName", "father"],
+            motherName: ["ឈ្មោះម្តាយ", "ឈ្មោះម្ដាយ", "motherName", "mother"],
+            guardianName: ["ឈ្មោះអាណាព្យាបាល", "អាណាព្យាបាល", "guardian", "parent"],
+            currentVillage: ["ភូមិ (បច្ចុប្បន្ន)", "ភូមិបច្ចុប្បន្ន", "currentVillage"],
+            currentCommune: ["ឃុំ/សង្កាត់ (បច្ចុប្បន្ន)", "ឃុំសង្កាត់បច្ចុប្បន្ន", "currentCommune"],
+            currentDistrict: ["ស្រុក/ខណ្ឌ (បច្ចុប្បន្ន)", "ស្រុកខណ្ឌបច្ចុប្បន្ន", "currentDistrict"],
+            currentProvince: ["ខេត្ត/ក្រុង (បច្ចុប្បន្ន)", "ខេត្តរាជធានីបច្ចុប្បន្ន", "currentProvince"],
+            address: ["អាសយដ្ឋាន", "address"],
+            fromSchool: ["មកពីសាលា", "សាលា", "fromSchool", "school"],
+            className: ["ថ្នាក់", "className", "class", "grade"],
+            gpa: ["មធ្យមភាគ", "មធ្យមភាគប្រចាំឆ្នាំ", "gpa", "score"],
+            contact: ["លេខទូរស័ព្ទ", "ទូរស័ព្ទ", "contact", "phone", "phone number"]
+        };
+
+        function normalizeHeader(value) {
+            return String(value || "")
+                .replace(/^\uFEFF/, "")
+                .trim()
+                .toLocaleLowerCase("km-KH")
+                .replace(/[()\s/_.,:។-]/g, "");
+        }
+
+        function readImportValue(row, field) {
+            const normalizedRow = new Map(Object.entries(row).map(([key, value]) => [normalizeHeader(key), value]));
+            const aliases = (importAliases[field] || [field]).map(normalizeHeader);
+            for (const alias of aliases) {
+                if (normalizedRow.has(alias)) return normalizedRow.get(alias);
+            }
+            return "";
+        }
+
+        function headerMatchScore(row) {
+            const knownHeaders = Object.values(importAliases).flat().map(normalizeHeader);
+            return row.reduce((score, cell) => score + (knownHeaders.includes(normalizeHeader(cell)) ? 1 : 0), 0);
+        }
+
+        function normalizeImportRow(row) {
+            const read = (field) => String(readImportValue(row, field) ?? "").trim();
+            const gender = read("gender");
+            const guardianName = read("guardianName");
+            const fullAddress = read("address");
+            return {
+                studentCode: read("studentCode"),
+                studentName: read("studentName"),
+                gender: normalizeGenderValue(gender),
+                dob: normalizeDateValue(readImportValue(row, "dob")),
+                fatherName: read("fatherName") || guardianName,
+                motherName: read("motherName"),
+                pobProvince: read("pobProvince"),
+                pobDistrict: read("pobDistrict"),
+                pobCommune: read("pobCommune"),
+                pobVillage: read("pobVillage"),
+                currentProvince: read("currentProvince"),
+                currentDistrict: read("currentDistrict"),
+                currentCommune: read("currentCommune"),
+                currentVillage: read("currentVillage") || fullAddress,
+                fromSchool: read("fromSchool"),
+                className: read("className"),
+                gpa: read("gpa"),
+                contact: read("contact")
+            };
+        }
+
+        function parseCSV(text) {
+            const rows = [];
+            let row = [];
+            let field = "";
+            let quoted = false;
+            const data = String(text || "").replace(/^\uFEFF/, "");
+
+            for (let i = 0; i < data.length; i += 1) {
+                const char = data[i];
+                const next = data[i + 1];
+                if (quoted) {
+                    if (char === '"' && next === '"') {
+                        field += '"';
+                        i += 1;
+                    } else if (char === '"') {
+                        quoted = false;
+                    } else {
+                        field += char;
+                    }
+                } else if (char === '"') {
+                    quoted = true;
+                } else if (char === ",") {
+                    row.push(field);
+                    field = "";
+                } else if (char === "\n") {
+                    row.push(field);
+                    rows.push(row);
+                    row = [];
+                    field = "";
+                } else if (char !== "\r") {
+                    field += char;
+                }
+            }
+
+            row.push(field);
+            if (row.some((cell) => String(cell).trim() !== "")) rows.push(row);
+            return rows;
+        }
+
+        function rowsToObjects(rows) {
+            let headerIndex = 0;
+            let bestScore = -1;
+            rows.forEach((row, index) => {
+                const score = headerMatchScore(row);
+                if (score > bestScore) {
+                    bestScore = score;
+                    headerIndex = index;
+                }
+            });
+
+            const headers = (rows[headerIndex] || []).map((cell) => String(cell || "").trim());
+            return rows.slice(headerIndex + 1)
+                .filter((row) => row.some((cell) => String(cell || "").trim() !== ""))
+                .map((row) => {
+                    const object = {};
+                    headers.forEach((header, index) => {
+                        object[header || `column${index + 1}`] = row[index] ?? "";
+                    });
+                    return object;
+                });
+        }
+
+        async function readImportRows(file) {
+            const extension = file.name.split(".").pop().toLowerCase();
+            if (extension === "csv") {
+                return rowsToObjects(parseCSV(await file.text()));
+            }
+
+            if (!window.XLSX) {
+                throw new Error("Excel library is not loaded");
+            }
+
+            const workbook = window.XLSX.read(await file.arrayBuffer(), { type: "array", cellDates: true });
+            const sheetName = workbook.SheetNames.find((name) => normalizeHeader(name).includes("students") || normalizeHeader(name).includes("សិស្ស")) || workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const rows = window.XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false, dateNF: "yyyy-mm-dd" });
+            return rowsToObjects(rows);
+        }
+
+        function setImporting(isImporting) {
+            els.importFileBtn.disabled = isImporting;
+            if (isImporting) {
+                els.importFileBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span><span>Import...</span>';
+            } else {
+                els.importFileBtn.innerHTML = '<ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon><span>Import</span>';
+            }
+        }
+
+        function setBackupLoading(isLoading) {
+            if (!els.backupNowBtn) return;
+            els.backupNowBtn.disabled = isLoading;
+            if (isLoading) {
+                els.backupNowBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span><span>Backup...</span>';
+            } else {
+                els.backupNowBtn.innerHTML = '<ion-icon name="cloud-done-outline" aria-hidden="true"></ion-icon><span>Backup</span>';
+            }
+        }
+
+        async function backupAllStudents() {
+            if (!studentsCollectionRef || !userId) {
+                showToast("មូលដ្ឋានទិន្នន័យមិនទាន់ភ្ជាប់", "warning");
+                return;
+            }
+
+            setBackupLoading(true);
+            try {
+                const snapshot = await getDocs(query(studentsCollectionRef, orderBy("createdAt", "desc")));
+                const rows = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+                await syncGoogleSheet("backup", {}, "", rows);
+                const backupAt = new Date().toISOString();
+                localStorage.setItem(BACKUP_TIME_STORAGE_KEY, backupAt);
+                updateBackupInfo(backupAt);
+                await logHistory("backup", "Google Sheet", { total: rows.length });
+                showToast(`បាន Backup ${rows.length} នាក់ ទៅ Google Sheet`);
+            } catch (error) {
+                console.error("Backup failed:", error);
+                showToast("Backup មិនបាន។ សូមពិនិត្យ Google Sheet URL", "error");
+            } finally {
+                setBackupLoading(false);
+            }
+        }
+
+        async function getExistingStudentsForImport() {
+            if (!studentsCollectionRef) return [];
+            const snapshot = await getDocs(query(studentsCollectionRef));
+            return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+        }
+
+        function assignImportCodes(students, startNumber = 1) {
+            let number = Math.max(1, startNumber);
+            const used = new Set(students.map((student) => student.studentCode).filter(Boolean));
+            return students.map((student) => {
+                if (student.studentCode) return student;
+                let code = "";
+                do {
+                    code = `${STUDENT_CODE_PREFIX}-${String(number).padStart(4, "0")}`;
+                    number += 1;
+                } while (used.has(code));
+                used.add(code);
+                return { ...student, studentCode: code };
+            });
+        }
+
+        async function addStudentsInBatches(students) {
+            const saved = [];
+            for (let start = 0; start < students.length; start += 450) {
+                const batch = writeBatch(db);
+                const chunk = students.slice(start, start + 450);
+                chunk.forEach((student) => {
+                    const docRef = doc(studentsCollectionRef);
+                    batch.set(docRef, {
+                        ...student,
+                        ...normalizedStudentFields(student),
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+                    saved.push({ id: docRef.id, ...student });
+                });
+                await batch.commit();
+            }
+            return saved;
+        }
+
+        async function importStudentObjects(rawStudents, sourceLabel = "Import") {
+            if (!studentsCollectionRef || !userId) {
+                showToast("មូលដ្ឋានទិន្នន័យមិនទាន់ភ្ជាប់", "warning");
+                return { accepted: [], skipped: [] };
+            }
+
+            const existing = await getExistingStudentsForImport();
+            const accepted = [];
+            const skipped = [];
+            rawStudents.forEach((raw) => {
+                const student = {
+                    ...raw,
+                    studentName: String(raw.studentName || "").trim(),
+                    gender: normalizeGenderValue(raw.gender),
+                    dob: normalizeDateValue(raw.dob),
+                    contact: String(raw.contact || "").trim()
+                };
+                if (!student.studentName) {
+                    skipped.push({ reason: "missing", student });
+                    return;
+                }
+                const duplicate = findDuplicateStudent(student, "", [...existing, ...accepted.map((item, index) => ({ id: `new-${index}`, ...item }))]);
+                if (duplicate) {
+                    skipped.push({ reason: duplicate.type, student });
+                    return;
+                }
+                accepted.push(student);
+            });
+
+            let startNumber = totalStudentsCount || existing.length || 0;
+            const withCodes = assignImportCodes(accepted, startNumber + 1);
+            const saved = await addStudentsInBatches(withCodes);
+            if (saved.length) {
+                await logHistory("imported", sourceLabel, { total: saved.length, skipped: skipped.length });
+                await syncGoogleSheet("backup", {}, "", saved);
+            }
+            return { accepted: saved, skipped };
+        }
+
+        function preparedImportRows() {
+            return Array.isArray(window.PREPARED_STUDENTS_IMPORT) ? window.PREPARED_STUDENTS_IMPORT : [];
+        }
+
+        function preparedImportDoneKey() {
+            const key = window.PREPARED_STUDENTS_IMPORT_KEY || "prepared-students-import";
+            return `studentRegistrationPreparedImportDone:${key}`;
+        }
+
+        function setPreparedImporting(isImporting) {
+            if (!els.preparedImportBtn) return;
+            els.preparedImportBtn.disabled = isImporting;
+            if (isImporting) {
+                els.preparedImportBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span><span>កំពុងបញ្ចូល...</span>';
+            } else {
+                els.preparedImportBtn.innerHTML = '<ion-icon name="people-outline" aria-hidden="true"></ion-icon><span>បញ្ចូលឈ្មោះ</span>';
+            }
+        }
+
+        async function importPreparedStudents() {
+            const rows = preparedImportRows();
+            if (rows.length === 0 || localStorage.getItem(preparedImportDoneKey())) return;
+            setPreparedImporting(true);
+            try {
+                const result = await importStudentObjects(rows, "Students1 Excel");
+                localStorage.setItem(preparedImportDoneKey(), new Date().toISOString());
+                els.preparedImportBtn?.classList.add("is-hidden");
+                showToast(`បានបញ្ចូល ${result.accepted.length} នាក់។ រំលង ${result.skipped.length} ជួរ`);
+                await refreshStudents({ reset: true });
+            } catch (error) {
+                console.error("Prepared import failed:", error);
+                showToast("បញ្ចូលឈ្មោះមិនបាន", "error");
+            } finally {
+                setPreparedImporting(false);
+            }
+        }
+
+        function setupPreparedImport() {
+            const rows = preparedImportRows();
+            if (!els.preparedImportBtn || rows.length === 0 || localStorage.getItem(preparedImportDoneKey())) return;
+            els.preparedImportBtn.classList.remove("is-hidden");
+            if (window.PREPARED_STUDENTS_IMPORT_AUTO) {
+                setTimeout(importPreparedStudents, 1200);
+            }
+        }
+
+        function downloadExcelTemplate() {
+            if (!window.XLSX) {
+                showToast("Excel library មិនទាន់ផ្ទុកទេ", "warning");
+                return;
+            }
+
+            const wb = window.XLSX.utils.book_new();
+            const dashboard = [
+                ["ផ្ទាំងសង្ខេបគ្រប់គ្រងសិស្ស"],
+                ["Dashboard នេះអាប់ដេតដោយស្វ័យប្រវត្តិពីតារាង Students និង Attendance។"],
+                [],
+                ["សិស្សសរុប", "", "កំពុងសិក្សា", "", "សិស្សស្រី", "", "សិស្សប្រុស", "", "អវត្តមានខែនេះ", "", "យឺតខែនេះ", "", "ត្រូវតាមដាន"],
+                [{ f: 'COUNTA(Students!A6:A1000)' }, "", { f: 'COUNTIF(Students!N6:N1000,"កំពុងសិក្សា")' }, "", { f: 'COUNTIF(Students!D6:D1000,"ស្រី")' }, "", { f: 'COUNTIF(Students!D6:D1000,"ប្រុស")' }, "", { f: 'COUNTIFS(Attendance!E6:E1000,"អវត្តមាន",Attendance!A6:A1000,">="&EOMONTH(TODAY(),-1)+1)' }, "", { f: 'COUNTIFS(Attendance!E6:E1000,"យឺត",Attendance!A6:A1000,">="&EOMONTH(TODAY(),-1)+1)' }, "", { f: 'COUNTIF(Attendance!G6:G1000,"បាទ/ចាស")' }],
+                [],
+                [],
+                ["សង្ខេបតាមថ្នាក់", "", "", "", "", "", "", "ស្ថានភាពសិស្ស"],
+                ["ថ្នាក់", "សរុប", "ស្រី", "ប្រុស", "កំពុងសិក្សា", "អវត្តមានខែនេះ", "", "ស្ថានភាព", "ចំនួន"],
+                ["មត្តេយ្យ", { f: 'COUNTIF(Students!G:G,A10)' }, { f: 'COUNTIFS(Students!G:G,A10,Students!D:D,"ស្រី")' }, { f: 'COUNTIFS(Students!G:G,A10,Students!D:D,"ប្រុស")' }, { f: 'COUNTIFS(Students!G:G,A10,Students!N:N,"កំពុងសិក្សា")' }, "", "", "កំពុងសិក្សា", { f: 'COUNTIF(Students!N:N,H10)' }],
+                ["ថ្នាក់ទី ១", { f: 'COUNTIF(Students!G:G,A11)' }, { f: 'COUNTIFS(Students!G:G,A11,Students!D:D,"ស្រី")' }, { f: 'COUNTIFS(Students!G:G,A11,Students!D:D,"ប្រុស")' }, { f: 'COUNTIFS(Students!G:G,A11,Students!N:N,"កំពុងសិក្សា")' }, "", "", "សម្រាក", { f: 'COUNTIF(Students!N:N,H11)' }],
+                ["ថ្នាក់ទី ២", { f: 'COUNTIF(Students!G:G,A12)' }, { f: 'COUNTIFS(Students!G:G,A12,Students!D:D,"ស្រី")' }, { f: 'COUNTIFS(Students!G:G,A12,Students!D:D,"ប្រុស")' }, { f: 'COUNTIFS(Students!G:G,A12,Students!N:N,"កំពុងសិក្សា")' }, "", "", "បញ្ចប់", { f: 'COUNTIF(Students!N:N,H12)' }]
+            ];
+            const students = [
+                ["បញ្ចូលព័ត៌មានសិស្ស"],
+                ["បញ្ចូលព័ត៌មានសិស្សម្នាក់ក្នុងមួយជួរ។ ជួរឈរ អាយុ ត្រូវបានគណនាដោយស្វ័យប្រវត្តិពីថ្ងៃខែឆ្នាំកំណើត។"],
+                [],
+                ["តារាងសិស្ស"],
+                ["លេខសម្គាល់សិស្ស", "ឈ្មោះពេញ", "ឈ្មោះឡាតាំង", "ភេទ", "ថ្ងៃខែឆ្នាំកំណើត", "អាយុ", "ថ្នាក់", "ក្រុម/បន្ទប់", "វេន", "ថ្ងៃចូលរៀន", "ឈ្មោះអាណាព្យាបាល", "លេខទូរស័ព្ទ", "អាសយដ្ឋាន", "ស្ថានភាព", "កំណត់សម្គាល់"]
+            ];
+            const attendance = [
+                ["គ្រប់គ្រងវត្តមានសិស្ស"],
+                ["បញ្ចូលថ្ងៃខែ និងលេខសម្គាល់សិស្ស។ ឈ្មោះ និងថ្នាក់នឹងទាញចេញពីតារាងសិស្សដោយស្វ័យប្រវត្តិ។"],
+                [],
+                ["តារាងវត្តមាន"],
+                ["កាលបរិច្ឆេទ", "លេខសម្គាល់សិស្ស", "ឈ្មោះសិស្ស", "ថ្នាក់", "ស្ថានភាពវត្តមាន", "មូលហេតុ", "ត្រូវតាមដាន", "អ្នកកត់ត្រា", "កំណត់សម្គាល់"]
+            ];
+            const lists = [
+                ["បញ្ជីជម្រើសសម្រាប់ Dropdown"],
+                ["កែប្រែបញ្ជីខាងក្រោម ប្រសិនបើសាលាមានពាក្យ ឬថ្នាក់ផ្សេង។"],
+                [],
+                ["ភេទ", "ស្ថានភាពសិស្ស", "វត្តមាន", "ថ្នាក់", "វេនសិក្សា"],
+                ["ប្រុស", "កំពុងសិក្សា", "វត្តមាន", "មត្តេយ្យ", "ព្រឹក"],
+                ["ស្រី", "សម្រាក", "អវត្តមាន", "ថ្នាក់ទី ១", "រសៀល"],
+                ["", "បញ្ចប់", "យឺត", "ថ្នាក់ទី ២", "ល្ងាច"],
+                ["", "ផ្ទេរ", "សុំច្បាប់", "ថ្នាក់ទី ៣", "ពេញម៉ោង"],
+                ["", "ឈប់សិក្សា", "", "ថ្នាក់ទី ៤", ""],
+                ["", "", "", "ថ្នាក់ទី ៥", ""],
+                ["", "", "", "ថ្នាក់ទី ៦", ""],
+                ["", "", "", "ថ្នាក់ទី ៧", ""],
+                ["", "", "", "ថ្នាក់ទី ៨", ""],
+                ["", "", "", "ថ្នាក់ទី ៩", ""]
+            ];
+            const backupLog = [
+                ["ពេលវេលា Backup", "ចំនួនសិស្ស", "ប្រភព", "កំណត់សម្គាល់"]
+            ];
+
+            [
+                ["Dashboard", dashboard],
+                ["Students", students],
+                ["Attendance", attendance],
+                ["Lists", lists],
+                ["Backup_Log", backupLog]
+            ].forEach(([name, data]) => {
+                const ws = window.XLSX.utils.aoa_to_sheet(data);
+                ws["!cols"] = Array.from({ length: 15 }, (_, index) => ({ wch: index === 1 || index === 10 || index === 12 ? 24 : 16 }));
+                window.XLSX.utils.book_append_sheet(wb, ws, name);
+            });
+
+            window.XLSX.writeFile(wb, "student_management_khmer_template.xlsx");
+        }
+
+        async function importStudentsFromFile(file) {
+            if (!studentsCollectionRef || !userId) {
+                showToast("មូលដ្ឋានទិន្នន័យមិនទាន់ភ្ជាប់", "warning");
+                return;
+            }
+
+            setImporting(true);
+            try {
+                const rows = await readImportRows(file);
+                const students = rows.map(normalizeImportRow);
+                const result = await importStudentObjects(students, file.name);
+
+                if (result.accepted.length === 0) {
+                    showToast(`មិនមានជួរណាដែលបាន Import ទេ។ រំលង ${result.skipped.length} ជួរ`, "warning");
+                } else {
+                    showToast(`បាន Import ${result.accepted.length} នាក់។ រំលង ${result.skipped.length} ជួរ`);
+                    await refreshStudents({ reset: true });
+                }
+            } catch (error) {
+                console.error("Import failed:", error);
+                showToast("Import មិនបាន។ សូមពិនិត្យឯកសារ CSV/Excel", "error");
+            } finally {
+                setImporting(false);
+                els.importFileInput.value = "";
+            }
+        }
+
+        function csvValue(value) {
+            return `"${String(value ?? "").replace(/"/g, '""')}"`;
+        }
+
+        function downloadCSV() {
+            const rows = hasActiveFilters() ? visibleStudents : allStudents;
+            if (rows.length === 0) {
+                showToast("មិនមានទិន្នន័យសម្រាប់ទាញយក", "warning");
+                return;
+            }
+
+            const headers = [
+                "លេខសម្គាល់សិស្ស",
+                "ឈ្មោះសិស្ស",
+                "ភេទ",
+                "ថ្ងៃខែឆ្នាំកំណើត",
+                "ភូមិ (កំណើត)",
+                "ឃុំ/សង្កាត់ (កំណើត)",
+                "ស្រុក/ខណ្ឌ (កំណើត)",
+                "ខេត្ត/ក្រុង (កំណើត)",
+                "ឈ្មោះឳពុក",
+                "ឈ្មោះម្តាយ",
+                "ភូមិ (បច្ចុប្បន្ន)",
+                "ឃុំ/សង្កាត់ (បច្ចុប្បន្ន)",
+                "ស្រុក/ខណ្ឌ (បច្ចុប្បន្ន)",
+                "ខេត្ត/ក្រុង (បច្ចុប្បន្ន)",
+                "មកពីសាលា",
+                "ថ្នាក់",
+                "មធ្យមភាគ",
+                "លេខទូរស័ព្ទ"
+            ];
+
+            const csvRows = [headers.map(csvValue).join(",")];
+            rows.forEach((student) => {
+                csvRows.push([
+                    studentVisibleId(student),
+                    student.studentName,
+                    student.gender,
+                    student.dob,
+                    student.pobVillage,
+                    student.pobCommune,
+                    student.pobDistrict,
+                    student.pobProvince,
+                    student.fatherName,
+                    student.motherName,
+                    student.currentVillage,
+                    student.currentCommune,
+                    student.currentDistrict,
+                    student.currentProvince,
+                    student.fromSchool,
+                    student.className,
+                    student.gpa,
+                    student.contact
+                ].map(csvValue).join(","));
+            });
+
+            const blob = new Blob(["\uFEFF" + csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "student_list.csv";
+            document.body.append(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function setupFirestoreListeners() {
+            if (!userId) return;
+            if (unsubscribeStudents) unsubscribeStudents();
+            if (unsubscribeHistory) unsubscribeHistory();
+
+            studentsCollectionRef = collection(db, `users/${userId}/students`);
+            historyCollectionRef = collection(db, `users/${userId}/registration_history`);
+
+            unsubscribeStudents = null;
+            refreshStudents({ reset: true });
+
+            unsubscribeHistory = onSnapshot(query(historyCollectionRef, orderBy("timestamp", "desc"), limitQuery(20)), (snapshot) => {
+                renderHistory(snapshot.docs);
+            }, (error) => {
+                console.error("Error fetching history:", error);
+                els.historyLog.innerHTML = '<p class="empty">ផ្ទុកប្រវត្តិមិនបាន</p>';
+            });
+        }
+
+        function init() {
+            resetAddressGroup(pobGroup);
+            resetAddressGroup(currentGroup);
+            updateBackupInfo();
+            setupAddressListeners(pobGroup, () => {
+                if (els.sameAddress.checked) syncCurrentAddressFromBirth();
+            });
+            setupAddressListeners(currentGroup);
+
+            els.sameAddress.addEventListener("change", () => {
+                if (els.sameAddress.checked) syncCurrentAddressFromBirth();
+                lockCurrentAddress(els.sameAddress.checked);
+            });
+            els.sheetSettingsBtn.addEventListener("click", openSheetModal);
+            els.cancelSheetUrlBtn.addEventListener("click", closeSheetModal);
+            els.saveSheetUrlBtn.addEventListener("click", saveSheetUrl);
+            els.clearSheetUrlBtn.addEventListener("click", () => {
+                els.sheetUrlInput.value = "";
+                localStorage.removeItem(GOOGLE_SCRIPT_STORAGE_KEY);
+                closeSheetModal();
+                updateBackupInfo();
+                showToast("បានសម្អាត Google Sheet URL");
+            });
+            els.sheetModal.addEventListener("click", (event) => {
+                if (event.target === els.sheetModal) closeSheetModal();
+            });
+            els.downloadTemplateBtn.addEventListener("click", downloadExcelTemplate);
+            if (els.backupNowBtn) els.backupNowBtn.addEventListener("click", backupAllStudents);
+            if (els.preparedImportBtn) els.preparedImportBtn.addEventListener("click", importPreparedStudents);
+            els.registrationForm.addEventListener("submit", handleFormSubmit);
+            els.clearBtn.addEventListener("click", resetForm);
+            els.searchInput.addEventListener("input", applyFilters);
+            els.genderFilter.addEventListener("change", applyFilters);
+            els.classFilter.addEventListener("change", applyFilters);
+            els.schoolFilter.addEventListener("change", applyFilters);
+            els.studentList.addEventListener("click", handleStudentAction);
+            els.studentCards.addEventListener("click", handleStudentAction);
+            els.prevPageBtn.addEventListener("click", () => {
+                if (currentPageIndex > 0) loadStudentsPage(currentPageIndex - 1);
+            });
+            els.nextPageBtn.addEventListener("click", () => {
+                if (hasNextPage) loadStudentsPage(currentPageIndex + 1);
+            });
+            els.pageSizeSelect.addEventListener("change", () => {
+                pageSize = Number(els.pageSizeSelect.value) || 25;
+                refreshStudents({ reset: true });
+            });
+            els.importFileBtn.addEventListener("click", () => els.importFileInput.click());
+            els.importFileInput.addEventListener("change", () => {
+                const file = els.importFileInput.files?.[0];
+                if (file) importStudentsFromFile(file);
+            });
+            els.printListBtn.addEventListener("click", printStudentList);
+            els.downloadCsvBtn.addEventListener("click", downloadCSV);
+            els.cancelDeleteBtn.addEventListener("click", closeDeleteModal);
+            els.confirmDeleteBtn.addEventListener("click", handleDeleteStudent);
+            els.deleteModal.addEventListener("click", (event) => {
+                if (event.target === els.deleteModal) closeDeleteModal();
+            });
+            document.addEventListener("keydown", (event) => {
+                if (event.key === "Escape" && els.deleteModal.classList.contains("is-open")) closeDeleteModal();
+                if (event.key === "Escape" && els.sheetModal.classList.contains("is-open")) closeSheetModal();
+            });
+
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    setupFirestoreListeners();
+                    setupPreparedImport();
+                    return;
+                }
+
+                setStatus("កំពុងចូល...", "");
+                try {
+                    await signInAnonymously(auth);
+                } catch (error) {
+                    console.error("Anonymous sign-in failed:", error);
+                    setStatus("ចូលមិនបាន", "error");
+                    showToast("ភ្ជាប់ Firebase មិនបាន", "error");
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", init);
+    </script>
+</body>
+</html>
