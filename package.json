@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "vinext dev --hostname 127.0.0.1",
-    "build": "vinext build",
+    "build": "vite build && node scripts/prepare-sites-dist.cjs",
     "start": "vinext start"
   },
   "dependencies": {
