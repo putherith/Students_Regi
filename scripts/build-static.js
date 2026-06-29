@@ -25,3 +25,18 @@ for (const entry of entries) {
     filter: (source) => !source.split(path.sep).includes(".git")
   });
 }
+
+fs.writeFileSync(
+  path.join(outDir, "_worker.js"),
+  `export default {
+  async fetch(request, env) {
+    const response = await env.ASSETS.fetch(request);
+    if (response.status !== 404) return response;
+
+    const url = new URL(request.url);
+    url.pathname = "/index.html";
+    return env.ASSETS.fetch(new Request(url, request));
+  }
+};
+`
+);
