@@ -1,9 +1,21 @@
 {
   "name": "students-registration-kh",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
   "scripts": {
-    "build": "node scripts/build-static.js"
+    "dev": "vinext dev --hostname 127.0.0.1",
+    "build": "vinext build",
+    "start": "vinext start"
   },
-  "devDependencies": {}
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "vinext": "^0.0.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vite": "^7.3.1",
+    "wrangler": "^4.65.0"
+  }
 }
