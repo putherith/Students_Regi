@@ -39,9 +39,11 @@ To send photos from a phone directly into the form open on a computer:
 
 1. On the computer, open the registration form and click `ប្រើ Camera ទូរសព្ទ`.
 2. Scan the displayed QR code once with the phone.
-3. Keep the camera page open on the phone.
-4. Tap `ថតរូបសិស្ស`, take a photo, then tap `ផ្ញើទៅកុំព្យូទ័រ`.
-5. Save the student on the computer and repeat step 4 for every next student. The QR code does not need to be scanned again while the session remains connected.
+3. On the phone, tap `បើក Camera សម្រាប់បញ្ជាពីកុំព្យូទ័រ` and allow camera access once. Keep that page open.
+4. On the computer, click `ថតពីកុំព្យូទ័រ`. The phone captures its current camera frame and sends it directly into the form.
+5. Save the student on the computer, reopen the phone-camera dialog, and click `ថតពីកុំព្យូទ័រ` for the next student. The QR code and camera permission do not need to be repeated while the session remains connected.
+
+The phone page also keeps a manual `ជ្រើស/ថតរូបដោយដៃ` fallback in case the browser does not support remote capture.
 
 Both devices need internet access for the initial WebRTC connection. The transferred photo goes directly between the two devices and is not stored by the pairing service. If a restrictive network blocks the connection, try the same Wi-Fi network or a phone hotspot.
 

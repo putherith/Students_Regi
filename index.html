@@ -1761,10 +1761,12 @@
         .web-phone-camera-card h1 { color:var(--primary); font-size:1.5rem; }
         .web-phone-camera-card > p { margin:6px 0 18px; color:var(--muted); }
         .web-phone-preview { width:min(100%,315px); aspect-ratio:315/400; display:grid; place-items:center; margin:0 auto 16px; overflow:hidden; border:2px dashed var(--border-strong); border-radius:14px; background:var(--surface-2); color:var(--muted); text-align:center; }
-        .web-phone-preview img { width:100%; height:100%; object-fit:cover; }
+        .web-phone-preview img, .web-phone-preview video { width:100%; height:100%; object-fit:cover; }
         .web-phone-camera-actions { display:grid; gap:10px; }
         .web-phone-camera-actions label { min-height:52px; display:flex; align-items:center; justify-content:center; border-radius:10px; color:#fff; background:var(--primary); font-weight:800; cursor:pointer; }
+        .web-phone-camera-actions .manual-capture { min-height:44px; color:var(--text-2); background:var(--surface-2); border:1px solid var(--border); }
         .web-phone-camera-actions .btn { min-height:52px; justify-content:center; }
+        .web-phone-camera-help { margin:2px 0 0; color:var(--muted); font-size:.78rem; text-align:center; }
         .web-phone-camera-status { min-height:24px; margin-top:14px; color:var(--muted); text-align:center; font-weight:750; }
         .web-phone-camera-status.connected { color:var(--green); }
         .web-phone-camera-status.error { color:var(--red); }
@@ -2405,12 +2407,18 @@
 <section id="web-phone-camera-page" class="web-phone-camera-page" hidden aria-labelledby="web-phone-camera-title">
     <div class="web-phone-camera-card">
         <h1 id="web-phone-camera-title">ប្រើទូរសព្ទជាកាមេរ៉ា</h1>
-        <p>Scan តែម្តង ហើយរក្សាទំព័រនេះឱ្យបើក ដើម្បីថតរូបសិស្សជាបន្តបន្ទាប់។</p>
-        <div id="web-phone-preview" class="web-phone-preview">មិនទាន់ជ្រើសរូបថត</div>
+        <p>ចុចបើក Camera ម្តង រួចទុកទំព័រនេះឱ្យបើក។ បន្ទាប់មកអាចចុចថតពីកុំព្យូទ័របានជាបន្តបន្ទាប់។</p>
+        <div id="web-phone-preview" class="web-phone-preview">
+            <span id="web-phone-preview-placeholder">Camera មិនទាន់បើក</span>
+            <video id="web-phone-live-video" autoplay playsinline muted hidden></video>
+            <img id="web-phone-image-preview" alt="រូបថតដែលបានជ្រើស" hidden>
+        </div>
         <div class="web-phone-camera-actions">
-            <label for="web-phone-photo-input">📷 ថតរូបសិស្ស</label>
+            <button id="web-phone-start-btn" class="btn btn-primary" type="button">📷 បើក Camera សម្រាប់បញ្ជាពីកុំព្យូទ័រ</button>
+            <p class="web-phone-camera-help">ឬប្រើរបៀបបម្រុងខាងក្រោម ដើម្បីថត និងផ្ញើពីទូរសព្ទដោយផ្ទាល់</p>
+            <label for="web-phone-photo-input" class="manual-capture">ជ្រើស/ថតរូបដោយដៃ</label>
             <input id="web-phone-photo-input" class="hidden-input" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">
-            <button id="web-phone-send-btn" class="btn btn-primary" type="button" disabled>ផ្ញើទៅកុំព្យូទ័រ</button>
+            <button id="web-phone-send-btn" class="btn btn-ghost" type="button" disabled>ផ្ញើរូបដែលបានជ្រើស</button>
         </div>
         <p id="web-phone-camera-status" class="web-phone-camera-status" role="status" aria-live="polite">កំពុងភ្ជាប់…</p>
     </div>
@@ -2452,7 +2460,7 @@
                 <ion-icon name="phone-portrait-outline"></ion-icon>
             </div>
             <h2 id="phone-camera-title" class="modal-title">ភ្ជាប់ Camera ទូរសព្ទ</h2>
-            <p class="modal-desc">Scan QR ម្តង រួចថត និងផ្ញើរូបមក form នេះ។ ទុក page លើទូរសព្ទឱ្យបើកសម្រាប់សិស្សបន្ទាប់ៗ។</p>
+            <p class="modal-desc">Scan QR ម្តង ហើយចុចបើក Camera លើទូរសព្ទ។ បន្ទាប់មកចុច «ថតពីកុំព្យូទ័រ» សម្រាប់សិស្សម្នាក់ៗ។</p>
             <div id="phone-camera-connect" class="phone-camera-connect">
                 <img id="phone-camera-qr" class="phone-camera-qr" alt="QR សម្រាប់ភ្ជាប់ទូរសព្ទ">
                 <div>
@@ -2463,6 +2471,9 @@
             </div>
         </div>
         <div class="modal-footer">
+            <button id="capture-phone-camera-btn" class="btn btn-primary" type="button" disabled>
+                <ion-icon name="camera"></ion-icon> ថតពីកុំព្យូទ័រ
+            </button>
             <button id="copy-phone-camera-url-btn" class="btn btn-ghost" type="button">
                 <ion-icon name="copy-outline"></ion-icon> Copy URL
             </button>
@@ -3039,10 +3050,15 @@
         phoneCameraQr: document.getElementById("phone-camera-qr"),
         phoneCameraUrl: document.getElementById("phone-camera-url"),
         phoneCameraStatus: document.getElementById("phone-camera-status"),
+        capturePhoneCameraBtn: document.getElementById("capture-phone-camera-btn"),
         copyPhoneCameraUrlBtn: document.getElementById("copy-phone-camera-url-btn"),
         closePhoneCameraBtn: document.getElementById("close-phone-camera-btn"),
         webPhoneCameraPage: document.getElementById("web-phone-camera-page"),
         webPhonePreview: document.getElementById("web-phone-preview"),
+        webPhonePreviewPlaceholder: document.getElementById("web-phone-preview-placeholder"),
+        webPhoneLiveVideo: document.getElementById("web-phone-live-video"),
+        webPhoneImagePreview: document.getElementById("web-phone-image-preview"),
+        webPhoneStartBtn: document.getElementById("web-phone-start-btn"),
         webPhonePhotoInput: document.getElementById("web-phone-photo-input"),
         webPhoneSendBtn: document.getElementById("web-phone-send-btn"),
         webPhoneCameraStatus: document.getElementById("web-phone-camera-status")
@@ -4216,6 +4232,10 @@
     let webPhonePeer = null;
     let webPhoneConnection = null;
     let webPhoneSelectedPhoto = null;
+    let webPhoneCameraStream = null;
+    let phoneCameraRemoteReady = false;
+    let phoneCameraCapturePending = false;
+    let phoneCameraCaptureTimer = null;
 
     let peerJsLoader = null;
     function loadPeerJs() {
@@ -4266,26 +4286,78 @@
         els.phoneCameraStatus.className = `phone-camera-status${connected ? " connected" : ""}`;
     }
 
+    function updateRemotePhoneCaptureButton() {
+        if (!els.capturePhoneCameraBtn) return;
+        els.capturePhoneCameraBtn.hidden = Boolean(window.desktopCamera);
+        els.capturePhoneCameraBtn.disabled = !phoneCameraRemoteReady || !webPhoneConnection?.open || phoneCameraCapturePending;
+        els.capturePhoneCameraBtn.innerHTML = phoneCameraCapturePending
+            ? `<span class="spinner"></span> កំពុងថត…`
+            : `<ion-icon name="camera"></ion-icon> ថតពីកុំព្យូទ័រ`;
+    }
+
+    function clearPhoneCaptureRequest() {
+        if (phoneCameraCaptureTimer) clearTimeout(phoneCameraCaptureTimer);
+        phoneCameraCaptureTimer = null;
+        phoneCameraCapturePending = false;
+        updateRemotePhoneCaptureButton();
+    }
+
+    function requestPhoneCameraCapture() {
+        if (!phoneCameraRemoteReady || !webPhoneConnection?.open || phoneCameraCapturePending) return;
+        phoneCameraCapturePending = true;
+        updateRemotePhoneCaptureButton();
+        const requestId = `capture-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+        webPhoneConnection.send({ type:"capture-request", requestId });
+        setPhoneHostStatus("បានបញ្ជាទូរសព្ទឱ្យថត · កំពុងរង់ចាំរូប…", true);
+        phoneCameraCaptureTimer = setTimeout(() => {
+            clearPhoneCaptureRequest();
+            setPhoneHostStatus("ទូរសព្ទមិនបានឆ្លើយតប។ សូមពិនិត្យថា Camera នៅបើក រួចព្យាយាមម្ដងទៀត។", true);
+        }, 15000);
+    }
+
     function attachWebPhoneConnection(connection) {
         if (!connection) return;
         if (webPhoneConnection && webPhoneConnection !== connection) webPhoneConnection.close();
         webPhoneConnection = connection;
         connection.on("open", () => {
             phoneCameraSessionConnected = true;
+            phoneCameraRemoteReady = false;
             updatePhoneCameraButton();
-            setPhoneHostStatus(`ទូរសព្ទបានភ្ជាប់ · ទទួលរូប ${phoneCameraPhotoCount} · អាចថតបន្តដោយមិន Scan ម្តងទៀត`, true);
+            updateRemotePhoneCaptureButton();
+            setPhoneHostStatus("ទូរសព្ទបានភ្ជាប់ · សូមចុចបើក Camera លើទូរសព្ទម្តង", true);
         });
         connection.on("data", async payload => {
-            if (!payload || payload.type !== "student-photo" || !payload.dataUrl) return;
+            if (webPhoneConnection !== connection) return;
+            if (!payload) return;
+            if (payload.type === "camera-ready") {
+                phoneCameraRemoteReady = true;
+                updateRemotePhoneCaptureButton();
+                setPhoneHostStatus(`Camera ទូរសព្ទរួចរាល់ ✓ · ចុច «ថតពីកុំព្យូទ័រ» · ទទួលរូប ${phoneCameraPhotoCount}`, true);
+                return;
+            }
+            if (payload.type === "camera-error") {
+                phoneCameraRemoteReady = false;
+                clearPhoneCaptureRequest();
+                setPhoneHostStatus(payload.message || "Camera ទូរសព្ទមានបញ្ហា។ សូមបើក Camera ឡើងវិញ។", true);
+                return;
+            }
+            if (payload.type !== "student-photo" || !payload.dataUrl) return;
+            clearPhoneCaptureRequest();
             await handlePhoneCameraPhoto(payload);
-            if (connection.open) connection.send({ type:"photo-received", count:phoneCameraPhotoCount });
+            if (connection.open) connection.send({ type:"photo-received", count:phoneCameraPhotoCount, requestId:payload.requestId || "" });
         });
         connection.on("close", () => {
+            if (webPhoneConnection !== connection) return;
             phoneCameraSessionConnected = false;
+            phoneCameraRemoteReady = false;
+            clearPhoneCaptureRequest();
+            updatePhoneCameraButton();
             setPhoneHostStatus("ទូរសព្ទបានផ្តាច់។ បើក link ដដែលឡើងវិញ ដើម្បីភ្ជាប់ម្ដងទៀត។");
         });
         connection.on("error", error => {
+            if (webPhoneConnection !== connection) return;
             console.error("Phone data connection error:", error);
+            clearPhoneCaptureRequest();
             setPhoneHostStatus("ការភ្ជាប់ត្រូវបានរំខាន។ សូមព្យាយាមបើក link លើទូរសព្ទម្ដងទៀត។");
         });
     }
@@ -4329,6 +4401,7 @@
         els.phoneCameraQr?.removeAttribute("src");
         els.phoneCameraQr?.classList.add("is-hidden");
         els.phoneCameraUrl.textContent = "កំពុងរៀបចំ…";
+        updateRemotePhoneCaptureButton();
         setPhoneHostStatus(window.desktopCamera ? "កំពុងស្វែងរក Wi‑Fi ក្នុងកុំព្យូទ័រ…" : "កំពុងបង្កើតការភ្ជាប់សុវត្ថិភាព…");
         try {
             if (window.desktopCamera) {
@@ -4346,8 +4419,10 @@
             }
             els.phoneCameraUrl.textContent = phoneCameraUrlValue;
             els.phoneCameraQr.classList.remove("is-hidden");
-            setPhoneHostStatus(phoneCameraSessionConnected
-                ? `Session បានភ្ជាប់ · ទទួលរូប ${phoneCameraPhotoCount} · មិនបាច់ Scan ម្តងទៀត`
+            setPhoneHostStatus(phoneCameraRemoteReady
+                ? `Camera ទូរសព្ទរួចរាល់ ✓ · ចុច «ថតពីកុំព្យូទ័រ» · ទទួលរូប ${phoneCameraPhotoCount}`
+                : phoneCameraSessionConnected
+                ? "ទូរសព្ទបានភ្ជាប់ · សូមចុចបើក Camera លើទូរសព្ទម្តង"
                 : "Scan QR ម្តង ហើយរក្សា page នៅលើទូរសព្ទឱ្យបើកសម្រាប់សិស្សទាំងអស់", phoneCameraSessionConnected);
         } catch (error) {
             console.error("Phone camera connection error:", error);
@@ -4439,6 +4514,108 @@
         });
     }
 
+    function showWebPhoneLivePreview() {
+        els.webPhonePreviewPlaceholder.hidden = true;
+        els.webPhoneImagePreview.hidden = true;
+        els.webPhoneLiveVideo.hidden = false;
+    }
+
+    function showWebPhoneManualPreview(file) {
+        const objectUrl = URL.createObjectURL(file);
+        els.webPhoneImagePreview.src = objectUrl;
+        els.webPhoneImagePreview.onload = () => URL.revokeObjectURL(objectUrl);
+        els.webPhoneImagePreview.onerror = () => URL.revokeObjectURL(objectUrl);
+        els.webPhonePreviewPlaceholder.hidden = true;
+        els.webPhoneLiveVideo.hidden = true;
+        els.webPhoneImagePreview.hidden = false;
+    }
+
+    function restoreWebPhonePreview() {
+        if (webPhoneCameraStream?.active) {
+            showWebPhoneLivePreview();
+            return;
+        }
+        els.webPhoneLiveVideo.hidden = true;
+        els.webPhoneImagePreview.hidden = true;
+        els.webPhonePreviewPlaceholder.hidden = false;
+        els.webPhonePreviewPlaceholder.textContent = "រួចរាល់សម្រាប់សិស្សបន្ទាប់";
+    }
+
+    function canvasToJpegDataUrl(canvas, quality=.88) {
+        return new Promise((resolve, reject) => {
+            canvas.toBlob(blob => {
+                if (!blob) { reject(new Error("Cannot prepare camera frame")); return; }
+                const reader = new FileReader();
+                reader.onload = () => resolve(String(reader.result || ""));
+                reader.onerror = () => reject(reader.error || new Error("Cannot read camera frame"));
+                reader.readAsDataURL(blob);
+            }, "image/jpeg", quality);
+        });
+    }
+
+    async function captureWebPhoneVideoFrame() {
+        const video = els.webPhoneLiveVideo;
+        if (!webPhoneCameraStream?.active || !video?.videoWidth || !video?.videoHeight) {
+            throw new Error("Phone camera is not ready");
+        }
+        const maxWidth = 1200;
+        const maxHeight = 1600;
+        const scale = Math.min(1, maxWidth / video.videoWidth, maxHeight / video.videoHeight);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+        canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+        canvas.getContext("2d", { alpha:false }).drawImage(video, 0, 0, canvas.width, canvas.height);
+        return canvasToJpegDataUrl(canvas);
+    }
+
+    async function startWebPhoneLiveCamera(connection) {
+        if (webPhoneCameraStream?.active) {
+            showWebPhoneLivePreview();
+            if (connection?.open) connection.send({ type:"camera-ready" });
+            return;
+        }
+        if (!navigator.mediaDevices?.getUserMedia) {
+            if (connection?.open) connection.send({ type:"camera-error", message:"Browser ទូរសព្ទនេះមិនគាំទ្រ Camera ផ្ទាល់។ សូមប្រើរបៀបថតដោយដៃ។" });
+            setWebPhoneStatus("Browser នេះមិនគាំទ្រ Camera ផ្ទាល់។ សូមប្រើ «ជ្រើស/ថតរូបដោយដៃ»។", "error");
+            return;
+        }
+        els.webPhoneStartBtn.disabled = true;
+        setWebPhoneStatus("កំពុងស្នើសុំសិទ្ធិ Camera…");
+        try {
+            webPhoneCameraStream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: { ideal:"environment" },
+                    width: { ideal:1440 },
+                    height: { ideal:1920 },
+                    aspectRatio: { ideal:315/400 }
+                },
+                audio:false
+            });
+            const cameraTrack = webPhoneCameraStream.getVideoTracks()[0];
+            cameraTrack?.addEventListener("ended", () => {
+                webPhoneCameraStream = null;
+                els.webPhoneStartBtn.disabled = false;
+                els.webPhoneStartBtn.textContent = "📷 បើក Camera ឡើងវិញ";
+                restoreWebPhonePreview();
+                if (connection?.open) connection.send({ type:"camera-error", message:"Camera ទូរសព្ទបានបិទ។ សូមបើកឡើងវិញ។" });
+                setWebPhoneStatus("Camera បានបិទ។ សូមចុចបើកឡើងវិញ។", "error");
+            }, { once:true });
+            els.webPhoneLiveVideo.srcObject = webPhoneCameraStream;
+            await els.webPhoneLiveVideo.play();
+            showWebPhoneLivePreview();
+            els.webPhoneStartBtn.textContent = "Camera បានបើក ✓";
+            setWebPhoneStatus(connection?.open
+                ? "Camera រួចរាល់ ✓ · ឥឡូវអាចចុចថតពីកុំព្យូទ័រ"
+                : "Camera បានបើក · កំពុងរង់ចាំកុំព្យូទ័រភ្ជាប់…", "connected");
+            if (connection?.open) connection.send({ type:"camera-ready" });
+        } catch (error) {
+            els.webPhoneStartBtn.disabled = false;
+            console.error("Phone live camera error:", error);
+            if (connection?.open) connection.send({ type:"camera-error", message:"ទូរសព្ទមិនអនុញ្ញាត Camera។ សូមចុច Allow ហើយព្យាយាមម្ដងទៀត។" });
+            setWebPhoneStatus("បើក Camera មិនបាន។ សូមអនុញ្ញាត Camera ក្នុង browser ហើយចុចម្ដងទៀត។", "error");
+        }
+    }
+
     async function initWebPhoneCaptureMode(sessionId) {
         if (!sessionId || !els.webPhoneCameraPage) return false;
         document.body.classList.add("phone-capture-mode");
@@ -4447,39 +4624,64 @@
         try {
             const Peer = await loadPeerJs();
             const peer = new Peer(undefined, { debug:1 });
+            webPhonePeer = peer;
             peer.on("open", () => {
                 setWebPhoneStatus("កំពុងភ្ជាប់ទៅកុំព្យូទ័រ…");
                 connection = peer.connect(sessionId, { reliable:true, metadata:{ role:"student-camera" } });
+                webPhoneConnection = connection;
                 connection.on("open", () => {
-                    setWebPhoneStatus("បានភ្ជាប់ទៅកុំព្យូទ័រ ✓", "connected");
+                    setWebPhoneStatus(webPhoneCameraStream?.active
+                        ? "Camera រួចរាល់ ✓ · អាចចុចថតពីកុំព្យូទ័រ"
+                        : "បានភ្ជាប់ ✓ · សូមចុចបើក Camera ម្តង", "connected");
                     els.webPhoneSendBtn.disabled = !webPhoneSelectedPhoto;
+                    if (webPhoneCameraStream?.active) connection.send({ type:"camera-ready" });
                 });
-                connection.on("data", message => {
+                connection.on("data", async message => {
+                    if (message?.type === "capture-request") {
+                        if (!webPhoneCameraStream?.active) {
+                            connection.send({ type:"camera-error", message:"Camera ទូរសព្ទមិនទាន់បើក" });
+                            return;
+                        }
+                        setWebPhoneStatus("កុំព្យូទ័រកំពុងថត…");
+                        try {
+                            const dataUrl = await captureWebPhoneVideoFrame();
+                            connection.send({
+                                type:"student-photo",
+                                dataUrl,
+                                mimeType:"image/jpeg",
+                                requestId:message.requestId || "",
+                                captureMode:"remote",
+                                sentAt:new Date().toISOString()
+                            });
+                            setWebPhoneStatus("បានថត និងផ្ញើរូប · រង់ចាំកុំព្យូទ័រទទួល…");
+                        } catch (error) {
+                            console.error("Remote phone capture error:", error);
+                            connection.send({ type:"camera-error", message:"ថតរូបមិនបាន។ សូមបើក Camera ឡើងវិញ។" });
+                            setWebPhoneStatus("ថតរូបមិនបាន។ សូមបើក Camera ឡើងវិញ។", "error");
+                        }
+                        return;
+                    }
                     if (message?.type === "photo-received") {
                         webPhoneSelectedPhoto = null;
                         els.webPhonePhotoInput.value = "";
-                        els.webPhonePreview.textContent = "រួចរាល់សម្រាប់សិស្សបន្ទាប់";
                         els.webPhoneSendBtn.disabled = true;
-                        setWebPhoneStatus(`កុំព្យូទ័របានទទួលរូប ✓ · សរុប ${message.count || ""}`, "connected");
+                        restoreWebPhonePreview();
+                        setWebPhoneStatus(`កុំព្យូទ័របានទទួលរូប ✓ · សរុប ${message.count || ""} · រួចរាល់សម្រាប់សិស្សបន្ទាប់`, "connected");
                     }
                 });
-                connection.on("close", () => setWebPhoneStatus("ការភ្ជាប់បានផ្តាច់។ សូម Refresh ទំព័រនេះ។", "error"));
+                connection.on("close", () => setWebPhoneStatus("ការភ្ជាប់បានផ្តាច់។ សូម Scan QR ថ្មីពីកុំព្យូទ័រ។", "error"));
                 connection.on("error", () => setWebPhoneStatus("ភ្ជាប់មិនបាន។ សូម Refresh ហើយព្យាយាមម្ដងទៀត។", "error"));
             });
             peer.on("error", error => {
                 console.error("Phone capture peer error:", error);
                 setWebPhoneStatus("ភ្ជាប់មិនបាន។ សូមពិនិត្យ Internet និង Scan QR ម្តងទៀត។", "error");
             });
+            els.webPhoneStartBtn.addEventListener("click", () => startWebPhoneLiveCamera(connection));
             els.webPhonePhotoInput.addEventListener("change", () => {
                 const file = els.webPhonePhotoInput.files?.[0];
                 if (!file) return;
                 webPhoneSelectedPhoto = file;
-                const image = new Image();
-                const objectUrl = URL.createObjectURL(file);
-                image.alt = "រូបថតដែលបានជ្រើស";
-                image.src = objectUrl;
-                image.onload = () => URL.revokeObjectURL(objectUrl);
-                els.webPhonePreview.replaceChildren(image);
+                showWebPhoneManualPreview(file);
                 els.webPhoneSendBtn.disabled = !connection?.open;
                 setWebPhoneStatus(connection?.open ? "រូបថតរួចរាល់សម្រាប់ផ្ញើ" : "រូបថតរួចរាល់ · កំពុងរង់ចាំការភ្ជាប់…");
             });
@@ -4489,7 +4691,7 @@
                 setWebPhoneStatus("កំពុងរៀបចំ និងផ្ញើរូប…");
                 try {
                     const dataUrl = await compressPhonePhoto(webPhoneSelectedPhoto);
-                    connection.send({ type:"student-photo", dataUrl, mimeType:"image/jpeg", sentAt:new Date().toISOString() });
+                    connection.send({ type:"student-photo", dataUrl, mimeType:"image/jpeg", captureMode:"manual", sentAt:new Date().toISOString() });
                     setWebPhoneStatus("បានផ្ញើ · រង់ចាំកុំព្យូទ័រទទួល…");
                 } catch (error) {
                     console.error("Phone photo send error:", error);
@@ -6230,6 +6432,7 @@
         if (window.desktopCamera) window.desktopCamera.onPhoto(handlePhoneCameraPhoto);
         if (els.phoneCameraBtn) els.phoneCameraBtn.hidden = false;
         els.phoneCameraBtn?.addEventListener("click",openPhoneCameraModal);
+        els.capturePhoneCameraBtn?.addEventListener("click",requestPhoneCameraCapture);
         els.copyPhoneCameraUrlBtn?.addEventListener("click",copyPhoneCameraUrl);
         els.closePhoneCameraBtn?.addEventListener("click",closePhoneCameraModal);
         els.phoneCameraModal?.addEventListener("click",e=>{if(e.target===els.phoneCameraModal)closePhoneCameraModal();});
@@ -6393,6 +6596,7 @@
     document.addEventListener("DOMContentLoaded", init);
 
     window.addEventListener("beforeunload", () => {
+        webPhoneCameraStream?.getTracks().forEach(track => track.stop());
         if (webPhoneConnection?.open) webPhoneConnection.close();
         if (webPhonePeer && !webPhonePeer.destroyed) webPhonePeer.destroy();
     });
