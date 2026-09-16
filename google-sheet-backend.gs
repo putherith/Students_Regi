@@ -34,7 +34,8 @@ const HEADERS = [
   "studentGivenName",
   "fatherOccupation",
   "motherOccupation",
-  "guardianName"
+  "guardianName",
+  "applicationNumber"
 ];
 
 const HEADER_LABELS = {
@@ -63,7 +64,8 @@ const HEADER_LABELS = {
   studentGivenName: "នាមខ្លួន",
   fatherOccupation: "មុខរបរឪពុក",
   motherOccupation: "មុខរបរម្តាយ",
-  guardianName: "ឈ្មោះអាណាព្យាបាល"
+  guardianName: "ឈ្មោះអាណាព្យាបាល",
+  applicationNumber: "លេខពាក្យ"
 };
 
 const VIEW_FIELDS = [
@@ -88,14 +90,15 @@ const VIEW_FIELDS = [
   "currentCommune",
   "currentDistrict",
   "currentProvince",
-  "photo"
+  "photo",
+  "applicationNumber"
 ];
 
 const HEADER_ROW = HEADERS.map(function(key) { return HEADER_LABELS[key] || key; });
 const VIEW_HEADER_ROW = VIEW_FIELDS.map(function(key) { return HEADER_LABELS[key] || key; });
 
-const STUDENT_COLUMN_WIDTHS = [90, 95, 170, 60, 105, 80, 165, 115, 135, 135, 135, 120, 130, 130, 125, 150, 150, 150, 100, 145, 145, 120, 120, 125, 125, 145];
-const VIEW_COLUMN_WIDTHS = [95, 120, 120, 60, 105, 80, 165, 120, 130, 125, 130, 125, 145, 115, 135, 135, 135, 125, 150, 150, 150, 100];
+const STUDENT_COLUMN_WIDTHS = [90, 95, 170, 60, 105, 80, 165, 115, 135, 135, 135, 120, 130, 130, 125, 150, 150, 150, 100, 145, 145, 120, 120, 125, 125, 145, 105];
+const VIEW_COLUMN_WIDTHS = [95, 120, 120, 60, 105, 80, 165, 120, 130, 125, 130, 125, 145, 115, 135, 135, 135, 125, 150, 150, 150, 100, 105];
 const CLASS_TAB_COLORS = ["#0f766e", "#2563eb", "#7c3aed", "#15803d", "#b45309", "#be123c", "#0891b2", "#4f46e5"];
 
 function doGet(e) {

@@ -35,13 +35,17 @@ After updating `google-sheet-backend.gs`, use `Deploy -> Manage deployments -> E
 
 Camera access in a browser requires the Web App to be served over **HTTPS** (or localhost during development).
 
-1. Open the same Web App URL directly on the phone.
-2. Connect the app to the shared Google Sheet or Supabase storage.
-3. Open the registration form and tap the Camera button.
-4. Take the student photo, complete the form, and save.
-5. Other connected devices receive the shared update automatically.
+To send photos from a phone directly into the form open on a computer:
 
-The QR phone-camera bridge below is available only in the optional Windows desktop build and is not required by the Web App.
+1. On the computer, open the registration form and click `ប្រើ Camera ទូរសព្ទ`.
+2. Scan the displayed QR code once with the phone.
+3. Keep the camera page open on the phone.
+4. Tap `ថតរូបសិស្ស`, take a photo, then tap `ផ្ញើទៅកុំព្យូទ័រ`.
+5. Save the student on the computer and repeat step 4 for every next student. The QR code does not need to be scanned again while the session remains connected.
+
+Both devices need internet access for the initial WebRTC connection. The transferred photo goes directly between the two devices and is not stored by the pairing service. If a restrictive network blocks the connection, try the same Wi-Fi network or a phone hotspot.
+
+The phone can also open the regular Web App directly, connect to the same Google Sheet or Supabase storage, take the student photo, and save the complete record there.
 
 ## Optional desktop phone-camera bridge
 
@@ -53,7 +57,14 @@ The QR phone-camera bridge below is available only in the optional Windows deskt
 6. Save that student on the desktop, then use `ថតរូបសិស្សបន្ទាប់` on the same phone page. Do not scan the QR code again.
 7. Keep the phone page and desktop app open for the complete photo session.
 
-The phone-camera link contains a random token that changes whenever the desktop app restarts. It works only while the desktop app is open; no phone photo is stored by the local bridge after transfer.
+The phone-camera link contains a random token that changes whenever the app restarts. It works only while the computer app remains open; no phone photo is stored by the bridge after transfer.
+
+## Application number
+
+`លេខពាក្យ` is the final student-data column in the form, student table, print views, Excel template, and CSV import/export. After updating an existing installation:
+
+- Google Sheet: deploy the latest `google-sheet-backend.gs` as a new Apps Script version, then click `Backup` once so the new column is added and formatted.
+- Supabase: run the latest `supabase-schema.sql` once to add `application_number` without deleting existing records.
 
 ## Student card settings
 

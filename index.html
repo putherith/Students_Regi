@@ -1756,6 +1756,18 @@
         .phone-camera-url { display:block; margin:8px 0; padding:10px; overflow-wrap:anywhere; border-radius:8px; background:var(--surface-3); color:var(--text); font-size:.78rem; user-select:all; }
         .phone-camera-status { margin-top:10px; color:var(--muted); font-weight:700; }
         .phone-camera-status.connected { color:var(--green); }
+        .web-phone-camera-page { position:fixed; inset:0; z-index:3000; overflow:auto; padding:18px; background:var(--bg); }
+        .web-phone-camera-card { width:min(100%,480px); margin:0 auto; padding:22px; border:1px solid var(--border); border-radius:18px; background:var(--surface); box-shadow:var(--shadow-lg); }
+        .web-phone-camera-card h1 { color:var(--primary); font-size:1.5rem; }
+        .web-phone-camera-card > p { margin:6px 0 18px; color:var(--muted); }
+        .web-phone-preview { width:min(100%,315px); aspect-ratio:315/400; display:grid; place-items:center; margin:0 auto 16px; overflow:hidden; border:2px dashed var(--border-strong); border-radius:14px; background:var(--surface-2); color:var(--muted); text-align:center; }
+        .web-phone-preview img { width:100%; height:100%; object-fit:cover; }
+        .web-phone-camera-actions { display:grid; gap:10px; }
+        .web-phone-camera-actions label { min-height:52px; display:flex; align-items:center; justify-content:center; border-radius:10px; color:#fff; background:var(--primary); font-weight:800; cursor:pointer; }
+        .web-phone-camera-actions .btn { min-height:52px; justify-content:center; }
+        .web-phone-camera-status { min-height:24px; margin-top:14px; color:var(--muted); text-align:center; font-weight:750; }
+        .web-phone-camera-status.connected { color:var(--green); }
+        .web-phone-camera-status.error { color:var(--red); }
         .app-settings-modal .modal-dialog { width:min(680px,100%); }
         .teacher-settings-list { display:grid; gap:8px; max-height:290px; overflow:auto; margin-top:10px; padding-right:3px; }
         .teacher-setting-row { display:grid; grid-template-columns:minmax(100px,150px) minmax(0,1fr); gap:10px; align-items:center; padding:9px 10px; border:1px solid var(--border); border-radius:9px; background:var(--surface-2); }
@@ -2042,7 +2054,7 @@
                                     <button id="open-camera-btn" type="button" class="btn btn-primary">
                                         <ion-icon name="camera"></ion-icon> ថតរូបផ្ទាល់
                                     </button>
-                                    <button id="phone-camera-btn" type="button" class="btn btn-ghost" hidden>
+                                    <button id="phone-camera-btn" type="button" class="btn btn-ghost">
                                         <ion-icon name="phone-portrait-outline"></ion-icon> ប្រើ Camera ទូរសព្ទ
                                     </button>
                                     <button id="choose-photo-btn" type="button" class="btn btn-ghost">
@@ -2236,6 +2248,10 @@
                                     <label for="contact" class="required">លេខទូរស័ព្ទ</label>
                                     <input id="contact" name="contact" type="tel" required placeholder="0xx-xxx-xxx">
                                 </div>
+                                <div class="field field-full">
+                                    <label for="applicationNumber">លេខពាក្យ</label>
+                                    <input id="applicationNumber" name="applicationNumber" type="text" placeholder="ឧ. 001/2026">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2315,6 +2331,7 @@
                             <th rowspan="2" style="min-width:100px; vertical-align:middle;">មុខរបរម្តាយ</th>
                             <th rowspan="2" style="min-width:120px; vertical-align:middle;">ឈ្មោះអាណាព្យាបាល</th>
                             <th colspan="4" style="text-align:center; border-bottom:1px solid var(--border);">អាសយដ្ឋានបច្ចុប្បន្ន</th>
+                            <th rowspan="2" style="min-width:90px; text-align:center; vertical-align:middle;">លេខពាក្យ</th>
                             <th rowspan="2" style="width:140px; text-align:center; vertical-align:middle;">សកម្មភាព</th>
                         </tr>
                         <tr>
@@ -2330,7 +2347,7 @@
                     </thead>
                     <tbody id="student-list">
                         <tr class="skeleton-row">
-                            <td colspan="22">
+                            <td colspan="23">
                                 <div class="skeleton skeleton-line" style="width:60%;height:16px"></div>
                             </td>
                         </tr>
@@ -2384,6 +2401,21 @@
 
 </main><!-- end .app -->
 
+<!-- ======================== WEB PHONE CAMERA PAGE ======================== -->
+<section id="web-phone-camera-page" class="web-phone-camera-page" hidden aria-labelledby="web-phone-camera-title">
+    <div class="web-phone-camera-card">
+        <h1 id="web-phone-camera-title">ប្រើទូរសព្ទជាកាមេរ៉ា</h1>
+        <p>Scan តែម្តង ហើយរក្សាទំព័រនេះឱ្យបើក ដើម្បីថតរូបសិស្សជាបន្តបន្ទាប់។</p>
+        <div id="web-phone-preview" class="web-phone-preview">មិនទាន់ជ្រើសរូបថត</div>
+        <div class="web-phone-camera-actions">
+            <label for="web-phone-photo-input">📷 ថតរូបសិស្ស</label>
+            <input id="web-phone-photo-input" class="hidden-input" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">
+            <button id="web-phone-send-btn" class="btn btn-primary" type="button" disabled>ផ្ញើទៅកុំព្យូទ័រ</button>
+        </div>
+        <p id="web-phone-camera-status" class="web-phone-camera-status" role="status" aria-live="polite">កំពុងភ្ជាប់…</p>
+    </div>
+</section>
+
 <!-- ======================== CAMERA MODAL ======================== -->
 <div id="camera-modal" class="modal cam-modal" role="dialog" aria-modal="true" aria-labelledby="camera-title">
     <div class="modal-dialog">
@@ -2420,7 +2452,7 @@
                 <ion-icon name="phone-portrait-outline"></ion-icon>
             </div>
             <h2 id="phone-camera-title" class="modal-title">ភ្ជាប់ Camera ទូរសព្ទ</h2>
-            <p class="modal-desc">ទូរសព្ទ និងកុំព្យូទ័រត្រូវភ្ជាប់ Wi‑Fi ដូចគ្នា។ Scan QR រួចថត និងផ្ញើរូបមក form នេះ។</p>
+            <p class="modal-desc">Scan QR ម្តង រួចថត និងផ្ញើរូបមក form នេះ។ ទុក page លើទូរសព្ទឱ្យបើកសម្រាប់សិស្សបន្ទាប់ៗ។</p>
             <div id="phone-camera-connect" class="phone-camera-connect">
                 <img id="phone-camera-qr" class="phone-camera-qr" alt="QR សម្រាប់ភ្ជាប់ទូរសព្ទ">
                 <div>
@@ -2710,12 +2742,13 @@
         currentCommune: "current_commune",
         currentDistrict: "current_district",
         currentProvince: "current_province",
+        applicationNumber: "application_number",
         photo: "photo",
         createdAt: "created_at",
         updatedAt: "updated_at"
     };
     const SUPABASE_OPTIONAL_COLUMNS = new Set([
-        "photo", "student_surname", "student_given_name", "father_occupation", "mother_occupation", "guardian_name"
+        "photo", "student_surname", "student_given_name", "father_occupation", "mother_occupation", "guardian_name", "application_number"
     ]);
 
     // ===================== LOCAL STORAGE DB HANDLERS =====================
@@ -3007,7 +3040,12 @@
         phoneCameraUrl: document.getElementById("phone-camera-url"),
         phoneCameraStatus: document.getElementById("phone-camera-status"),
         copyPhoneCameraUrlBtn: document.getElementById("copy-phone-camera-url-btn"),
-        closePhoneCameraBtn: document.getElementById("close-phone-camera-btn")
+        closePhoneCameraBtn: document.getElementById("close-phone-camera-btn"),
+        webPhoneCameraPage: document.getElementById("web-phone-camera-page"),
+        webPhonePreview: document.getElementById("web-phone-preview"),
+        webPhonePhotoInput: document.getElementById("web-phone-photo-input"),
+        webPhoneSendBtn: document.getElementById("web-phone-send-btn"),
+        webPhoneCameraStatus: document.getElementById("web-phone-camera-status")
     };
 
     const pobGroup = {
@@ -3042,17 +3080,17 @@
         "studentCode","studentSurname","studentGivenName","dob","fatherName","fatherOccupation","motherName","motherOccupation","guardianName",
         "pobProvince","pobDistrict","pobCommune","pobVillage",
         "currentProvince","currentDistrict","currentCommune","currentVillage",
-        "fromSchool","className","contact"
+        "fromSchool","className","contact","applicationNumber"
     ];
 
     const STUDENT_TEMPLATE_TOP_HEADERS = [
         "អត្តលេខ", "គោត្តនាម", "នាមខ្លួន", "ភេទ", "ថ្ងៃកំណើត", "ថ្នាក់", "សាលា",
         "ទីកន្លែងកំណើត", "", "", "", "លេខទូរស័ព្ទ", "ឈ្មោះឪពុក", "មុខរបរឪពុក", "ឈ្មោះម្តាយ", "មុខរបរម្តាយ", "ឈ្មោះអាណាព្យាបាល",
-        "អាសយដ្ឋានបច្ចុប្បន្ន", "", "", ""
+        "អាសយដ្ឋានបច្ចុប្បន្ន", "", "", "", "លេខពាក្យ"
     ];
     const STUDENT_TEMPLATE_SUB_HEADERS = [
         "", "", "", "", "", "", "", "ភូមិ", "ឃុំ/សង្កាត់", "ស្រុក/ខណ្ឌ", "ខេត្ត/ក្រុង",
-        "", "", "", "", "", "", "ភូមិ", "ឃុំ/សង្កាត់", "ស្រុក/ខណ្ឌ", "ខេត្ត/ក្រុង"
+        "", "", "", "", "", "", "ភូមិ", "ឃុំ/សង្កាត់", "ស្រុក/ខណ្ឌ", "ខេត្ត/ក្រុង", ""
     ];
     const STUDENT_CSV_HEADERS = [
         "អត្តលេខ", "គោត្តនាម", "នាមខ្លួន", "ភេទ", "ថ្ងៃកំណើត", "ថ្នាក់", "សាលា",
@@ -3060,33 +3098,33 @@
         "ទីកន្លែងកំណើត - ស្រុក/ខណ្ឌ", "ទីកន្លែងកំណើត - ខេត្ត/ក្រុង",
         "លេខទូរស័ព្ទ", "ឈ្មោះឪពុក", "មុខរបរឪពុក", "ឈ្មោះម្តាយ", "មុខរបរម្តាយ", "ឈ្មោះអាណាព្យាបាល",
         "អាសយដ្ឋានបច្ចុប្បន្ន - ភូមិ", "អាសយដ្ឋានបច្ចុប្បន្ន - ឃុំ/សង្កាត់",
-        "អាសយដ្ឋានបច្ចុប្បន្ន - ស្រុក/ខណ្ឌ", "អាសយដ្ឋានបច្ចុប្បន្ន - ខេត្ត/ក្រុង"
+        "អាសយដ្ឋានបច្ចុប្បន្ន - ស្រុក/ខណ្ឌ", "អាសយដ្ឋានបច្ចុប្បន្ន - ខេត្ត/ក្រុង", "លេខពាក្យ"
     ];
     const STUDENT_IMPORT_FIELDS = [
         "studentCode", "studentSurname", "studentGivenName", "gender", "dob", "className", "fromSchool",
         "pobVillage", "pobCommune", "pobDistrict", "pobProvince",
         "contact", "fatherName", "fatherOccupation", "motherName", "motherOccupation", "guardianName",
-        "currentVillage", "currentCommune", "currentDistrict", "currentProvince"
+        "currentVillage", "currentCommune", "currentDistrict", "currentProvince", "applicationNumber"
     ];
     const STUDENT_DATA_FIELDS = [
         "studentName", "gender", "dob", "className", "fromSchool",
         "pobVillage", "pobCommune", "pobDistrict", "pobProvince",
         "contact", "fatherName", "fatherOccupation", "motherName", "motherOccupation", "guardianName",
-        "currentVillage", "currentCommune", "currentDistrict", "currentProvince", "photo"
+        "currentVillage", "currentCommune", "currentDistrict", "currentProvince", "applicationNumber", "photo"
     ];
     const STUDENT_TEMPLATE_EXAMPLE = [
         "", "ហ៊ុន", "ណារ", "ប្រុស", "15/05/2010", "7A", "សាលាបឋមសិក្សាព្រៃខ្លា",
         "ព្រៃមេលងខាងជើង", "ព្រៃខ្លា", "ស្រុកកោះអណ្តែត", "ខេត្តតាកែវ",
         "012345678", "ហ៊ុន សក្កដា", "កសិករ", "គង់ សុភី", "អាជីវករ", "ហ៊ុន សក្កដា",
-        "ព្រៃមេលងខាងជើង", "ព្រៃខ្លា", "ស្រុកកោះអណ្តែត", "ខេត្តតាកែវ"
+        "ព្រៃមេលងខាងជើង", "ព្រៃខ្លា", "ស្រុកកោះអណ្តែត", "ខេត្តតាកែវ", "001/2026"
     ];
-    const STUDENT_TEMPLATE_MERGES = [0,1,2,3,4,5,6,11,12,13,14,15,16]
+    const STUDENT_TEMPLATE_MERGES = [0,1,2,3,4,5,6,11,12,13,14,15,16,21]
         .map(c => ({ s:{r:3,c}, e:{r:4,c} }))
         .concat([{s:{r:3,c:7},e:{r:3,c:10}}, {s:{r:3,c:17},e:{r:3,c:20}}]);
     const STUDENT_TEMPLATE_COLS = [
         {wch:15}, {wch:16}, {wch:16}, {wch:10}, {wch:15}, {wch:10}, {wch:22},
         {wch:16}, {wch:16}, {wch:16}, {wch:16}, {wch:15}, {wch:18}, {wch:16},
-        {wch:18}, {wch:16}, {wch:20}, {wch:16}, {wch:16}, {wch:16}, {wch:16}
+        {wch:18}, {wch:16}, {wch:20}, {wch:16}, {wch:16}, {wch:16}, {wch:16}, {wch:14}
     ];
 
     // ===================== UTILITY =====================
@@ -3163,7 +3201,7 @@
             studentVisibleId(s), s.studentSurname, s.studentGivenName, s.gender, formatDate(s.dob), s.className, s.fromSchool,
             s.pobVillage, s.pobCommune, s.pobDistrict, s.pobProvince,
             s.contact, s.fatherName, s.fatherOccupation, s.motherName, s.motherOccupation, s.guardianName,
-            s.currentVillage, s.currentCommune, s.currentDistrict, s.currentProvince
+            s.currentVillage, s.currentCommune, s.currentDistrict, s.currentProvince, s.applicationNumber
         ];
     }
 
@@ -4174,42 +4212,147 @@
     // ===================== PHOTO & WEBCAM =====================
     let phoneCameraSessionConnected = false;
     let phoneCameraPhotoCount = 0;
+    let phoneCameraUrlValue = "";
+    let webPhonePeer = null;
+    let webPhoneConnection = null;
+    let webPhoneSelectedPhoto = null;
+
+    let peerJsLoader = null;
+    function loadPeerJs() {
+        if (window.Peer) return Promise.resolve(window.Peer);
+        if (peerJsLoader) return peerJsLoader;
+        const sources = [
+            "https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js",
+            "https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js"
+        ];
+        peerJsLoader = new Promise((resolve, reject) => {
+            const trySource = index => {
+                if (window.Peer) { resolve(window.Peer); return; }
+                if (index >= sources.length) { reject(new Error("PeerJS មិនអាចផ្ទុកបាន")); return; }
+                document.querySelector('script[data-peerjs-loader]')?.remove();
+                const script = document.createElement("script");
+                script.src = sources[index];
+                script.dataset.peerjsLoader = "true";
+                script.onload = () => window.Peer ? resolve(window.Peer) : trySource(index + 1);
+                script.onerror = () => trySource(index + 1);
+                document.head.append(script);
+            };
+            trySource(0);
+        }).catch(error => {
+            peerJsLoader = null;
+            throw error;
+        });
+        return peerJsLoader;
+    }
+
+    function phoneCameraSessionFromHash() {
+        try {
+            return new URLSearchParams(location.hash.replace(/^#/, "")).get("phoneCamera") || "";
+        } catch {
+            return "";
+        }
+    }
+
+    function webPhoneCameraLink(peerId) {
+        const url = new URL(location.href);
+        url.search = "";
+        url.hash = new URLSearchParams({ phoneCamera:peerId }).toString();
+        return url.toString();
+    }
+
+    function setPhoneHostStatus(text, connected=false) {
+        if (!els.phoneCameraStatus) return;
+        els.phoneCameraStatus.textContent = text;
+        els.phoneCameraStatus.className = `phone-camera-status${connected ? " connected" : ""}`;
+    }
+
+    function attachWebPhoneConnection(connection) {
+        if (!connection) return;
+        if (webPhoneConnection && webPhoneConnection !== connection) webPhoneConnection.close();
+        webPhoneConnection = connection;
+        connection.on("open", () => {
+            phoneCameraSessionConnected = true;
+            updatePhoneCameraButton();
+            setPhoneHostStatus(`ទូរសព្ទបានភ្ជាប់ · ទទួលរូប ${phoneCameraPhotoCount} · អាចថតបន្តដោយមិន Scan ម្តងទៀត`, true);
+        });
+        connection.on("data", async payload => {
+            if (!payload || payload.type !== "student-photo" || !payload.dataUrl) return;
+            await handlePhoneCameraPhoto(payload);
+            if (connection.open) connection.send({ type:"photo-received", count:phoneCameraPhotoCount });
+        });
+        connection.on("close", () => {
+            phoneCameraSessionConnected = false;
+            setPhoneHostStatus("ទូរសព្ទបានផ្តាច់។ បើក link ដដែលឡើងវិញ ដើម្បីភ្ជាប់ម្ដងទៀត។");
+        });
+        connection.on("error", error => {
+            console.error("Phone data connection error:", error);
+            setPhoneHostStatus("ការភ្ជាប់ត្រូវបានរំខាន។ សូមព្យាយាមបើក link លើទូរសព្ទម្ដងទៀត។");
+        });
+    }
+
+    async function startWebPhoneCameraHost() {
+        const Peer = await loadPeerJs();
+        if (webPhonePeer && !webPhonePeer.destroyed && phoneCameraUrlValue) return phoneCameraUrlValue;
+        if (webPhonePeer && !webPhonePeer.destroyed) webPhonePeer.destroy();
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error("Phone Camera connection timeout")), 15000);
+            const peer = new Peer(undefined, { debug:1 });
+            webPhonePeer = peer;
+            peer.on("open", peerId => {
+                clearTimeout(timeout);
+                phoneCameraUrlValue = webPhoneCameraLink(peerId);
+                resolve(phoneCameraUrlValue);
+            });
+            peer.on("connection", attachWebPhoneConnection);
+            peer.on("error", error => {
+                clearTimeout(timeout);
+                console.error("Phone camera peer error:", error);
+                if (!phoneCameraUrlValue) reject(error);
+                else setPhoneHostStatus("សេវាភ្ជាប់ Camera មានបញ្ហា។ សូមបិទហើយបើកការភ្ជាប់ម្ដងទៀត។");
+            });
+        });
+    }
 
     function updatePhoneCameraButton() {
-        if (!els.phoneCameraBtn || !phoneCameraSessionConnected) return;
-        els.phoneCameraBtn.innerHTML = `<ion-icon name="phone-portrait-outline"></ion-icon> ទូរសព្ទបានភ្ជាប់ · រូប ${phoneCameraPhotoCount}`;
-        els.phoneCameraBtn.title = "Session នៅតែភ្ជាប់។ ទូរសព្ទអាចថតសិស្សបន្ទាប់ដោយមិនបាច់ Scan QR ម្តងទៀត";
+        if (!els.phoneCameraBtn) return;
+        if (phoneCameraSessionConnected) {
+            els.phoneCameraBtn.innerHTML = `<ion-icon name="phone-portrait-outline"></ion-icon> ទូរសព្ទបានភ្ជាប់ · រូប ${phoneCameraPhotoCount}`;
+            els.phoneCameraBtn.title = "Session នៅតែភ្ជាប់។ ទូរសព្ទអាចថតសិស្សបន្ទាប់ដោយមិនបាច់ Scan QR ម្តងទៀត";
+            return;
+        }
+        els.phoneCameraBtn.innerHTML = `<ion-icon name="phone-portrait-outline"></ion-icon> ប្រើ Camera ទូរសព្ទ`;
+        els.phoneCameraBtn.title = "Scan QR ម្តង ហើយប្រើទូរសព្ទថតសិស្សជាបន្តបន្ទាប់";
     }
 
     async function openPhoneCameraModal() {
-        if (!window.desktopCamera) {
-            showToast("Phone Camera អាចប្រើបានតែក្នុង Desktop App", "warning");
-            return;
-        }
         els.phoneCameraModal?.classList.add("is-open");
         els.phoneCameraQr?.removeAttribute("src");
         els.phoneCameraQr?.classList.add("is-hidden");
         els.phoneCameraUrl.textContent = "កំពុងរៀបចំ…";
-        els.phoneCameraStatus.textContent = "កំពុងស្វែងរក Wi‑Fi ក្នុងកុំព្យូទ័រ…";
-        els.phoneCameraStatus.className = "phone-camera-status";
+        setPhoneHostStatus(window.desktopCamera ? "កំពុងស្វែងរក Wi‑Fi ក្នុងកុំព្យូទ័រ…" : "កំពុងបង្កើតការភ្ជាប់សុវត្ថិភាព…");
         try {
-            const info = await window.desktopCamera.getConnectionInfo();
-            if (!info?.available) {
-                els.phoneCameraUrl.textContent = "រកមិនឃើញ LAN / Wi‑Fi address";
-                els.phoneCameraStatus.textContent = "សូមភ្ជាប់កុំព្យូទ័រ និងទូរសព្ទទៅ Wi‑Fi ដូចគ្នា រួចបើក app ម្តងទៀត។";
-                return;
+            if (window.desktopCamera) {
+                const info = await window.desktopCamera.getConnectionInfo();
+                if (!info?.available) {
+                    els.phoneCameraUrl.textContent = "រកមិនឃើញ LAN / Wi‑Fi address";
+                    setPhoneHostStatus("សូមភ្ជាប់កុំព្យូទ័រ និងទូរសព្ទទៅ Wi‑Fi ដូចគ្នា រួចបើក app ម្តងទៀត។");
+                    return;
+                }
+                phoneCameraUrlValue = info.url;
+                els.phoneCameraQr.src = info.qrDataUrl;
+            } else {
+                phoneCameraUrlValue = await startWebPhoneCameraHost();
+                els.phoneCameraQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=6&data=${encodeURIComponent(phoneCameraUrlValue)}`;
             }
-            els.phoneCameraUrl.textContent = info.url;
-            els.phoneCameraQr.src = info.qrDataUrl;
+            els.phoneCameraUrl.textContent = phoneCameraUrlValue;
             els.phoneCameraQr.classList.remove("is-hidden");
-            els.phoneCameraStatus.textContent = phoneCameraSessionConnected
+            setPhoneHostStatus(phoneCameraSessionConnected
                 ? `Session បានភ្ជាប់ · ទទួលរូប ${phoneCameraPhotoCount} · មិនបាច់ Scan ម្តងទៀត`
-                : "Scan QR ម្តង ហើយរក្សា page នៅលើទូរសព្ទឱ្យបើកសម្រាប់សិស្សទាំងអស់";
-            if (phoneCameraSessionConnected) els.phoneCameraStatus.className = "phone-camera-status connected";
+                : "Scan QR ម្តង ហើយរក្សា page នៅលើទូរសព្ទឱ្យបើកសម្រាប់សិស្សទាំងអស់", phoneCameraSessionConnected);
         } catch (error) {
             console.error("Phone camera connection error:", error);
             els.phoneCameraUrl.textContent = "ភ្ជាប់មិនបាន";
-            els.phoneCameraStatus.textContent = "Phone Camera server មិនទាន់រួចរាល់។ សូមបិទ app ហើយបើកម្ដងទៀត។";
+            setPhoneHostStatus("សូមពិនិត្យ Internet ហើយបិទ/បើកការភ្ជាប់ Camera ម្តងទៀត។");
         }
     }
 
@@ -4218,8 +4361,22 @@
     }
 
     async function copyPhoneCameraUrl() {
-        if (!window.desktopCamera) return;
-        const copied = await window.desktopCamera.copyConnectionUrl();
+        let copied = false;
+        if (window.desktopCamera) copied = await window.desktopCamera.copyConnectionUrl();
+        else if (phoneCameraUrlValue) {
+            try {
+                await navigator.clipboard.writeText(phoneCameraUrlValue);
+                copied = true;
+            } catch {
+                const range = document.createRange();
+                range.selectNodeContents(els.phoneCameraUrl);
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+                copied = document.execCommand("copy");
+                selection.removeAllRanges();
+            }
+        }
         showToast(copied ? "បាន Copy URL សម្រាប់ទូរសព្ទ" : "មិនមាន URL សម្រាប់ Copy", copied ? "success" : "warning");
     }
 
@@ -4238,6 +4395,113 @@
         } catch (error) {
             console.error("Phone photo processing error:", error);
             showToast("បានទទួលរូប ប៉ុន្តែរៀបចំរូបថតមិនបាន", "error");
+        }
+    }
+
+    function setWebPhoneStatus(text, type="") {
+        if (!els.webPhoneCameraStatus) return;
+        els.webPhoneCameraStatus.textContent = text;
+        els.webPhoneCameraStatus.className = `web-phone-camera-status${type ? ` ${type}` : ""}`;
+    }
+
+    async function decodePhonePhoto(file) {
+        if (typeof createImageBitmap === "function") {
+            const bitmap = await createImageBitmap(file);
+            return { image:bitmap, width:bitmap.width, height:bitmap.height, cleanup:() => bitmap.close?.() };
+        }
+        const objectUrl = URL.createObjectURL(file);
+        const image = new Image();
+        image.src = objectUrl;
+        await new Promise((resolve, reject) => {
+            image.onload = resolve;
+            image.onerror = () => reject(new Error("Cannot decode phone photo"));
+        });
+        return { image, width:image.naturalWidth, height:image.naturalHeight, cleanup:() => URL.revokeObjectURL(objectUrl) };
+    }
+
+    async function compressPhonePhoto(file) {
+        const decoded = await decodePhonePhoto(file);
+        const maxWidth = 900;
+        const maxHeight = 1200;
+        const scale = Math.min(1, maxWidth / decoded.width, maxHeight / decoded.height);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(decoded.width * scale));
+        canvas.height = Math.max(1, Math.round(decoded.height * scale));
+        canvas.getContext("2d", { alpha:false }).drawImage(decoded.image, 0, 0, canvas.width, canvas.height);
+        decoded.cleanup();
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", .84));
+        if (!blob) throw new Error("Cannot prepare phone photo");
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result || ""));
+            reader.onerror = () => reject(reader.error || new Error("Cannot read phone photo"));
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    async function initWebPhoneCaptureMode(sessionId) {
+        if (!sessionId || !els.webPhoneCameraPage) return false;
+        document.body.classList.add("phone-capture-mode");
+        els.webPhoneCameraPage.hidden = false;
+        let connection = null;
+        try {
+            const Peer = await loadPeerJs();
+            const peer = new Peer(undefined, { debug:1 });
+            peer.on("open", () => {
+                setWebPhoneStatus("កំពុងភ្ជាប់ទៅកុំព្យូទ័រ…");
+                connection = peer.connect(sessionId, { reliable:true, metadata:{ role:"student-camera" } });
+                connection.on("open", () => {
+                    setWebPhoneStatus("បានភ្ជាប់ទៅកុំព្យូទ័រ ✓", "connected");
+                    els.webPhoneSendBtn.disabled = !webPhoneSelectedPhoto;
+                });
+                connection.on("data", message => {
+                    if (message?.type === "photo-received") {
+                        webPhoneSelectedPhoto = null;
+                        els.webPhonePhotoInput.value = "";
+                        els.webPhonePreview.textContent = "រួចរាល់សម្រាប់សិស្សបន្ទាប់";
+                        els.webPhoneSendBtn.disabled = true;
+                        setWebPhoneStatus(`កុំព្យូទ័របានទទួលរូប ✓ · សរុប ${message.count || ""}`, "connected");
+                    }
+                });
+                connection.on("close", () => setWebPhoneStatus("ការភ្ជាប់បានផ្តាច់។ សូម Refresh ទំព័រនេះ។", "error"));
+                connection.on("error", () => setWebPhoneStatus("ភ្ជាប់មិនបាន។ សូម Refresh ហើយព្យាយាមម្ដងទៀត។", "error"));
+            });
+            peer.on("error", error => {
+                console.error("Phone capture peer error:", error);
+                setWebPhoneStatus("ភ្ជាប់មិនបាន។ សូមពិនិត្យ Internet និង Scan QR ម្តងទៀត។", "error");
+            });
+            els.webPhonePhotoInput.addEventListener("change", () => {
+                const file = els.webPhonePhotoInput.files?.[0];
+                if (!file) return;
+                webPhoneSelectedPhoto = file;
+                const image = new Image();
+                const objectUrl = URL.createObjectURL(file);
+                image.alt = "រូបថតដែលបានជ្រើស";
+                image.src = objectUrl;
+                image.onload = () => URL.revokeObjectURL(objectUrl);
+                els.webPhonePreview.replaceChildren(image);
+                els.webPhoneSendBtn.disabled = !connection?.open;
+                setWebPhoneStatus(connection?.open ? "រូបថតរួចរាល់សម្រាប់ផ្ញើ" : "រូបថតរួចរាល់ · កំពុងរង់ចាំការភ្ជាប់…");
+            });
+            els.webPhoneSendBtn.addEventListener("click", async () => {
+                if (!webPhoneSelectedPhoto || !connection?.open) return;
+                els.webPhoneSendBtn.disabled = true;
+                setWebPhoneStatus("កំពុងរៀបចំ និងផ្ញើរូប…");
+                try {
+                    const dataUrl = await compressPhonePhoto(webPhoneSelectedPhoto);
+                    connection.send({ type:"student-photo", dataUrl, mimeType:"image/jpeg", sentAt:new Date().toISOString() });
+                    setWebPhoneStatus("បានផ្ញើ · រង់ចាំកុំព្យូទ័រទទួល…");
+                } catch (error) {
+                    console.error("Phone photo send error:", error);
+                    els.webPhoneSendBtn.disabled = false;
+                    setWebPhoneStatus("ផ្ញើរូបមិនបាន។ សូមព្យាយាមម្ដងទៀត។", "error");
+                }
+            });
+            return true;
+        } catch (error) {
+            console.error("Phone capture initialization error:", error);
+            setWebPhoneStatus("មិនអាចបើកការភ្ជាប់ Camera បាន។ សូមពិនិត្យ Internet។", "error");
+            return true;
         }
     }
 
@@ -4692,6 +4956,7 @@
             fromSchool: els.fromSchool.value,
             className: getValue("className"),
             contact: getValue("contact"),
+            applicationNumber: getValue("applicationNumber"),
             photo: getValue("studentPhotoData")
         };
     }
@@ -4983,7 +5248,7 @@
     }
 
     function studentSearchText(s) {
-        return [studentDisplayId(s),studentFullName(s),s.gender,s.dob,s.fatherName,s.fatherOccupation,s.motherName,s.motherOccupation,s.guardianName,s.fromSchool,s.className,s.contact,addressText(s,"pob"),addressText(s,"current")].filter(Boolean).join(" ").toLowerCase();
+        return [studentDisplayId(s),studentFullName(s),s.gender,s.dob,s.fatherName,s.fatherOccupation,s.motherName,s.motherOccupation,s.guardianName,s.fromSchool,s.className,s.contact,s.applicationNumber,addressText(s,"pob"),addressText(s,"current")].filter(Boolean).join(" ").toLowerCase();
     }
 
     function applyFilters() {
@@ -5078,6 +5343,7 @@
                 <td><div class="skeleton skeleton-line" style="width:50px"></div></td>
                 <td><div class="skeleton skeleton-line" style="width:50px"></div></td>
                 <td><div class="skeleton skeleton-line" style="width:60px"></div></td>
+                <td><div class="skeleton skeleton-line" style="width:60px"></div></td>
                 <td></td>
             </tr>`
         ).join("");
@@ -5090,7 +5356,7 @@
 
         if (visibleStudents.length === 0) {
             els.studentList.innerHTML = `
-                <tr><td colspan="22">
+                <tr><td colspan="23">
                     <div class="empty">
                         <ion-icon name="person-outline"></ion-icon>
                         <p>មិនមានទិន្នន័យ</p>
@@ -5139,6 +5405,7 @@
                         <td>${esc(s.currentCommune||"–")}</td>
                         <td>${esc(s.currentDistrict||"–")}</td>
                         <td>${esc(s.currentProvince||"–")}</td>
+                        <td style="text-align:center; font-family:monospace;">${esc(s.applicationNumber||"–")}</td>
                         <td>
                             <div class="row-actions">
                                 <button class="btn btn-icon print-student-btn" type="button" title="Print" data-id="${esc(s.id)}">
@@ -5159,7 +5426,7 @@
             }).join("");
             return `
                 <tr class="class-group-row">
-                    <td colspan="22">ថ្នាក់ ${esc(cls)}<span class="class-count">${students.length} នាក់</span></td>
+                    <td colspan="23">ថ្នាក់ ${esc(cls)}<span class="class-count">${students.length} នាក់</span></td>
                 </tr>${rows}`;
         }).join("");
 
@@ -5171,8 +5438,9 @@
                 const photoSrc = safePhotoSrc(s.photo);
                 const miniInfo = [
                     s.className ? `ថ្នាក់ ${s.className}` : "មិនទាន់មានថ្នាក់",
-                    s.contact ? `ទូរស័ព្ទ ${s.contact}` : "ខ្វះលេខទូរស័ព្ទ"
-                ].join(" · ");
+                    s.contact ? `ទូរស័ព្ទ ${s.contact}` : "ខ្វះលេខទូរស័ព្ទ",
+                    s.applicationNumber ? `លេខពាក្យ ${s.applicationNumber}` : ""
+                ].filter(Boolean).join(" · ");
                 return `
                     <article class="student-card ${esc(status.rowClass)}" title="${esc(status.title)}">
                         <div class="mobile-student-row">
@@ -5233,7 +5501,7 @@
         } catch(e) {
             console.error("Load page error:", e);
             setStatus("មានបញ្ហា","error");
-            els.studentList.innerHTML = `<tr><td colspan="22"><div class="empty"><p>ផ្ទុកទិន្នន័យមិនបាន</p></div></td></tr>`;
+            els.studentList.innerHTML = `<tr><td colspan="23"><div class="empty"><p>ផ្ទុកទិន្នន័យមិនបាន</p></div></td></tr>`;
         } finally {
             setPageLoading(false);
         }
@@ -5355,7 +5623,7 @@
             ["ថ្ងៃខែឆ្នាំកំណើត",formatDate(s.dob)],["ថ្នាក់",s.className],["សាលា",s.fromSchool],
             ["ទីកន្លែងកំណើត",addressText(s,"pob")],["លេខទូរស័ព្ទ",s.contact],
             ["ឈ្មោះឪពុក",s.fatherName],["មុខរបរឪពុក",s.fatherOccupation],["ឈ្មោះម្តាយ",s.motherName],["មុខរបរម្តាយ",s.motherOccupation],["ឈ្មោះអាណាព្យាបាល",s.guardianName],
-            ["អាសយដ្ឋានបច្ចុប្បន្ន",addressText(s,"current")]
+            ["អាសយដ្ឋានបច្ចុប្បន្ន",addressText(s,"current")],["លេខពាក្យ",s.applicationNumber]
         ].map(([l,v]) => `<tr><th>${esc(l)}</th><td>${esc(v||"–")}</td></tr>`).join("");
         printWindow("ពាក្យចុះឈ្មោះ",`
             <h1>ពាក្យចុះឈ្មោះសិស្ស</h1>
@@ -5371,7 +5639,7 @@
     function printStudentList(withPhotos = false) {
         const rows = hasActiveFilters() ? visibleStudents : allStudents;
         if (!rows.length) { showToast("មិនមានទិន្នន័យសម្រាប់បោះពុម្ព","warning"); return; }
-        const columnCount = withPhotos ? 22 : 21;
+        const columnCount = withPhotos ? 23 : 22;
         let idx = 0;
         const body = groupedByClass(rows).map(([cls,students]) => {
             const studentRows = students.map(s => {
@@ -5403,6 +5671,7 @@
                     <td>${esc(s.currentCommune||"")}</td>
                     <td>${esc(s.currentDistrict||"")}</td>
                     <td>${esc(s.currentProvince||"")}</td>
+                    <td class="center-col" style="font-family:monospace;">${esc(s.applicationNumber||"")}</td>
                 </tr>`;
             }).join("");
             return `<tr class="class-row"><td colspan="${columnCount}">ថ្នាក់ ${esc(cls)} – ${students.length} នាក់</td></tr>${studentRows}`;
@@ -5454,6 +5723,7 @@
                         <th rowspan="2" style="min-width: 90px;">មុខរបរម្តាយ</th>
                         <th rowspan="2" style="min-width: 110px;">អាណាព្យាបាល</th>
                         <th colspan="4">អាសយដ្ឋានបច្ចុប្បន្ន</th>
+                        <th rowspan="2" style="width:80px;">លេខពាក្យ</th>
                     </tr>
                     <tr>
                         <th style="width: 70px;">ភូមិ</th>
@@ -5485,6 +5755,7 @@
                 <td class="center-col">${esc(s.gender||"")}</td>
                 <td class="center-col">${esc(formatDate(s.dob)||"")}</td>
                 <td class="center-col">${esc(s.contact||"")}</td>
+                <td class="center-col" style="font-family:monospace;">${esc(s.applicationNumber||"")}</td>
             </tr>`).join("");
             return `<section class="name-class-block">
                 <h2>ថ្នាក់ ${esc(cls)} <span>${students.length} នាក់</span></h2>
@@ -5496,6 +5767,7 @@
                         <th style="width:58px;">ភេទ</th>
                         <th style="width:95px;">ថ្ងៃកំណើត</th>
                         <th style="width:110px;">ទូរស័ព្ទ</th>
+                        <th style="width:90px;">លេខពាក្យ</th>
                     </tr></thead>
                     <tbody>${studentRows}</tbody>
                 </table>
@@ -5699,7 +5971,8 @@
         address:["អាសយដ្ឋាន","address"],
         fromSchool:["សាលា","មកពីសាលា","fromSchool","school"],
         className:["ថ្នាក់","ថ្នាក់រៀន","ថ្នាក់ទី","កម្រិតថ្នាក់","កំរិតថ្នាក់","ក្រុមថ្នាក់","className","class name","class","grade","grade level","level"],
-        contact:["ទំនាក់ទំនង","លេខទូរស័ព្ទ","ទូរស័ព្ទ","contact","phone","phone number"]
+        contact:["ទំនាក់ទំនង","លេខទូរស័ព្ទ","ទូរស័ព្ទ","contact","phone","phone number"],
+        applicationNumber:["លេខពាក្យ","លេខពាក្យសុំ","applicationNumber","application number","form number"]
     };
 
     function normHeader(v) { return String(v||"").replace(/^\uFEFF/,"").trim().toLocaleLowerCase("km-KH").replace(/[()\s/_.,:។-]/g,""); }
@@ -5754,7 +6027,7 @@
             motherName:r("motherName"), motherOccupation:r("motherOccupation"), guardianName:guardian,
             pobProvince:r("pobProvince"),pobDistrict:r("pobDistrict"),pobCommune:r("pobCommune"),pobVillage:r("pobVillage"),
             currentProvince:r("currentProvince"),currentDistrict:r("currentDistrict"),currentCommune:r("currentCommune"),currentVillage:r("currentVillage")||addr,
-            fromSchool:r("fromSchool"),className:r("className"),contact:r("contact")
+            fromSchool:r("fromSchool"),className:r("className"),contact:r("contact"),applicationNumber:r("applicationNumber")
         };
     }
     function parseCSV(text) {
@@ -5935,6 +6208,11 @@
     }
 
     function init(){
+        const phoneCameraSession = phoneCameraSessionFromHash();
+        if (phoneCameraSession) {
+            initWebPhoneCaptureMode(phoneCameraSession);
+            return;
+        }
         updateStudentCodeHint();
         // Address
         resetAddressGroup(pobGroup);resetAddressGroup(currentGroup);
@@ -5949,10 +6227,8 @@
         els.registrationForm.addEventListener("submit",handleFormSubmit);
         els.clearBtn.addEventListener("click",resetForm);
         els.openCameraBtn?.addEventListener("click",openCameraModal);
-        if (window.desktopCamera && els.phoneCameraBtn) {
-            els.phoneCameraBtn.hidden = false;
-            window.desktopCamera.onPhoto(handlePhoneCameraPhoto);
-        }
+        if (window.desktopCamera) window.desktopCamera.onPhoto(handlePhoneCameraPhoto);
+        if (els.phoneCameraBtn) els.phoneCameraBtn.hidden = false;
         els.phoneCameraBtn?.addEventListener("click",openPhoneCameraModal);
         els.copyPhoneCameraUrlBtn?.addEventListener("click",copyPhoneCameraUrl);
         els.closePhoneCameraBtn?.addEventListener("click",closePhoneCameraModal);
@@ -6115,6 +6391,11 @@
     }
 
     document.addEventListener("DOMContentLoaded", init);
+
+    window.addEventListener("beforeunload", () => {
+        if (webPhoneConnection?.open) webPhoneConnection.close();
+        if (webPhonePeer && !webPhonePeer.destroyed) webPhonePeer.destroy();
+    });
 
     if ("serviceWorker" in navigator && location.protocol !== "file:") {
         window.addEventListener("load", () => {
