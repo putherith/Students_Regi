@@ -15,7 +15,7 @@
     <link rel="apple-touch-icon" href="./assets/moeys-logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kantumruy:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy:wght@400;600;700&family=Siemreap&display=swap" rel="stylesheet">
 <script async type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
 <script async nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 <script async src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -5790,7 +5790,7 @@
         win.document.write(`
             <!DOCTYPE html><html lang="km"><head>
             <meta charset="UTF-8"><title>${esc(title)}</title>
-            <link href="https://fonts.googleapis.com/css2?family=Kantumruy:wght@400;600;700&family=Moul&display=swap" rel="stylesheet">
+            <link href="https://fonts.googleapis.com/css2?family=Kantumruy:wght@400;600;700&family=Moul&family=Siemreap&display=swap" rel="stylesheet">
             <style>
                 @page { size: A4; margin: 14mm; }
                 * { box-sizing: border-box; }
@@ -6021,7 +6021,6 @@
             const visibleId = studentVisibleId(s) || `ID-${String(index + 1).padStart(4, "0")}`;
             const birthPlace = addressText(s, "pob") || "................................";
             const currentAddress = addressText(s, "current") || "................................";
-            const teacherName = appSettings.classTeachers?.[String(s.className || "").trim()] || "................................";
             return `<article class="certificate-student-card">
                 <div class="card-watermark"><img src="${esc(logoSrc)}" alt=""></div>
                 <header class="reference-card-header">
@@ -6079,8 +6078,7 @@
                         <div class="reference-guardian-row"><span>អាណាព្យាបាល</span><strong>${esc(s.guardianName || "-")}</strong></div>
                         <div class="reference-date-line">ថ្ងៃ ${esc(issuedDate)}</div>
                         <div class="reference-approval-grid">
-                            <div><strong>${esc(teacherName)}</strong><span>គ្រូបន្ទុកថ្នាក់ ${esc(s.className || "")}</span></div>
-                            <div><strong>${esc(principalName)}</strong><span>នាយកសាលា</span></div>
+                            <div class="reference-approval-principal"><strong>${esc(principalName)}</strong><span>នាយកសាលា</span></div>
                         </div>
                     </div>
                 </section>
@@ -6092,8 +6090,8 @@
                 body { background:#fff; color:#111; }
                 .cards-grid { display:grid; grid-template-columns:repeat(3, 75mm); gap:2mm; justify-content:center; align-items:start; }
                 .certificate-student-card {
-                    --card-muol:"Khmer OS Muol Light","KhmerOSMuolLight","KhmerOSMoulLight","Moul","Khmer OS",serif;
-                    --card-body:"Kantumruy","Khmer OS",Arial,sans-serif;
+                    --card-muol:"Khmer OS Siemreap","KhmerOSSiemreap","Siemreap","Khmer OS",sans-serif;
+                    --card-body:"Khmer OS Siemreap","KhmerOSSiemreap","Siemreap","Khmer OS",sans-serif;
                     position:relative;
                     width:75mm;
                     height:100mm;
@@ -6128,7 +6126,7 @@
                 .reference-info-contact { grid-template-columns:18mm minmax(0,1fr) 7mm 18mm; }
                 .reference-info-contact > strong:last-child { font-size:5.1px; }
                 .reference-card-lower { position:absolute; left:2.7mm; right:2.7mm; bottom:2mm; height:34mm; display:grid; grid-template-columns:18.5mm minmax(0,1fr); gap:1.2mm; }
-                .reference-photo-box { height:34mm; border:.35mm solid #2360ff; display:grid; grid-template-rows:5.5mm minmax(0,1fr); background:#fff; }
+                .reference-photo-box { height:34mm; transform:translateY(-2mm); border:.35mm solid #2360ff; display:grid; grid-template-rows:5.5mm minmax(0,1fr); background:#fff; }
                 .card-id-code { display:grid; place-items:center; border-bottom:.3mm solid #2360ff; color:#111; font:800 6.2px/1 var(--card-body); }
                 .card-photo-slot { min-height:0; display:grid; place-items:center; overflow:hidden; background:#fff; color:#222; text-align:center; font:700 7px/1.5 var(--card-body); }
                 .card-photo-slot img { width:100%; height:100%; object-fit:cover; display:block; }
@@ -6137,8 +6135,9 @@
                 .reference-family-row strong, .reference-guardian-row strong { min-width:0; color:#071cff; font-weight:800; overflow:visible; white-space:nowrap; font-size:5px; }
                 .reference-guardian-row { display:grid; grid-template-columns:14mm minmax(0,1fr); gap:.8mm; align-items:center; }
                 .reference-date-line { text-align:center; padding-top:.7mm; border-bottom:.25mm dotted #3a4650; color:#263238; font-size:5.2px; }
-                .reference-approval-grid { display:grid; grid-template-columns:1fr 1fr; gap:2mm; padding-top:.8mm; text-align:center; }
+                .reference-approval-grid { display:grid; grid-template-columns:1fr; justify-items:end; padding-top:.8mm; text-align:center; }
                 .reference-approval-grid div { min-width:0; }
+                .reference-approval-principal { width:24mm; }
                 .reference-approval-grid strong { display:block; height:4mm; color:#071cff; font-size:5.3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
                 .reference-approval-grid span { display:block; color:#15252b; font:400 5.6px/1.2 var(--card-muol); }
                 @media print {
