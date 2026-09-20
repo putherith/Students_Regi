@@ -550,6 +550,17 @@
             line-height: 1.45;
         }
 
+        .dob-select-grid {
+            display: grid;
+            grid-template-columns: minmax(70px, .8fr) minmax(112px, 1.45fr) minmax(88px, 1fr);
+            gap: 7px;
+        }
+
+        .dob-select-grid select {
+            min-width: 0;
+            padding: 0 8px;
+        }
+
         label {
             font-size: .82rem;
             font-weight: 600;
@@ -2924,9 +2935,31 @@
                                 </div>
                                 <div class="field">
                                     <label for="dob" class="required">ថ្ងៃខែឆ្នាំកំណើត</label>
-                                    <input id="dob" name="dob" type="text" inputmode="text" required
-                                           aria-describedby="dob-help" placeholder="ឧ. 23/មិថុនា/2006">
-                                    <small id="dob-help" class="field-help">ទម្រង់៖ ថ្ងៃ/ខែជាខ្មែរ/ឆ្នាំ</small>
+                                    <div class="dob-select-grid" role="group" aria-label="ជ្រើសថ្ងៃខែឆ្នាំកំណើត">
+                                        <select id="dob-day" required aria-label="ថ្ងៃកំណើត">
+                                            <option value="">ថ្ងៃ</option>
+                                        </select>
+                                        <select id="dob-month" required aria-label="ខែកំណើត">
+                                            <option value="">ខែ</option>
+                                            <option value="1">មករា</option>
+                                            <option value="2">កុម្ភៈ</option>
+                                            <option value="3">មីនា</option>
+                                            <option value="4">មេសា</option>
+                                            <option value="5">ឧសភា</option>
+                                            <option value="6">មិថុនា</option>
+                                            <option value="7">កក្កដា</option>
+                                            <option value="8">សីហា</option>
+                                            <option value="9">កញ្ញា</option>
+                                            <option value="10">តុលា</option>
+                                            <option value="11">វិច្ឆិកា</option>
+                                            <option value="12">ធ្នូ</option>
+                                        </select>
+                                        <select id="dob-year" required aria-label="ឆ្នាំកំណើត">
+                                            <option value="">ឆ្នាំ</option>
+                                        </select>
+                                    </div>
+                                    <input id="dob" name="dob" type="hidden">
+                                    <small id="dob-help" class="field-help">ជ្រើសថ្ងៃ ខែ និងឆ្នាំពីបញ្ជី</small>
                                 </div>
                                 <div class="field">
                                     <label for="fatherName">ឈ្មោះឪពុក</label>
@@ -3202,10 +3235,10 @@
                         <ion-icon name="chevron-forward-outline"></ion-icon>
                     </button>
                     <select id="page-size-select" class="pager-page-size" aria-label="Rows per page" style="width:auto;min-width:110px;height:30px;font-size:.82rem;">
-                        <option value="25">25 / ទំព័រ</option>
+                        <option value="25" selected>25 / ទំព័រ</option>
                         <option value="50">50 / ទំព័រ</option>
                         <option value="100">100 / ទំព័រ</option>
-                        <option value="0" selected>ទាំងអស់</option>
+                        <option value="0">ទាំងអស់</option>
                     </select>
                 </div>
             </div>
@@ -3230,7 +3263,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.0.1</span>
+        <span class="footer-version">កំណែ 2.0.2</span>
     </footer>
 
 </main><!-- end .app -->
@@ -3347,7 +3380,7 @@
             <h2 id="delete-all-title" class="modal-title">លុបទិន្នន័យទាំងអស់</h2>
             <p class="modal-desc">
                 តើអ្នកប្រាកដចង់លុបទិន្នន័យសិស្សទាំងអស់ <strong id="delete-all-count">0</strong> នាក់ មែនទេ?
-                សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។
+                ទិន្នន័យលើឧបករណ៍ និងឃ្លាំងទិន្នន័យរួមនឹងត្រូវលុបក្នុងពេលតែមួយ។ សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។
             </p>
         </div>
         <div class="modal-footer">
@@ -3934,7 +3967,7 @@
     let filteredStudents = [];
     let visibleStudents = [];
     let totalStudentsCount = 0;
-    let pageSize = 0; // 0 = show all
+    let pageSize = 25; // Keep the initial DOM small for smooth table and mobile rendering.
     let currentPageIndex = 0;
     let hasNextPage = false;
     let isLoadingPage = false;
@@ -4062,14 +4095,61 @@
         return original;
     }
 
-    function normalizeDobInput() {
-        const input = document.getElementById("dob");
-        const raw = input.value.trim();
-        const normalized = normDate(raw);
-        const isValid = /^\d{4}-\d{2}-\d{2}$/.test(normalized);
-        input.setCustomValidity(isValid ? "" : "សូមវាយថ្ងៃកំណើតតាមទម្រង់ 23/មិថុនា/2006");
-        if (isValid) input.value = formatDate(normalized);
-        return isValid ? normalized : "";
+    function populateDobSelectors() {
+        const daySelect = document.getElementById("dob-day");
+        const yearSelect = document.getElementById("dob-year");
+        if (daySelect.options.length === 1) {
+            for (let day = 1; day <= 31; day++) daySelect.append(new Option(String(day), String(day)));
+        }
+        if (yearSelect.options.length === 1) {
+            const currentYear = new Date().getFullYear();
+            for (let year = currentYear; year >= currentYear - 45; year--) {
+                yearSelect.append(new Option(String(year), String(year)));
+            }
+        }
+    }
+
+    function setDobSelectors(value) {
+        populateDobSelectors();
+        const normalized = normDate(value);
+        const match = String(normalized).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        const daySelect = document.getElementById("dob-day");
+        const monthSelect = document.getElementById("dob-month");
+        const yearSelect = document.getElementById("dob-year");
+        daySelect.setCustomValidity("");
+        if (!match) {
+            daySelect.value = "";
+            monthSelect.value = "";
+            yearSelect.value = "";
+            document.getElementById("dob").value = "";
+            return;
+        }
+        const year = match[1];
+        if (!Array.from(yearSelect.options).some(option => option.value === year)) {
+            yearSelect.append(new Option(year, year));
+        }
+        daySelect.value = String(Number(match[3]));
+        monthSelect.value = String(Number(match[2]));
+        yearSelect.value = year;
+        document.getElementById("dob").value = normalized;
+    }
+
+    function syncDobFromSelectors() {
+        const daySelect = document.getElementById("dob-day");
+        const monthSelect = document.getElementById("dob-month");
+        const yearSelect = document.getElementById("dob-year");
+        const day = Number(daySelect.value);
+        const month = Number(monthSelect.value);
+        const year = Number(yearSelect.value);
+        if (!daySelect.value || !monthSelect.value || !yearSelect.value) {
+            document.getElementById("dob").value = "";
+            daySelect.setCustomValidity("");
+            return "";
+        }
+        const normalized = validIsoDate(year, month, day);
+        daySelect.setCustomValidity(normalized ? "" : "ថ្ងៃនេះមិនត្រឹមត្រូវសម្រាប់ខែដែលបានជ្រើស");
+        document.getElementById("dob").value = normalized;
+        return normalized;
     }
 
     function normText(v) { return String(v||"").trim().toLocaleLowerCase("km-KH").replace(/\s+/g,""); }
@@ -4166,6 +4246,14 @@
 
     function formatTime(d = new Date()) {
         return d.toLocaleTimeString("km-KH", { hour:"2-digit", minute:"2-digit" });
+    }
+
+    function debounce(fn, delay = 120) {
+        let timer = 0;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn(...args), delay);
+        };
     }
 
     // ===================== TOAST =====================
@@ -4783,10 +4871,27 @@
             const key = encodeURIComponent(String(studentId || student.studentCode || student.id || "").trim());
             if (key) await supabaseFetch(`students?or=(id.eq.${key},student_code.eq.${key})`, { method:"DELETE", headers:{ "Prefer":"return=minimal" } });
         }
-        if (["upsert","delete","backup"].includes(action)) {
+        if (["upsert","delete","backup","replace"].includes(action)) {
             localStorage.setItem(BACKUP_TIME_STORAGE_KEY, new Date().toISOString());
         }
         return true;
+    }
+
+    async function clearAllCloudStudents() {
+        if (!hasCloudStorageConfig()) return true;
+        lastCloudError = "";
+        try {
+            if (getCloudProvider() === SUPABASE_PROVIDER) {
+                // One database request, regardless of how many students exist.
+                return await syncSupabaseStorage("backup", {}, "", []);
+            }
+            // Apps Script's replace action clears all student rows under one write lock.
+            return await syncGoogleSheet("replace", {}, "", []);
+        } catch(e) {
+            console.error("Clear cloud students error:", e);
+            lastCloudError = readableCloudError(e);
+            return false;
+        }
     }
 
     async function syncGoogleSheet(action, student={}, studentId="", students=null) {
@@ -6120,7 +6225,8 @@
     function resetForm() {
         closeMobileEditPanel();
         els.registrationForm.reset();
-        document.getElementById("dob").setCustomValidity("");
+        document.getElementById("dob").value = "";
+        document.getElementById("dob-day").setCustomValidity("");
         setPhotoPreview("");
         setEditMode("");
         resetAddressGroup(pobGroup);
@@ -6139,7 +6245,7 @@
         const s = found ? normalizeStudentIdentity(found) : null;
         if (!s) { showToast("រកមិនឃើញទិន្នន័យសិស្ស","error"); return; }
         fieldIds.forEach(fid => setValue(fid, s[fid]||""));
-        setValue("dob", formatDate(s.dob));
+        setDobSelectors(s.dob);
 
         // Handle photo
         setPhotoPreview(s.photo || "");
@@ -6193,7 +6299,7 @@
 
     async function handleFormSubmit(e) {
         e.preventDefault();
-        normalizeDobInput();
+        syncDobFromSelectors();
         if (!els.registrationForm.reportValidity()) return;
 
         const editingId = els.editingId.value;
@@ -6299,11 +6405,6 @@
     }
 
     async function handleDeleteAllStudents() {
-        if (getCloudProvider() === GOOGLE_SHEET_PROVIDER && hasGoogleScriptUrl()) {
-            closeDeleteAllModal();
-            showToast("Shared Google Sheet mode មិនអនុញ្ញាតលុបទាំងអស់ពីឧបករណ៍មួយទេ", "warning");
-            return;
-        }
         const count = allStudents.length;
         if (!count) {
             closeDeleteAllModal();
@@ -6313,14 +6414,20 @@
         els.confirmDeleteAllBtn.disabled = true;
         els.cancelDeleteAllBtn.disabled = true;
         try {
+            const cloudClear = clearAllCloudStudents();
             allStudents = [];
             saveToLocalStorage(allStudents);
             await logHistory("cleared", "ទិន្នន័យសិស្សទាំងអស់", { total: count });
-            await syncCloudStorageWithToast("backup", {}, "", []);
             closeDeleteAllModal();
             resetForm();
             await refreshStudents({ reset: true, source:"memory" });
-            showToast(`បានលុបទិន្នន័យសិស្ស ${count} នាក់`);
+            showToast(`កំពុងលុបទិន្នន័យសិស្ស ${count} នាក់ពី Storage...`);
+            const cloudOk = await cloudClear;
+            if (!cloudOk) {
+                showToast(`បានលុបពីឧបករណ៍ ប៉ុន្តែ Storage លុបមិនបាន${lastCloudError ? ": " + lastCloudError.slice(0, 60) : ""}`, "warning");
+            } else {
+                showToast(`បានលុបទិន្នន័យសិស្ស ${count} នាក់រួចរាល់`);
+            }
         } catch(e) {
             console.error("Delete all error:", e);
             showToast("លុបទិន្នន័យទាំងអស់មិនបាន","error");
@@ -6337,7 +6444,7 @@
         els.maleStudents.textContent = allStudents.filter(s => s.gender==="ប្រុស").length;
         els.femaleStudents.textContent = allStudents.filter(s => s.gender==="ស្រី").length;
         els.lastSync.textContent = formatTime();
-        els.deleteAllBtn.disabled = totalStudentsCount === 0 || (getCloudProvider() === GOOGLE_SHEET_PROVIDER && hasGoogleScriptUrl());
+        els.deleteAllBtn.disabled = totalStudentsCount === 0;
         setCloudControlsLoading(false);
     }
 
@@ -6360,8 +6467,12 @@
         els.classFilter.value = classes.includes(sel) ? sel : "";
     }
 
+    const studentSearchTextCache = new WeakMap();
     function studentSearchText(s) {
-        return [studentDisplayId(s),studentFullName(s),s.gender,s.dob,s.fatherName,s.fatherOccupation,s.motherName,s.motherOccupation,s.guardianName,s.fromSchool,s.className,s.contact,s.applicationNumber,addressText(s,"pob"),addressText(s,"current")].filter(Boolean).join(" ").toLowerCase();
+        if (studentSearchTextCache.has(s)) return studentSearchTextCache.get(s);
+        const text = [studentDisplayId(s),studentFullName(s),s.gender,s.dob,s.fatherName,s.fatherOccupation,s.motherName,s.motherOccupation,s.guardianName,s.fromSchool,s.className,s.contact,s.applicationNumber,addressText(s,"pob"),addressText(s,"current")].filter(Boolean).join(" ").toLowerCase();
+        studentSearchTextCache.set(s, text);
+        return text;
     }
 
     function applyFilters() {
@@ -7226,10 +7337,9 @@
         });
 
         // Form
-        const dobInput = document.getElementById("dob");
-        dobInput.addEventListener("input", () => dobInput.setCustomValidity(""));
-        dobInput.addEventListener("blur", () => {
-            if (dobInput.value.trim()) normalizeDobInput();
+        populateDobSelectors();
+        ["dob-day", "dob-month", "dob-year"].forEach(id => {
+            document.getElementById(id).addEventListener("change", syncDobFromSelectors);
         });
         els.registrationForm.addEventListener("submit",handleFormSubmit);
         els.clearBtn.addEventListener("click",resetForm);
@@ -7249,10 +7359,12 @@
         els.cameraModal?.addEventListener("click",e=>{if(e.target===els.cameraModal)closeCameraModal();});
 
         // Filters
-        els.searchInput.addEventListener("input",applyFilters);
-        els.genderFilter.addEventListener("change",applyFilters);
-        els.classFilter.addEventListener("change",applyFilters);
-        els.schoolFilter.addEventListener("change",applyFilters);
+        const filterSoon = debounce(() => { resetPagination(); applyFilters(); }, 120);
+        const filterNow = () => { resetPagination(); applyFilters(); };
+        els.searchInput.addEventListener("input",filterSoon);
+        els.genderFilter.addEventListener("change",filterNow);
+        els.classFilter.addEventListener("change",filterNow);
+        els.schoolFilter.addEventListener("change",filterNow);
 
         // Table actions
         els.studentList.addEventListener("click",handleStudentAction);
