@@ -15,7 +15,7 @@
     <link rel="apple-touch-icon" href="./assets/moeys-logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kantumruy:wght@400;600;700&family=Siemreap&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Siemreap&display=swap" rel="stylesheet">
 <script async type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
 <script async nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 <script async src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -98,7 +98,7 @@
         html { scroll-behavior: smooth; }
 
         body {
-            font-family: "Kantumruy", "Khmer OS", Arial, sans-serif;
+            font-family: "Khmer OS Siemreap", "Siemreap", sans-serif;
             font-size: 15px;
             line-height: 1.6;
             color: var(--text);
@@ -1868,6 +1868,240 @@
                 font-size: .84rem;
             }
         }
+
+        /* ========================
+           REFERENCE REGISTRATION FORM
+           Adapted from the supplied admission-form visual while keeping the
+           existing fields, IDs, validation and storage integrations intact.
+        ======================== */
+        .main-layout {
+            grid-template-columns: minmax(520px, 560px) minmax(0, 1fr);
+            gap: 18px;
+        }
+
+        .form-panel {
+            --form-blue: #1e3a8a;
+            --form-blue-hover: #1e40af;
+            --form-blue-soft: #eff6ff;
+            --form-blue-border: #bfdbfe;
+            border-color: #dbe3ef;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, .08);
+        }
+
+        .form-panel > .panel-header {
+            min-height: 104px;
+            padding: 20px 22px;
+            align-items: center;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 58%, #312e81 100%);
+            border-bottom: 0;
+            color: #fff;
+            text-align: center;
+        }
+
+        .form-panel > .panel-header > div { width: 100%; }
+
+        .form-panel > .panel-header .panel-title {
+            color: #fff;
+            font-size: 1.18rem;
+            line-height: 1.7;
+        }
+
+        .form-panel > .panel-header .panel-sub {
+            margin-top: 3px;
+            color: #dbeafe;
+            font-size: .82rem;
+        }
+
+        .form-panel #registration-form { background: var(--surface); }
+
+        .form-panel .form-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding: 4px 22px 86px;
+        }
+
+        .form-panel .form-section {
+            padding: 20px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .form-panel .form-section[data-step="១"] { order: 1; }
+        .form-panel .form-section[data-step="២"] { order: 2; }
+        .form-panel .form-section[data-step="៣"] { order: 3; }
+        .form-panel .form-section[data-step="៤"] { order: 4; }
+        .form-panel .form-section[data-step="៥"] { order: 5; border-bottom: 0; }
+
+        .form-panel .section-header {
+            min-height: 34px;
+            margin: 0 0 15px;
+            padding-bottom: 9px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .form-panel .section-icon {
+            width: 27px;
+            height: 27px;
+            border-radius: 999px;
+            background: var(--form-blue);
+            color: #fff;
+            font-size: .76rem;
+            font-weight: 700;
+        }
+
+        .form-panel .form-section[data-step] .section-icon ion-icon { display: none; }
+        .form-panel .form-section[data-step="១"] .section-icon::before { content: "១"; }
+        .form-panel .form-section[data-step="២"] .section-icon::before { content: "២"; }
+        .form-panel .form-section[data-step="៣"] .section-icon::before { content: "៣"; }
+        .form-panel .form-section[data-step="៤"] .section-icon::before { content: "៤"; }
+        .form-panel .form-section[data-step="៥"] .section-icon::before { content: "៥"; }
+
+        .form-panel .section-title {
+            color: #1e293b;
+            font-size: .98rem;
+        }
+
+        .form-panel .section-chevron { color: #64748b; }
+
+        .form-panel .field-grid {
+            gap: 13px 14px;
+        }
+
+        .form-panel .field { gap: 6px; }
+
+        .form-panel label {
+            color: #334155;
+            font-size: .78rem;
+            font-weight: 600;
+        }
+
+        .form-panel input,
+        .form-panel select {
+            height: 44px;
+            padding: 0 13px;
+            border: 1px solid #cbd5e1;
+            border-radius: 11px;
+            background: #fff;
+            color: #1e293b;
+        }
+
+        .form-panel input::placeholder { color: #94a3b8; }
+
+        .form-panel input:focus,
+        .form-panel select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .16);
+        }
+
+        .form-panel input:read-only,
+        .form-panel input:disabled,
+        .form-panel select:disabled {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .form-panel .gender-opt span {
+            height: 44px;
+            border: 1px solid #e2e8f0;
+            border-radius: 11px;
+            color: #475569;
+            background: #fff;
+        }
+
+        .form-panel .gender-opt input:checked + span {
+            border-color: #2563eb;
+            color: var(--form-blue);
+            background: var(--form-blue-soft);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+        }
+
+        .form-panel .check-row {
+            min-height: 44px;
+            padding: 9px 12px;
+            border: 1px solid var(--form-blue-border);
+            border-radius: 11px;
+            background: rgba(239, 246, 255, .62);
+        }
+
+        .form-panel .check-row:hover {
+            border-color: #60a5fa;
+            background: var(--form-blue-soft);
+        }
+
+        .form-panel .check-row input[type="checkbox"] { accent-color: #2563eb; }
+
+        .form-panel .form-section[data-step="៥"] .section-body {
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: #f8fafc;
+        }
+
+        .form-panel .photo-preview {
+            width: 112px;
+            height: 144px;
+            border: 2px dashed #60a5fa;
+            border-radius: 12px;
+            background: rgba(239, 246, 255, .72);
+        }
+
+        .form-panel .photo-preview ion-icon { color: #93c5fd; }
+
+        .form-panel .photo-actions .btn {
+            min-height: 40px;
+            border-radius: 10px;
+        }
+
+        .form-panel .photo-actions .btn-primary,
+        .form-panel .form-save-bar .btn-primary {
+            border-color: var(--form-blue);
+            background: var(--form-blue);
+        }
+
+        .form-panel .photo-actions .btn-primary:hover,
+        .form-panel .form-save-bar .btn-primary:hover {
+            border-color: var(--form-blue-hover);
+            background: var(--form-blue-hover);
+        }
+
+        .form-panel .form-save-bar {
+            padding: 13px 22px;
+            border-top-color: #e2e8f0;
+            background: rgba(255, 255, 255, .96);
+        }
+
+        [data-theme="dark"] .form-panel .section-title,
+        [data-theme="dark"] .form-panel label { color: var(--text); }
+        [data-theme="dark"] .form-panel input,
+        [data-theme="dark"] .form-panel select,
+        [data-theme="dark"] .form-panel .gender-opt span { color: var(--text); background: var(--surface); border-color: var(--border-strong); }
+        [data-theme="dark"] .form-panel .form-section,
+        [data-theme="dark"] .form-panel .section-header { border-color: var(--border); }
+        [data-theme="dark"] .form-panel .form-section[data-step="៥"] .section-body { background: var(--surface-2); border-color: var(--border); }
+        [data-theme="dark"] .form-panel .form-save-bar { background: rgba(19, 31, 29, .96); border-color: var(--border); }
+
+        @media (max-width: 1180px) {
+            .main-layout { grid-template-columns: 1fr; }
+            .form-panel { position: static; }
+            .form-panel .form-body { max-height: none; }
+            .form-panel .form-save-bar { position: sticky; }
+        }
+
+        @media (max-width: 860px) {
+            .form-panel { border-radius: 0; }
+            .form-panel > .panel-header { min-height: 82px; padding: 15px 14px; }
+            .form-panel > .panel-header .panel-title { font-size: 1.05rem; }
+            .form-panel .form-body { padding: 2px 14px calc(92px + env(safe-area-inset-bottom)); }
+            .form-panel .form-section { padding: 16px 0; }
+            .form-panel .form-save-bar { padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); }
+        }
+
+        @media (max-width: 520px) {
+            .form-panel .photo-upload-wrap { flex-direction: column; align-items: center; }
+            .form-panel .photo-actions { width: 100%; }
+            .form-panel .photo-preview { width: 112px; height: 144px; }
+        }
     </style>
 </head>
 <body>
@@ -2041,7 +2275,7 @@
                 <div class="form-body">
 
                     <!-- Section: Student Photo -->
-                    <div class="form-section">
+                    <div class="form-section" data-step="៥">
                         <div class="section-header" role="button" tabindex="0" aria-expanded="true"
                              onclick="toggleSection(this)" onkeydown="if(event.key==='Enter')toggleSection(this)">
                             <div class="section-icon"><ion-icon name="camera-outline"></ion-icon></div>
@@ -2071,7 +2305,7 @@
                     </div>
 
                     <!-- Section: Student Info -->
-                    <div class="form-section">
+                    <div class="form-section" data-step="១">
                         <div class="section-header" role="button" tabindex="0" aria-expanded="true"
                              onclick="toggleSection(this)" onkeydown="if(event.key==='Enter')toggleSection(this)">
                             <div class="section-icon"><ion-icon name="person-outline"></ion-icon></div>
@@ -2146,7 +2380,7 @@
                     </div>
 
                     <!-- Section: Birth Place -->
-                    <div class="form-section">
+                    <div class="form-section" data-step="២">
                         <div class="section-header" role="button" tabindex="0" aria-expanded="true"
                              onclick="toggleSection(this)" onkeydown="if(event.key==='Enter')toggleSection(this)">
                             <div class="section-icon"><ion-icon name="location-outline"></ion-icon></div>
@@ -2184,7 +2418,7 @@
                     </div>
 
                     <!-- Section: Current Address -->
-                    <div class="form-section">
+                    <div class="form-section" data-step="៣">
                         <div class="section-header" role="button" tabindex="0" aria-expanded="true"
                              onclick="toggleSection(this)" onkeydown="if(event.key==='Enter')toggleSection(this)">
                             <div class="section-icon"><ion-icon name="home-outline"></ion-icon></div>
@@ -2226,7 +2460,7 @@
                     </div>
 
                     <!-- Section: Academic -->
-                    <div class="form-section">
+                    <div class="form-section" data-step="៤">
                         <div class="section-header" role="button" tabindex="0" aria-expanded="true"
                              onclick="toggleSection(this)" onkeydown="if(event.key==='Enter')toggleSection(this)">
                             <div class="section-icon"><ion-icon name="book-outline"></ion-icon></div>
@@ -5832,11 +6066,11 @@
         win.document.write(`
             <!DOCTYPE html><html lang="km"><head>
             <meta charset="UTF-8"><title>${esc(title)}</title>
-            <link href="https://fonts.googleapis.com/css2?family=Kantumruy:wght@400;600;700&family=Moul&family=Siemreap&display=swap" rel="stylesheet">
+            <link href="https://fonts.googleapis.com/css2?family=Moul&family=Siemreap&display=swap" rel="stylesheet">
             <style>
                 @page { size: A4; margin: 14mm; }
                 * { box-sizing: border-box; }
-                body { margin:0; color:#111827; font-family:"Kantumruy",Arial,sans-serif; line-height:1.55; }
+                body { margin:0; color:#111827; font-family:"Khmer OS Siemreap","Siemreap",sans-serif; line-height:1.55; }
                 h1 { margin:0 0 6px; text-align:center; font-size:22px; font-weight:700; }
                 h2 { margin:20px 0 10px; font-size:15px; }
                 .meta { margin-bottom:18px; text-align:center; color:#6b7280; font-size:11px; }
@@ -5954,7 +6188,7 @@
                 <div style="text-align: center; font-weight: bold; font-size: 12px; line-height: 1.6;">
                     <div style="font-size: 13px; letter-spacing: 0.5px;">ព្រះរាជាណាចក្រកម្ពុជា</div>
                     <div style="font-size: 11px; margin-top: 2px;">ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
-                    <div style="font-family: 'Kantumruy', sans-serif; font-weight: normal; font-size: 10px; margin-top: -3px; letter-spacing: -1px;">🕊️🕊️🕊️</div>
+                    <div style="font-family: 'Khmer OS Siemreap', 'Siemreap', sans-serif; font-weight: normal; font-size: 10px; margin-top: -3px; letter-spacing: -1px;">🕊️🕊️🕊️</div>
                 </div>
             </div>
             <div style="clear: both;"></div>
