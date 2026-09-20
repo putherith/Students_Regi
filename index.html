@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ប្រព័ន្ធចុះឈ្មោះសិស្ស</title>
     <meta name="description" content="គ្រប់គ្រងបញ្ជីសិស្ស ស្វែងរក Import Print និងទាញយក CSV">
-    <meta name="theme-color" content="#0f766e">
+    <meta name="theme-color" content="#123665">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -25,12 +25,14 @@
            DESIGN TOKENS
         ======================== */
         :root {
-            --hue: 174;
-            --primary: hsl(var(--hue), 80%, 32%);
-            --primary-dark: hsl(var(--hue), 80%, 24%);
-            --primary-mid: hsl(var(--hue), 70%, 40%);
-            --primary-soft: hsl(var(--hue), 60%, 94%);
-            --primary-glow: hsla(var(--hue), 70%, 40%, 0.18);
+            --hue: 216;
+            --primary: #173f78;
+            --primary-dark: #0f2d58;
+            --primary-mid: #285da6;
+            --primary-soft: #edf4ff;
+            --primary-glow: rgba(23, 63, 120, .18);
+            --official-gold: #c7982e;
+            --official-gold-soft: #fff8e7;
 
             --blue: #2563eb;
             --blue-soft: #dbeafe;
@@ -44,42 +46,42 @@
             --violet-soft: #ede9fe;
 
             /* Light theme surfaces */
-            --bg: #f0f4f3;
+            --bg: #f2f5f9;
             --surface: #ffffff;
-            --surface-2: #f7f9f8;
-            --surface-3: #eef2f1;
-            --border: #dce5e2;
-            --border-strong: #bfceca;
-            --text: #0e1a17;
-            --text-2: #3a4d48;
-            --muted: #647a74;
-            --muted-light: #9bb4ae;
+            --surface-2: #f8fafc;
+            --surface-3: #edf2f7;
+            --border: #dbe3ee;
+            --border-strong: #bccadd;
+            --text: #132238;
+            --text-2: #3c4f68;
+            --muted: #66778e;
+            --muted-light: #9aabc0;
 
             --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
             --shadow: 0 4px 16px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.05);
             --shadow-lg: 0 12px 40px rgba(0,0,0,.1), 0 2px 8px rgba(0,0,0,.06);
-            --radius: 10px;
-            --radius-sm: 6px;
-            --radius-lg: 14px;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --radius-lg: 16px;
             --transition: 160ms cubic-bezier(.4,0,.2,1);
         }
 
         [data-theme="dark"] {
-            --bg: #0d1514;
-            --surface: #131f1d;
-            --surface-2: #192421;
-            --surface-3: #1f2e2b;
-            --border: #253330;
-            --border-strong: #354a46;
-            --text: #e8f0ee;
-            --text-2: #b0c4bf;
-            --muted: #7a9e97;
-            --muted-light: #4d6b64;
-            --primary: hsl(var(--hue), 70%, 48%);
-            --primary-dark: hsl(var(--hue), 70%, 38%);
-            --primary-mid: hsl(var(--hue), 65%, 55%);
-            --primary-soft: hsla(var(--hue), 60%, 30%, .25);
-            --primary-glow: hsla(var(--hue), 70%, 50%, .22);
+            --bg: #0d1624;
+            --surface: #152235;
+            --surface-2: #1a2a40;
+            --surface-3: #22344d;
+            --border: #2a3e5b;
+            --border-strong: #405879;
+            --text: #edf3fb;
+            --text-2: #c1cde0;
+            --muted: #91a3bd;
+            --muted-light: #5e7391;
+            --primary: #6ea1ea;
+            --primary-dark: #4b7fc8;
+            --primary-mid: #80b0f0;
+            --primary-soft: rgba(50, 103, 178, .24);
+            --primary-glow: rgba(77, 139, 219, .24);
             --blue-soft: #1e3a6e;
             --green-soft: #14432a;
             --amber-soft: #422006;
@@ -2102,6 +2104,556 @@
             .form-panel .photo-actions { width: 100%; }
             .form-panel .photo-preview { width: 112px; height: 144px; }
         }
+
+        /* ========================
+           SCHOOL ADMINISTRATION DESIGN SYSTEM
+        ======================== */
+        body {
+            background:
+                radial-gradient(circle at 8% -10%, rgba(23, 63, 120, .09), transparent 28rem),
+                linear-gradient(180deg, #f7f9fc 0, var(--bg) 420px);
+        }
+
+        .app {
+            max-width: 1720px;
+            padding-bottom: 28px;
+        }
+
+        .topbar {
+            min-height: 78px;
+            padding: 11px 20px;
+            margin-bottom: 16px;
+            border-bottom: 3px solid var(--official-gold);
+            background: linear-gradient(112deg, #0e2b55 0%, #173f78 58%, #1f4f91 100%);
+            box-shadow: 0 8px 24px rgba(15, 45, 88, .2);
+        }
+
+        .brand { min-width: 300px; gap: 12px; }
+
+        .brand-mark {
+            width: 52px;
+            height: 52px;
+            padding: 4px;
+            border: 1px solid rgba(255, 255, 255, .72);
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 3px 12px rgba(3, 17, 40, .25);
+        }
+
+        .brand-mark img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+        }
+
+        .brand-kicker {
+            color: #f5d889;
+            font-size: .68rem;
+            font-weight: 700;
+            letter-spacing: .05em;
+        }
+
+        .topbar .brand-title {
+            color: #fff;
+            font-size: 1.04rem;
+            line-height: 1.45;
+        }
+
+        .topbar .brand-sub { color: #dce9fb; }
+
+        .topbar-actions {
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .topbar .action-group {
+            gap: 3px;
+            padding: 3px;
+            border: 1px solid rgba(255, 255, 255, .13);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .07);
+        }
+
+        .topbar .action-group:last-child { padding-right: 3px; border-right: 1px solid rgba(255, 255, 255, .13); }
+
+        .topbar .btn {
+            height: 34px;
+            border-radius: 7px;
+            font-size: .8rem;
+        }
+
+        .topbar .btn-ghost {
+            border-color: transparent;
+            background: transparent;
+            color: #eef5ff;
+        }
+
+        .topbar .btn-ghost:hover {
+            border-color: rgba(255, 255, 255, .16);
+            background: rgba(255, 255, 255, .12);
+            color: #fff;
+        }
+
+        .topbar .btn-secondary {
+            border-color: rgba(255, 255, 255, .24);
+            background: rgba(255, 255, 255, .94);
+            color: #173f78;
+        }
+
+        .topbar .btn-primary {
+            border-color: #e4bd5e;
+            background: linear-gradient(135deg, #e6bd58, #c68e1f);
+            color: #13284b;
+            box-shadow: none;
+        }
+
+        .topbar .btn-danger { background: #b4232a; }
+
+        .topbar .status-pill {
+            border-color: rgba(255, 255, 255, .22);
+            background: rgba(255, 255, 255, .1);
+            color: #edf5ff;
+        }
+
+        .topbar .status-pill.connected {
+            border-color: rgba(134, 239, 172, .48);
+            background: rgba(22, 101, 52, .42);
+            color: #dcfce7;
+        }
+
+        .topbar .status-pill.error {
+            border-color: rgba(254, 202, 202, .45);
+            background: rgba(153, 27, 27, .46);
+            color: #fee2e2;
+        }
+
+        .topbar .theme-btn {
+            border-color: rgba(255, 255, 255, .22);
+            background: rgba(255, 255, 255, .1);
+            color: #f7dc92;
+        }
+
+        .topbar .theme-btn:hover {
+            border-color: #f7dc92;
+            background: rgba(255, 255, 255, .18);
+        }
+
+        .admin-overview {
+            position: relative;
+            isolation: isolate;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 24px;
+            min-height: 116px;
+            margin-bottom: 14px;
+            padding: 20px 24px;
+            overflow: hidden;
+            border: 1px solid #d6e1ef;
+            border-left: 5px solid var(--primary);
+            border-radius: 16px;
+            background: linear-gradient(105deg, #fff 0%, #f7faff 72%, #eef4fc 100%);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .admin-overview::after {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            right: 150px;
+            bottom: -86px;
+            width: 250px;
+            height: 250px;
+            border: 42px solid rgba(23, 63, 120, .035);
+            border-radius: 999px;
+        }
+
+        .admin-eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+            color: #9a6b12;
+            font-size: .76rem;
+            font-weight: 700;
+        }
+
+        .admin-eyebrow span {
+            width: 24px;
+            height: 3px;
+            border-radius: 999px;
+            background: var(--official-gold);
+        }
+
+        .admin-overview h1 {
+            color: #123665;
+            font-size: 1.45rem;
+            line-height: 1.55;
+        }
+
+        .admin-overview p {
+            margin-top: 3px;
+            color: #66778e;
+            font-size: .87rem;
+        }
+
+        .admin-overview-actions {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .overview-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 43px;
+            padding: 0 15px;
+            border: 1px solid #c8d5e6;
+            border-radius: 10px;
+            background: #fff;
+            color: #254569;
+            font-weight: 700;
+            transition: all var(--transition);
+        }
+
+        .overview-btn:hover {
+            border-color: #8aa6c9;
+            background: #f8fbff;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .overview-btn ion-icon { width: 18px; height: 18px; }
+
+        .overview-btn-primary {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .overview-btn-primary:hover { border-color: var(--primary-dark); background: var(--primary-dark); }
+
+        .metrics { gap: 14px; margin-bottom: 16px; }
+
+        .metric {
+            min-height: 96px;
+            padding: 16px 18px;
+            border-color: #d9e3ef;
+            border-radius: 14px;
+            box-shadow: 0 2px 8px rgba(20, 42, 72, .06);
+        }
+
+        .metric::before {
+            top: 0;
+            right: 0;
+            bottom: auto;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            border-radius: 14px 14px 0 0;
+        }
+
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+        }
+
+        .metric-label { text-transform: none; letter-spacing: 0; font-size: .78rem; }
+        .metric-value { color: #17345c; font-size: 1.55rem; }
+
+        .panel {
+            border-color: #d7e1ed;
+            border-radius: 15px;
+            box-shadow: 0 3px 14px rgba(17, 39, 69, .07);
+        }
+
+        .panel-header {
+            min-height: 66px;
+            padding: 14px 18px;
+            border-bottom-color: #dbe4ef;
+            background: linear-gradient(180deg, #fff 0%, #f7f9fc 100%);
+        }
+
+        .list-panel > .panel-header,
+        .history-panel > .panel-header {
+            border-top: 3px solid var(--primary);
+        }
+
+        .panel-title { color: #17345c; font-size: 1.02rem; }
+        .panel-sub { color: #718198; }
+
+        .form-panel { top: 92px; }
+
+        .form-panel > .panel-header {
+            position: relative;
+            min-height: 112px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #123665 0%, #1f4f91 72%, #294f84 100%);
+        }
+
+        .form-panel > .panel-header::after {
+            content: "";
+            position: absolute;
+            right: -28px;
+            bottom: -48px;
+            width: 140px;
+            height: 140px;
+            border: 22px solid rgba(255, 255, 255, .07);
+            border-radius: 999px;
+        }
+
+        .form-panel > .panel-header::before {
+            content: "បែបបទរដ្ឋបាលសិស្ស";
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #f3d889;
+            font-size: .7rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .form-panel > .panel-header .panel-title { padding-top: 14px; }
+
+        .form-panel .form-section[data-step="៥"] .section-body {
+            border-color: #d4e0ef;
+            background: #f6f9fd;
+        }
+
+        .form-panel .form-save-bar {
+            border-top: 1px solid #d7e1ed;
+            box-shadow: 0 -8px 24px rgba(18, 54, 101, .08);
+        }
+
+        .toolbar {
+            gap: 9px;
+            padding: 12px 16px;
+            background: #fbfcfe;
+        }
+
+        .search-wrap input,
+        .toolbar select {
+            border-color: #cbd7e6;
+            border-radius: 9px;
+            background: #fff;
+        }
+
+        .search-wrap input:focus,
+        .toolbar select:focus {
+            border-color: #4a76b3;
+            box-shadow: 0 0 0 3px rgba(37, 89, 159, .12);
+        }
+
+        .table-wrap {
+            min-height: 360px;
+            background: #fff;
+        }
+
+        table { border-color: #d7e1ed; }
+
+        thead th {
+            padding: 9px 10px;
+            border-color: #cbd7e6;
+            background: #eaf0f8;
+            color: #29496e;
+            font-weight: 700;
+        }
+
+        tbody td {
+            padding: 10px 11px;
+            border-color: #e0e7f0;
+        }
+
+        tbody tr:nth-child(even) { background: #fafcff; }
+        tbody tr.student-data-complete:hover { background: #eef5ff !important; }
+        .row-actions { opacity: .7; }
+        tbody tr:hover .row-actions { opacity: 1; }
+
+        .class-group-row td {
+            border-top-color: #b9cae0;
+            background: linear-gradient(90deg, #e5eefb, #f8fbff);
+            color: #173f78;
+        }
+
+        .pager {
+            padding: 11px 16px;
+            border-top-color: #d7e1ed;
+            background: #f6f9fc;
+        }
+
+        .history-panel { margin-top: 18px; }
+
+        .history-list {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            max-height: 280px;
+            gap: 10px;
+            background: #fbfcfe;
+        }
+
+        .history-item {
+            border-color: #dce5ef;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(20, 42, 72, .035);
+        }
+
+        .modal { background: rgba(7, 23, 46, .62); }
+
+        .modal-dialog {
+            border: 1px solid #d7e1ed;
+            border-radius: 18px;
+            box-shadow: 0 24px 72px rgba(4, 19, 40, .3);
+        }
+
+        .modal-body { padding: 24px; }
+        .modal-title { color: #17345c; }
+        .modal-footer { border-top-color: #d9e3ee; background: #f6f9fc; }
+
+        .toast-container { top: 90px; }
+        .toast { border-radius: 11px; box-shadow: 0 14px 36px rgba(4, 20, 42, .24); }
+
+        .mobile-actions-sheet {
+            border: 1px solid #d6e1ee;
+            border-bottom: 0;
+            background: #fff;
+        }
+
+        .sheet-menu-item {
+            border-color: #d9e3ee;
+            border-radius: 11px;
+            background: #f8fafc;
+            color: #29496e;
+        }
+
+        .sheet-menu-item ion-icon { color: #35639d; }
+
+        .app-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-top: 18px;
+            padding: 16px 18px;
+            border-top: 1px solid #d6e0ec;
+            color: #718198;
+            font-size: .78rem;
+        }
+
+        .app-footer > div { display: grid; gap: 2px; }
+        .app-footer strong { color: #29496e; font-size: .84rem; }
+
+        .footer-version {
+            padding: 3px 9px;
+            border: 1px solid #d6e0ec;
+            border-radius: 999px;
+            background: #fff;
+            color: #52677f;
+        }
+
+        [data-theme="dark"] body {
+            background: radial-gradient(circle at 8% -10%, rgba(72, 126, 202, .13), transparent 28rem), var(--bg);
+        }
+
+        [data-theme="dark"] .admin-overview,
+        [data-theme="dark"] .panel-header,
+        [data-theme="dark"] .toolbar,
+        [data-theme="dark"] .table-wrap,
+        [data-theme="dark"] .history-list,
+        [data-theme="dark"] .mobile-actions-sheet { background: var(--surface); border-color: var(--border); }
+
+        [data-theme="dark"] .admin-overview h1,
+        [data-theme="dark"] .panel-title,
+        [data-theme="dark"] .metric-value,
+        [data-theme="dark"] .modal-title,
+        [data-theme="dark"] .app-footer strong { color: var(--text); }
+
+        [data-theme="dark"] .admin-overview p { color: var(--muted); }
+        [data-theme="dark"] .overview-btn { border-color: var(--border-strong); background: var(--surface-2); color: var(--text-2); }
+        [data-theme="dark"] thead th { border-color: var(--border); background: var(--surface-3); color: var(--text-2); }
+        [data-theme="dark"] tbody tr:nth-child(even) { background: var(--surface-2); }
+        [data-theme="dark"] .pager,
+        [data-theme="dark"] .modal-footer { background: var(--surface-2); border-color: var(--border); }
+        [data-theme="dark"] .footer-version { border-color: var(--border); background: var(--surface-2); color: var(--text-2); }
+
+        @media (max-width: 1750px) {
+            .topbar { flex-wrap: wrap; }
+            .topbar-actions {
+                width: 100%;
+                justify-content: flex-start;
+                padding-top: 7px;
+                border-top: 1px solid rgba(255, 255, 255, .12);
+            }
+            .topbar-actions .action-group .btn { width: auto; padding: 0 11px; }
+            .topbar-actions .action-group .btn span { display: inline-flex; }
+            .topbar-actions .action-group .btn > .spinner { display: block; }
+            .form-panel { top: 150px; }
+        }
+
+        @media (max-width: 1180px) {
+            .admin-overview { margin-top: 4px; }
+            .form-panel { top: auto; }
+        }
+
+        @media (max-width: 860px) {
+            body { background: var(--surface-2); }
+
+            .topbar {
+                min-height: 66px;
+                padding: 7px 12px;
+                margin-bottom: 10px;
+                border-bottom-width: 2px;
+                flex-wrap: nowrap;
+            }
+
+            .brand { min-width: 0; }
+            .brand-mark { width: 42px; height: 42px; padding: 3px; }
+            .brand-kicker { display: none; }
+            .topbar .brand-title { font-size: .9rem; }
+            .topbar .brand-sub { display: none; }
+            .topbar .status-pill { max-width: 112px; }
+            .topbar-actions { width: auto; padding-top: 0; border-top: 0; }
+
+            .admin-overview {
+                grid-template-columns: 1fr;
+                gap: 14px;
+                min-height: 0;
+                margin: 0 0 10px;
+                padding: 16px;
+                border-radius: 13px;
+            }
+
+            .admin-overview h1 { font-size: 1.15rem; }
+            .admin-overview p { font-size: .8rem; }
+            .admin-overview-actions { display: grid; grid-template-columns: 1fr 1fr; }
+            .overview-btn { min-height: 44px; padding: 0 10px; font-size: .82rem; }
+
+            .metric { min-width: 142px; min-height: 76px; }
+            .panel { border-radius: 0; }
+            .form-panel > .panel-header { min-height: 88px; }
+            .toast-container { top: 72px; right: 10px; left: 10px; }
+            .toast { min-width: 0; max-width: none; width: 100%; }
+
+            .app-footer {
+                margin: 14px -12px 0;
+                padding: 14px 12px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .admin-overview::after { display: none; }
+            .admin-eyebrow { font-size: .7rem; }
+            .app-footer { align-items: flex-start; }
+            .app-footer > div span { display: none; }
+        }
+
+        @media (max-width: 360px) {
+            .admin-overview-actions { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -2110,12 +2662,13 @@
     <!-- ======================== TOPBAR ======================== -->
     <header class="topbar">
         <div class="brand">
-            <div class="brand-mark" aria-hidden="true">
-                <ion-icon name="school-outline"></ion-icon>
+            <div class="brand-mark">
+                <img src="./assets/moeys-logo.png" alt="និមិត្តសញ្ញាក្រសួងអប់រំ យុវជន និងកីឡា">
             </div>
             <div class="brand-text">
-                <div class="brand-title">ប្រព័ន្ធចុះឈ្មោះសិស្ស</div>
-                <div class="brand-sub">Student Registration System</div>
+                <div class="brand-kicker">រដ្ឋបាលសាលារៀន</div>
+                <div class="brand-title">វិទ្យាល័យសុខអានព្រៃមេលង</div>
+                <div class="brand-sub">ប្រព័ន្ធគ្រប់គ្រងការចុះឈ្មោះ និងបញ្ជីសិស្ស</div>
             </div>
         </div>
 
@@ -2130,19 +2683,19 @@
             <div class="action-group">
                 <button id="app-settings-btn" class="btn btn-ghost" type="button" title="Card and school settings">
                     <ion-icon name="settings-outline" aria-hidden="true"></ion-icon>
-                    <span>Settings</span>
+                    <span>កំណត់សាលា</span>
                 </button>
                 <button id="sheet-settings-btn" class="btn btn-ghost" type="button" title="Cloud Storage Settings">
                     <ion-icon name="grid-outline" aria-hidden="true"></ion-icon>
-                    <span>Storage</span>
+                    <span>ឃ្លាំងទិន្នន័យ</span>
                 </button>
                 <button id="load-sheet-btn" class="btn btn-ghost" type="button" title="Load from Cloud Storage">
                     <ion-icon name="cloud-download-outline" aria-hidden="true"></ion-icon>
-                    <span>Load</span>
+                    <span>ទាញទិន្នន័យ</span>
                 </button>
                 <button id="backup-now-btn" class="btn btn-ghost" type="button" title="Backup to Cloud Storage">
                     <ion-icon name="cloud-done-outline" aria-hidden="true"></ion-icon>
-                    <span>Backup</span>
+                    <span>បម្រុងទុក</span>
                 </button>
             </div>
 
@@ -2154,7 +2707,7 @@
                 </button>
                 <button id="import-file-btn" class="btn btn-secondary" type="button" title="Import CSV/Excel">
                     <ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon>
-                    <span>Import</span>
+                    <span>នាំចូល</span>
                 </button>
                 <input id="import-file-input" class="hidden-input" type="file"
                        accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
@@ -2164,15 +2717,15 @@
             <div class="action-group">
                 <button id="print-list-btn" class="btn btn-ghost" type="button" title="Print Student List">
                     <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
-                    <span>Print</span>
+                    <span>បោះពុម្ព</span>
                 </button>
                 <button id="print-photo-list-btn" class="btn btn-ghost" type="button" title="Print Student List With Photos">
                     <ion-icon name="images-outline" aria-hidden="true"></ion-icon>
-                    <span>Print រូបថត</span>
+                    <span>បោះពុម្ពរូបថត</span>
                 </button>
                 <button id="print-name-list-btn" class="btn btn-ghost" type="button" title="Print Names By Class">
                     <ion-icon name="list-outline" aria-hidden="true"></ion-icon>
-                    <span>Print ឈ្មោះ</span>
+                    <span>បោះពុម្ពឈ្មោះ</span>
                 </button>
                 <button id="print-card-list-btn" class="btn btn-ghost" type="button" title="Print Student Cards">
                     <ion-icon name="id-card-outline" aria-hidden="true"></ion-icon>
@@ -2180,7 +2733,7 @@
                 </button>
                 <button id="download-csv-btn" class="btn btn-primary" type="button" title="Download CSV">
                     <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
-                    <span>CSV</span>
+                    <span>ទាញ CSV</span>
                 </button>
                 <button id="delete-all-btn" class="btn btn-danger" type="button" title="Delete all student records">
                     <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
@@ -2200,6 +2753,27 @@
             </button>
         </nav>
     </header>
+
+    <!-- ======================== ADMINISTRATION OVERVIEW ======================== -->
+    <section class="admin-overview" aria-labelledby="admin-overview-title">
+        <div class="admin-overview-copy">
+            <div class="admin-eyebrow"><span></span> ការិយាល័យរដ្ឋបាលសិស្ស</div>
+            <h1 id="admin-overview-title">ផ្ទាំងគ្រប់គ្រងព័ត៌មានសិស្ស</h1>
+            <p>ចុះឈ្មោះ កែសម្រួល ស្វែងរក និងរៀបចំបញ្ជីសិស្សនៅកន្លែងតែមួយ</p>
+        </div>
+        <div class="admin-overview-actions" aria-label="សកម្មភាពរហ័ស">
+            <button class="overview-btn overview-btn-primary" type="button"
+                    onclick="document.getElementById('tab-form-btn').click(); setTimeout(() => { document.getElementById('form-panel').scrollIntoView({behavior:'smooth',block:'start'}); document.getElementById('studentSurname').focus(); }, 50)">
+                <ion-icon name="person-add-outline" aria-hidden="true"></ion-icon>
+                បញ្ចូលសិស្សថ្មី
+            </button>
+            <button class="overview-btn" type="button"
+                    onclick="document.getElementById('tab-list-btn').click(); setTimeout(() => { document.getElementById('search-input').focus(); }, 50)">
+                <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+                ស្វែងរកសិស្ស
+            </button>
+        </div>
+    </section>
 
     <!-- ======================== METRICS ======================== -->
     <section class="metrics" aria-label="ស្ថិតិសិស្ស">
@@ -2644,6 +3218,14 @@
         </div>
     </section>
 
+    <footer class="app-footer">
+        <div>
+            <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
+            <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
+        </div>
+        <span class="footer-version">កំណែ 2.0</span>
+    </footer>
+
 </main><!-- end .app -->
 
 <!-- ======================== WEB PHONE CAMERA PAGE ======================== -->
@@ -2832,7 +3414,7 @@
             <div class="modal-icon modal-icon-primary" aria-hidden="true">
                 <ion-icon name="grid-outline"></ion-icon>
             </div>
-            <h2 id="sheet-title" class="modal-title">ភ្ជាប់ Storage</h2>
+            <h2 id="sheet-title" class="modal-title">ភ្ជាប់ឃ្លាំងទិន្នន័យ</h2>
             <p class="modal-desc">
                 ជ្រើសរើស Supabase ឬ Google Sheet ដើម្បីឱ្យ computer និង phone ប្រើទិន្នន័យតែមួយ។
             </p>
@@ -2896,19 +3478,19 @@
     <div class="sheet-body">
         <button id="m-app-settings-btn" class="sheet-menu-item" type="button">
             <ion-icon name="settings-outline" aria-hidden="true"></ion-icon>
-            <span>Settings</span>
+            <span>កំណត់សាលា</span>
         </button>
         <button id="m-sheet-settings-btn" class="sheet-menu-item" type="button">
             <ion-icon name="grid-outline" aria-hidden="true"></ion-icon>
-            <span>Storage</span>
+            <span>ឃ្លាំងទិន្នន័យ</span>
         </button>
         <button id="m-load-sheet-btn" class="sheet-menu-item" type="button">
             <ion-icon name="cloud-download-outline" aria-hidden="true"></ion-icon>
-            <span>Load</span>
+            <span>ទាញទិន្នន័យ</span>
         </button>
         <button id="m-backup-now-btn" class="sheet-menu-item" type="button">
             <ion-icon name="cloud-done-outline" aria-hidden="true"></ion-icon>
-            <span>Backup</span>
+            <span>បម្រុងទុក</span>
         </button>
         <button id="m-download-template-btn" class="sheet-menu-item" type="button">
             <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
@@ -2916,19 +3498,19 @@
         </button>
         <button id="m-import-file-btn" class="sheet-menu-item" type="button">
             <ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon>
-            <span>Import</span>
+            <span>នាំចូល</span>
         </button>
         <button id="m-print-list-btn" class="sheet-menu-item" type="button">
             <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
-            <span>Print</span>
+            <span>បោះពុម្ព</span>
         </button>
         <button id="m-print-photo-list-btn" class="sheet-menu-item" type="button">
             <ion-icon name="images-outline" aria-hidden="true"></ion-icon>
-            <span>Print រូបថត</span>
+            <span>បោះពុម្ពរូបថត</span>
         </button>
         <button id="m-print-name-list-btn" class="sheet-menu-item" type="button">
             <ion-icon name="list-outline" aria-hidden="true"></ion-icon>
-            <span>Print ឈ្មោះ</span>
+            <span>បោះពុម្ពឈ្មោះ</span>
         </button>
         <button id="m-print-card-list-btn" class="sheet-menu-item" type="button">
             <ion-icon name="id-card-outline" aria-hidden="true"></ion-icon>
@@ -2936,7 +3518,7 @@
         </button>
         <button id="m-download-csv-btn" class="sheet-menu-item" type="button">
             <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
-            <span>CSV</span>
+            <span>ទាញ CSV</span>
         </button>
         <button id="m-delete-all-btn" class="sheet-menu-item danger-item" type="button">
             <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
@@ -3851,11 +4433,11 @@
         els.loadSheetBtn.disabled = loading || !configured;
         els.backupNowBtn.disabled = loading || !configured;
         if (loading) {
-            els.loadSheetBtn.innerHTML = '<span class="spinner"></span><span>Load...</span>';
+            els.loadSheetBtn.innerHTML = '<span class="spinner"></span><span>កំពុងទាញ...</span>';
             els.backupNowBtn.innerHTML = '<span class="spinner"></span><span>Sync...</span>';
         } else {
-            els.loadSheetBtn.innerHTML = '<ion-icon name="cloud-download-outline"></ion-icon><span>Load</span>';
-            els.backupNowBtn.innerHTML = '<ion-icon name="cloud-done-outline"></ion-icon><span>Backup</span>';
+            els.loadSheetBtn.innerHTML = '<ion-icon name="cloud-download-outline"></ion-icon><span>ទាញទិន្នន័យ</span>';
+            els.backupNowBtn.innerHTML = '<ion-icon name="cloud-done-outline"></ion-icon><span>បម្រុងទុក</span>';
         }
     }
 
@@ -6031,8 +6613,8 @@
     function setBackupLoading(loading) {
         els.backupNowBtn.disabled = loading;
         els.backupNowBtn.innerHTML = loading
-            ? '<span class="spinner"></span><span>Backup...</span>'
-            : '<ion-icon name="cloud-done-outline"></ion-icon><span>Backup</span>';
+            ? '<span class="spinner"></span><span>កំពុងបម្រុង...</span>'
+            : '<ion-icon name="cloud-done-outline"></ion-icon><span>បម្រុងទុក</span>';
     }
 
     async function backupAllStudents() {
@@ -6476,7 +7058,7 @@
     }
     function setImporting(v){
         els.importFileBtn.disabled=v;
-        els.importFileBtn.innerHTML=v?'<span class="spinner"></span><span>Import...</span>':'<ion-icon name="cloud-upload-outline"></ion-icon><span>Import</span>';
+        els.importFileBtn.innerHTML=v?'<span class="spinner"></span><span>កំពុងនាំចូល...</span>':'<ion-icon name="cloud-upload-outline"></ion-icon><span>នាំចូល</span>';
     }
     function assignCodes(students,start=1){
         const prefix=appSettings.studentCodePrefix||DEFAULT_STUDENT_CODE_PREFIX;
