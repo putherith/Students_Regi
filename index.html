@@ -19,6 +19,7 @@
 <script async type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
 <script async nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 <script async src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script defer src="./assets/student-card.js"></script>
     <style>
         /* ========================
            DESIGN TOKENS
@@ -2132,6 +2133,14 @@
                                     <label for="guardianName">ឈ្មោះអាណាព្យាបាល</label>
                                     <input id="guardianName" name="guardianName" type="text" placeholder="ឈ្មោះអ្នកទទួលខុសត្រូវសិស្ស">
                                 </div>
+                                <div class="field">
+                                    <label for="fatherPhone">លេខទូរសព្ទឪពុក</label>
+                                    <input id="fatherPhone" name="fatherPhone" type="tel">
+                                </div>
+                                <div class="field">
+                                    <label for="motherPhone">លេខទូរសព្ទម្តាយ</label>
+                                    <input id="motherPhone" name="motherPhone" type="tel">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2542,8 +2551,22 @@
                 <input id="card-issue-date-input" type="date">
             </div>
             <div class="field">
+                <label for="card-lunar-date-input">បន្ទាត់កាលបរិច្ឆេទចន្ទគតិ (អាចទុកទទេ)</label>
+                <input id="card-lunar-date-input" type="text" placeholder="ថ្ងៃ... ខែ... ឆ្នាំ... ព.ស...">
+            </div>
+            <div class="field">
                 <label for="principal-name-input">ឈ្មោះនាយកសាលា</label>
                 <input id="principal-name-input" type="text" placeholder="ឧ. លោក/លោកស្រី ...">
+            </div>
+            <div class="field-grid">
+                <div class="field">
+                    <label for="principal-phone-input">លេខទូរសព្ទនាយក</label>
+                    <input id="principal-phone-input" type="tel">
+                </div>
+                <div class="field">
+                    <label for="ict-phone-input">លេខទូរសព្ទ ICT</label>
+                    <input id="ict-phone-input" type="tel">
+                </div>
             </div>
             <div class="field-grid">
                 <div class="field">
@@ -2746,8 +2769,10 @@
         contact: "contact",
         fatherName: "father_name",
         fatherOccupation: "father_occupation",
+        fatherPhone: "father_phone",
         motherName: "mother_name",
         motherOccupation: "mother_occupation",
+        motherPhone: "mother_phone",
         guardianName: "guardian_name",
         currentVillage: "current_village",
         currentCommune: "current_commune",
@@ -2759,7 +2784,7 @@
         updatedAt: "updated_at"
     };
     const SUPABASE_OPTIONAL_COLUMNS = new Set([
-        "photo", "student_surname", "student_given_name", "father_occupation", "mother_occupation", "guardian_name", "application_number"
+        "photo", "student_surname", "student_given_name", "father_occupation", "mother_occupation", "guardian_name", "application_number", "father_phone", "mother_phone"
     ]);
 
     // ===================== LOCAL STORAGE DB HANDLERS =====================
@@ -2988,7 +3013,10 @@
         appSettingsBtn: document.getElementById("app-settings-btn"),
         appSettingsModal: document.getElementById("app-settings-modal"),
         cardIssueDateInput: document.getElementById("card-issue-date-input"),
+        cardLunarDateInput: document.getElementById("card-lunar-date-input"),
         principalNameInput: document.getElementById("principal-name-input"),
+        principalPhoneInput: document.getElementById("principal-phone-input"),
+        ictPhoneInput: document.getElementById("ict-phone-input"),
         studentCodePrefixInput: document.getElementById("student-code-prefix-input"),
         studentCodeDigitsInput: document.getElementById("student-code-digits-input"),
         teacherSettingsList: document.getElementById("teacher-settings-list"),
@@ -3093,7 +3121,7 @@
     const disabledSupabaseColumns = new Set();
 
     const fieldIds = [
-        "studentCode","studentSurname","studentGivenName","dob","fatherName","fatherOccupation","motherName","motherOccupation","guardianName",
+        "studentCode","studentSurname","studentGivenName","dob","fatherName","fatherOccupation","fatherPhone","motherName","motherOccupation","motherPhone","guardianName",
         "pobProvince","pobDistrict","pobCommune","pobVillage",
         "currentProvince","currentDistrict","currentCommune","currentVillage",
         "fromSchool","className","contact","applicationNumber"
@@ -3102,11 +3130,11 @@
     const STUDENT_TEMPLATE_TOP_HEADERS = [
         "អត្តលេខ", "គោត្តនាម", "នាមខ្លួន", "ភេទ", "ថ្ងៃកំណើត", "ថ្នាក់", "សាលា",
         "ទីកន្លែងកំណើត", "", "", "", "លេខទូរស័ព្ទ", "ឈ្មោះឪពុក", "មុខរបរឪពុក", "ឈ្មោះម្តាយ", "មុខរបរម្តាយ", "ឈ្មោះអាណាព្យាបាល",
-        "អាសយដ្ឋានបច្ចុប្បន្ន", "", "", "", "លេខពាក្យ"
+        "អាសយដ្ឋានបច្ចុប្បន្ន", "", "", "", "លេខទូរសព្ទឪពុក", "លេខទូរសព្ទម្តាយ", "លេខពាក្យ"
     ];
     const STUDENT_TEMPLATE_SUB_HEADERS = [
         "", "", "", "", "", "", "", "ភូមិ", "ឃុំ/សង្កាត់", "ស្រុក/ខណ្ឌ", "ខេត្ត/ក្រុង",
-        "", "", "", "", "", "", "ភូមិ", "ឃុំ/សង្កាត់", "ស្រុក/ខណ្ឌ", "ខេត្ត/ក្រុង", ""
+        "", "", "", "", "", "", "ភូមិ", "ឃុំ/សង្កាត់", "ស្រុក/ខណ្ឌ", "ខេត្ត/ក្រុង", "", "", ""
     ];
     const STUDENT_CSV_HEADERS = [
         "អត្តលេខ", "គោត្តនាម", "នាមខ្លួន", "ភេទ", "ថ្ងៃកំណើត", "ថ្នាក់", "សាលា",
@@ -3114,13 +3142,13 @@
         "ទីកន្លែងកំណើត - ស្រុក/ខណ្ឌ", "ទីកន្លែងកំណើត - ខេត្ត/ក្រុង",
         "លេខទូរស័ព្ទ", "ឈ្មោះឪពុក", "មុខរបរឪពុក", "ឈ្មោះម្តាយ", "មុខរបរម្តាយ", "ឈ្មោះអាណាព្យាបាល",
         "អាសយដ្ឋានបច្ចុប្បន្ន - ភូមិ", "អាសយដ្ឋានបច្ចុប្បន្ន - ឃុំ/សង្កាត់",
-        "អាសយដ្ឋានបច្ចុប្បន្ន - ស្រុក/ខណ្ឌ", "អាសយដ្ឋានបច្ចុប្បន្ន - ខេត្ត/ក្រុង", "លេខពាក្យ"
+        "អាសយដ្ឋានបច្ចុប្បន្ន - ស្រុក/ខណ្ឌ", "អាសយដ្ឋានបច្ចុប្បន្ន - ខេត្ត/ក្រុង", "លេខទូរសព្ទឪពុក", "លេខទូរសព្ទម្តាយ", "លេខពាក្យ"
     ];
     const STUDENT_IMPORT_FIELDS = [
         "studentCode", "studentSurname", "studentGivenName", "gender", "dob", "className", "fromSchool",
         "pobVillage", "pobCommune", "pobDistrict", "pobProvince",
         "contact", "fatherName", "fatherOccupation", "motherName", "motherOccupation", "guardianName",
-        "currentVillage", "currentCommune", "currentDistrict", "currentProvince", "applicationNumber"
+        "currentVillage", "currentCommune", "currentDistrict", "currentProvince", "fatherPhone", "motherPhone", "applicationNumber"
     ];
     const STUDENT_DATA_FIELDS = [
         "studentName", "gender", "dob", "className", "fromSchool",
@@ -3132,15 +3160,15 @@
         "", "ហ៊ុន", "ណារ", "ប្រុស", "15/05/2010", "7A", "សាលាបឋមសិក្សាព្រៃខ្លា",
         "ព្រៃមេលងខាងជើង", "ព្រៃខ្លា", "ស្រុកកោះអណ្តែត", "ខេត្តតាកែវ",
         "012345678", "ហ៊ុន សក្កដា", "កសិករ", "គង់ សុភី", "អាជីវករ", "ហ៊ុន សក្កដា",
-        "ព្រៃមេលងខាងជើង", "ព្រៃខ្លា", "ស្រុកកោះអណ្តែត", "ខេត្តតាកែវ", "001/2026"
+        "ព្រៃមេលងខាងជើង", "ព្រៃខ្លា", "ស្រុកកោះអណ្តែត", "ខេត្តតាកែវ", "", "", "001/2026"
     ];
-    const STUDENT_TEMPLATE_MERGES = [0,1,2,3,4,5,6,11,12,13,14,15,16,21]
+    const STUDENT_TEMPLATE_MERGES = [0,1,2,3,4,5,6,11,12,13,14,15,16,21,22,23]
         .map(c => ({ s:{r:3,c}, e:{r:4,c} }))
         .concat([{s:{r:3,c:7},e:{r:3,c:10}}, {s:{r:3,c:17},e:{r:3,c:20}}]);
     const STUDENT_TEMPLATE_COLS = [
         {wch:15}, {wch:16}, {wch:16}, {wch:10}, {wch:15}, {wch:10}, {wch:22},
         {wch:16}, {wch:16}, {wch:16}, {wch:16}, {wch:15}, {wch:18}, {wch:16},
-        {wch:18}, {wch:16}, {wch:20}, {wch:16}, {wch:16}, {wch:16}, {wch:16}, {wch:14}
+        {wch:18}, {wch:16}, {wch:20}, {wch:16}, {wch:16}, {wch:16}, {wch:16}, {wch:18}, {wch:18}, {wch:14}
     ];
 
     // ===================== UTILITY =====================
@@ -3217,7 +3245,7 @@
             studentVisibleId(s), s.studentSurname, s.studentGivenName, s.gender, formatDate(s.dob), s.className, s.fromSchool,
             s.pobVillage, s.pobCommune, s.pobDistrict, s.pobProvince,
             s.contact, s.fatherName, s.fatherOccupation, s.motherName, s.motherOccupation, s.guardianName,
-            s.currentVillage, s.currentCommune, s.currentDistrict, s.currentProvince, s.applicationNumber
+            s.currentVillage, s.currentCommune, s.currentDistrict, s.currentProvince, s.fatherPhone, s.motherPhone, s.applicationNumber
         ];
     }
 
@@ -3292,6 +3320,9 @@
         return {
             issueDate: new Date().toISOString().slice(0, 10),
             principalName: "",
+            principalPhone: "",
+            cardLunarDate: "",
+            ictPhone: "",
             studentCodePrefix: DEFAULT_STUDENT_CODE_PREFIX,
             studentCodeDigits: 4,
             classTeachers: {}
@@ -3310,6 +3341,9 @@
         return {
             issueDate: /^\d{4}-\d{2}-\d{2}$/.test(String(value.issueDate || "")) ? String(value.issueDate) : defaults.issueDate,
             principalName: String(value.principalName || "").trim(),
+            principalPhone: String(value.principalPhone || "").trim(),
+            cardLunarDate: String(value.cardLunarDate || "").trim(),
+            ictPhone: String(value.ictPhone || "").trim(),
             studentCodePrefix: String(value.studentCodePrefix || defaults.studentCodePrefix).trim().replace(/\s+/g, "-").replace(/-+/g, "-").slice(0, 12) || defaults.studentCodePrefix,
             studentCodeDigits: Math.min(8, Math.max(2, Number.parseInt(value.studentCodeDigits, 10) || defaults.studentCodeDigits)),
             classTeachers
@@ -3380,6 +3414,9 @@
     function openAppSettings() {
         els.cardIssueDateInput.value = appSettings.issueDate;
         els.principalNameInput.value = appSettings.principalName;
+        els.principalPhoneInput.value = appSettings.principalPhone;
+        els.cardLunarDateInput.value = appSettings.cardLunarDate;
+        els.ictPhoneInput.value = appSettings.ictPhone;
         els.studentCodePrefixInput.value = appSettings.studentCodePrefix;
         els.studentCodeDigitsInput.value = appSettings.studentCodeDigits;
         renderTeacherSettings();
@@ -3414,6 +3451,9 @@
         appSettings = normalizeAppSettings({
             issueDate: els.cardIssueDateInput.value,
             principalName: els.principalNameInput.value,
+            principalPhone: els.principalPhoneInput.value,
+            cardLunarDate: els.cardLunarDateInput.value,
+            ictPhone: els.ictPhoneInput.value,
             studentCodePrefix: els.studentCodePrefixInput.value,
             studentCodeDigits: els.studentCodeDigitsInput.value,
             classTeachers
@@ -5144,8 +5184,10 @@
             dob: normDate(getValue("dob")),
             fatherName: getValue("fatherName"),
             fatherOccupation: getValue("fatherOccupation"),
+            fatherPhone: getValue("fatherPhone"),
             motherName: getValue("motherName"),
             motherOccupation: getValue("motherOccupation"),
+            motherPhone: getValue("motherPhone"),
             guardianName: getValue("guardianName"),
             pobProvince: pobGroup.province.value,
             pobDistrict: pobGroup.district.value,
@@ -5813,7 +5855,21 @@
             ${content}
             </body></html>`);
         win.document.close();
-        setTimeout(() => { win.focus(); win.print(); }, 350);
+        // The print document has its own font/image lifecycle.
+        const ready = async () => {
+            await win.document.fonts.ready;
+            await Promise.all(Array.from(win.document.images, img =>
+                img.complete ? Promise.resolve() : new Promise(resolve => {
+                    img.addEventListener("load", resolve, { once:true });
+                    img.addEventListener("error", resolve, { once:true });
+                })
+            ));
+            if (win.closed) return;
+            window.StudentCardTemplate.fitText(win.document);
+            win.focus();
+            win.print();
+        };
+        win.addEventListener("load", () => ready().catch(console.error), { once:true });
     }
 
     function printStudent(id) {
@@ -6012,140 +6068,14 @@
     function printStudentCards(students = null) {
         const rows = students || printableRows();
         if (!rows.length) { showToast("មិនមានទិន្នន័យសម្រាប់បោះពុម្ពកាត","warning"); return; }
-        const academicYear = studentCardAcademicYear();
-        const issuedDate = formatDate(appSettings.issueDate) || new Date().toLocaleDateString("km-KH");
-        const principalName = appSettings.principalName || "................................";
-        const logoSrc = studentCardLogoSrc();
-        const cards = rows.map((s, index) => {
-            const photoSrc = safePhotoSrc(s.photo);
-            const visibleId = studentVisibleId(s) || `ID-${String(index + 1).padStart(4, "0")}`;
-            const birthPlace = addressText(s, "pob") || "................................";
-            const currentAddress = addressText(s, "current") || "................................";
-            return `<article class="certificate-student-card">
-                <div class="card-watermark"><img src="${esc(logoSrc)}" alt=""></div>
-                <header class="reference-card-header">
-                    <div class="card-logo"><img src="${esc(logoSrc)}" alt="ក្រសួងអប់រំ យុវជន និងកីឡា"></div>
-                    <div class="card-school-heading">
-                        <div>ក្រសួងអប់រំ យុវជន និងកីឡា</div>
-                        <div>មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ</div>
-                        <div>វិទ្យាល័យសុខអានព្រៃមេលង</div>
-                    </div>
-                    <div class="card-kingdom">
-                        <div>ព្រះរាជាណាចក្រកម្ពុជា</div>
-                        <div>ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
-                        <div class="kingdom-line">◆ ◆ ◆</div>
-                    </div>
-                </header>
-                <div class="reference-card-title">
-                    ប័ណ្ណសម្គាល់ខ្លួនសិស្ស ឆ្នាំសិក្សា ${esc(academicYear)}
-                </div>
-                <section class="reference-card-info">
-                    <div class="reference-info-row reference-info-four">
-                        <span>គោត្តនាម និងនាម</span><strong>${esc(studentFullName(s) || "-")}</strong>
-                        <span>ភេទ</span><strong>${esc(s.gender || "-")}</strong>
-                    </div>
-                    <div class="reference-info-row reference-info-four">
-                        <span>ថ្ងៃខែឆ្នាំកំណើត</span><strong>${esc(formatDate(s.dob) || "-")}</strong>
-                        <span>ថ្នាក់</span><strong>${esc(s.className || "-")}</strong>
-                    </div>
-                    <div class="reference-info-row reference-info-full">
-                        <span>ទីកន្លែងកំណើត</span><strong>${esc(birthPlace)}</strong>
-                    </div>
-                    <div class="reference-info-row reference-info-full">
-                        <span>អាសយដ្ឋានបច្ចុប្បន្ន</span><strong>${esc(currentAddress)}</strong>
-                    </div>
-                    <div class="reference-info-row reference-info-four reference-info-contact">
-                        <span>លេខទូរសព្ទ</span><strong>${esc(s.contact || "-")}</strong>
-                        <span>សាលា</span><strong>${esc(s.fromSchool || "-")}</strong>
-                    </div>
-                </section>
-                <section class="reference-card-lower">
-                    <div class="reference-photo-box">
-                        <div class="card-id-code">${esc(visibleId)}</div>
-                        <div class="card-photo-slot">
-                            ${photoSrc ? `<img src="${esc(photoSrc)}" alt="រូបថត">` : `<span>រូបថត<br>3×4</span>`}
-                        </div>
-                    </div>
-                    <div class="reference-family-signatures">
-                        <div class="reference-family-row">
-                            <span>ឪពុក</span><strong>${esc(s.fatherName || "-")}</strong>
-                            <span>មុខរបរ</span><strong>${esc(s.fatherOccupation || "-")}</strong>
-                        </div>
-                        <div class="reference-family-row">
-                            <span>ម្តាយ</span><strong>${esc(s.motherName || "-")}</strong>
-                            <span>មុខរបរ</span><strong>${esc(s.motherOccupation || "-")}</strong>
-                        </div>
-                        <div class="reference-guardian-row"><span>អាណាព្យាបាល</span><strong>${esc(s.guardianName || "-")}</strong></div>
-                        <div class="reference-date-line">ថ្ងៃ ${esc(issuedDate)}</div>
-                        <div class="reference-approval-grid">
-                            <div class="reference-approval-principal"><strong>${esc(principalName)}</strong><span>នាយកសាលា</span></div>
-                        </div>
-                    </div>
-                </section>
-            </article>`;
-        }).join("");
-        printWindow("កាតសិស្ស",`
-            <style>
-                @page { size: A4 landscape; margin: 4mm; }
-                body { background:#fff; color:#111; }
-                .cards-grid { display:grid; grid-template-columns:repeat(3, 75mm); gap:2mm; justify-content:center; align-items:start; }
-                .certificate-student-card {
-                    --card-muol:"Khmer OS Siemreap","KhmerOSSiemreap","Siemreap","Khmer OS",sans-serif;
-                    --card-body:"Khmer OS Siemreap","KhmerOSSiemreap","Siemreap","Khmer OS",sans-serif;
-                    position:relative;
-                    width:75mm;
-                    height:100mm;
-                    box-sizing:border-box;
-                    overflow:hidden;
-                    break-inside:avoid;
-                    page-break-inside:avoid;
-                    border:.55mm solid #112df5;
-                    background:#fff;
-                    padding:2mm;
-                    font-family:var(--card-body);
-                    print-color-adjust:exact;
-                    -webkit-print-color-adjust:exact;
-                }
-                .certificate-student-card * { box-sizing:border-box; position:relative; z-index:1; }
-                .card-watermark { position:absolute; left:12mm; top:22mm; z-index:0; width:52mm; height:58mm; display:grid; place-items:center; opacity:.095; }
-                .card-watermark img { width:100%; height:100%; object-fit:contain; display:block; }
-                .reference-card-header { position:relative; height:27.5mm; }
-                .card-logo { position:absolute; left:12.5mm; top:.7mm; width:7mm; height:8.5mm; display:grid; place-items:center; }
-                .card-logo img { width:100%; height:100%; object-fit:contain; display:block; }
-                .card-school-heading { position:absolute; left:0; top:11.2mm; width:42mm; color:#102b37; font:400 6.7px/1.58 var(--card-muol); }
-                .card-kingdom { position:absolute; right:0; top:1mm; width:31mm; text-align:center; color:#102b37; font:400 6.6px/1.75 var(--card-muol); }
-                .kingdom-line { color:#637b85; font:700 4.2px/1 var(--card-body); letter-spacing:.8px; margin-top:.5mm; }
-                .reference-card-title { height:6mm; margin:0 -1mm; display:flex; align-items:center; justify-content:center; color:#b45a00; font:400 7.8px/1.2 var(--card-muol); white-space:nowrap; }
-                .reference-card-info { display:grid; grid-template-rows:4.4mm 4.4mm 6.4mm 6.4mm 4.5mm; gap:.55mm; height:28.3mm; align-content:start; }
-                .reference-info-row { min-width:0; align-items:center; font-size:5.7px; line-height:1.35; }
-                .reference-info-row > span { color:#263238; white-space:nowrap; }
-                .reference-info-row > strong { min-width:0; color:#071cff; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-                .reference-info-four { display:grid; grid-template-columns:18mm minmax(0,1fr) 7mm 9mm; column-gap:1mm; }
-                .reference-info-full { display:grid; grid-template-columns:18mm minmax(0,1fr); column-gap:1mm; }
-                .reference-info-full > strong { white-space:normal; line-height:1.25; text-overflow:clip; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
-                .reference-info-contact { grid-template-columns:18mm minmax(0,1fr) 7mm 18mm; }
-                .reference-info-contact > strong:last-child { font-size:5.1px; }
-                .reference-card-lower { position:absolute; left:2.7mm; right:2.7mm; bottom:2mm; height:34mm; display:grid; grid-template-columns:18.5mm minmax(0,1fr); gap:1.2mm; }
-                .reference-photo-box { height:34mm; transform:translateY(-2mm); border:.35mm solid #2360ff; display:grid; grid-template-rows:5.5mm minmax(0,1fr); background:#fff; }
-                .card-id-code { display:grid; place-items:center; border-bottom:.3mm solid #2360ff; color:#111; font:800 6.2px/1 var(--card-body); }
-                .card-photo-slot { min-height:0; display:grid; place-items:center; overflow:hidden; background:#fff; color:#222; text-align:center; font:700 7px/1.5 var(--card-body); }
-                .card-photo-slot img { width:100%; height:100%; object-fit:cover; display:block; }
-                .reference-family-signatures { min-width:0; display:grid; grid-template-rows:4.5mm 4.5mm 4.8mm 4.2mm minmax(0,1fr); align-content:start; font-size:5.3px; }
-                .reference-family-row { display:grid; grid-template-columns:7mm minmax(0,1fr) 9mm 13mm; gap:.6mm; align-items:center; }
-                .reference-family-row strong, .reference-guardian-row strong { min-width:0; color:#071cff; font-weight:800; overflow:visible; white-space:nowrap; font-size:5px; }
-                .reference-guardian-row { display:grid; grid-template-columns:14mm minmax(0,1fr); gap:.8mm; align-items:center; }
-                .reference-date-line { text-align:center; padding-top:.7mm; border-bottom:.25mm dotted #3a4650; color:#263238; font-size:5.2px; }
-                .reference-approval-grid { display:grid; grid-template-columns:1fr; justify-items:end; padding-top:.8mm; text-align:center; }
-                .reference-approval-grid div { min-width:0; }
-                .reference-approval-principal { width:24mm; }
-                .reference-approval-grid strong { display:block; height:4mm; color:#071cff; font-size:5.3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-                .reference-approval-grid span { display:block; color:#15252b; font:400 5.6px/1.2 var(--card-muol); }
-                @media print {
-                    body { background:#fff; }
-                    .cards-grid { gap:2mm; }
-                }
-            </style>
-            <div class="cards-grid">${cards}</div>`);
+        const cards = rows.map(s => ({
+            ...s,
+            studentName: studentFullName(s),
+            photo: safePhotoSrc(s.photo)
+        }));
+        printWindow("កាតសិស្ស", window.StudentCardTemplate.render(
+            cards, appSettings, studentCardLogoSrc(), studentCardAcademicYear()
+        ));
     }
 
     // ===================== IMPORT =====================
@@ -6162,8 +6092,10 @@
         pobProvince:["ខេត្ត/ក្រុង","ខេត្ត/ក្រុង (កំណើត)","ខេត្តរាជធានីកំណើត","ទីកន្លែងកំណើត - ខេត្ត/ក្រុង","pobProvince"],
         fatherName:["ឈ្មោះឳពុក","ឈ្មោះឪពុក","fatherName","father"],
         fatherOccupation:["មុខរបរឪពុក","មុខរបរឳពុក","fatherOccupation","father occupation"],
+        fatherPhone:["លេខទូរសព្ទឪពុក","fatherPhone","father phone"],
         motherName:["ឈ្មោះម្តាយ","ឈ្មោះម្ដាយ","motherName","mother"],
         motherOccupation:["មុខរបរម្តាយ","មុខរបរម្ដាយ","motherOccupation","mother occupation"],
+        motherPhone:["លេខទូរសព្ទម្តាយ","motherPhone","mother phone"],
         guardianName:["ឈ្មោះអាណាព្យាបាល","អាណាព្យាបាល","guardian","parent"],
         currentVillage:["ភូមិ (បច្ចុប្បន្ន)","ភូមិបច្ចុប្បន្ន","អាសយដ្ឋានបច្ចុប្បន្ន - ភូមិ","currentVillage"],
         currentCommune:["ឃុំ/សង្កាត់ (បច្ចុប្បន្ន)","ឃុំសង្កាត់បច្ចុប្បន្ន","អាសយដ្ឋានបច្ចុប្បន្ន - ឃុំ/សង្កាត់","currentCommune"],
@@ -6224,8 +6156,8 @@
         return {
             studentCode:r("studentCode"), ...identity,
             gender:normGender(r("gender")), dob:normDate(readImportVal(row,"dob")),
-            fatherName:r("fatherName"), fatherOccupation:r("fatherOccupation"),
-            motherName:r("motherName"), motherOccupation:r("motherOccupation"), guardianName:guardian,
+            fatherName:r("fatherName"), fatherOccupation:r("fatherOccupation"), fatherPhone:r("fatherPhone"),
+            motherName:r("motherName"), motherOccupation:r("motherOccupation"), motherPhone:r("motherPhone"), guardianName:guardian,
             pobProvince:r("pobProvince"),pobDistrict:r("pobDistrict"),pobCommune:r("pobCommune"),pobVillage:r("pobVillage"),
             currentProvince:r("currentProvince"),currentDistrict:r("currentDistrict"),currentCommune:r("currentCommune"),currentVillage:r("currentVillage")||addr,
             fromSchool:r("fromSchool"),className:r("className"),contact:r("contact"),applicationNumber:r("applicationNumber")

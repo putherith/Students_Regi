@@ -1,7 +1,7 @@
 {
   "name": "students-registration-kh",
   "productName": "Students Registration",
-  "version": "1.8.1",
+  "version": "1.9.0",
   "description": "Khmer student registration web app with shared cloud storage",
   "type": "module",
   "private": true,

@@ -70,6 +70,12 @@ The phone-camera link contains a random token that changes whenever the app rest
 
 ## Student card settings
 
+The reference card uses a 75 × 100 mm print boundary with a blue border, ministry logo and watermark, two date lines, and the principal signature only. Headings use Khmer Moul and body text uses Khmer OS Siemreap (Siemreap web fallback). Print at 100% / actual size.
+
+Set the principal and ICT telephone numbers in Settings. Each student's father and mother telephone numbers are entered separately in the registration form. The lunar date line can be entered in Settings; when empty it prints as a dotted line. No telephone numbers from the sample artwork are filled into real records automatically.
+
+For shared storage, redeploy the updated Apps Script backend or run the additional columns in the Supabase schema so the new telephone fields also sync. The settings remain available locally before the backend is updated.
+
 Open `Settings` in the desktop toolbar to configure:
 
 - the card issue date;

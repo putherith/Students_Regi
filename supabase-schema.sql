@@ -26,6 +26,8 @@ create table if not exists public.students (
   current_district text,
   current_province text,
   application_number text,
+  father_phone text,
+  mother_phone text,
   photo text,
   created_at text,
   updated_at text
@@ -38,7 +40,9 @@ alter table public.students
   add column if not exists father_occupation text,
   add column if not exists mother_occupation text,
   add column if not exists guardian_name text,
-  add column if not exists application_number text;
+  add column if not exists application_number text,
+  add column if not exists father_phone text,
+  add column if not exists mother_phone text;
 
 create unique index if not exists students_student_code_unique
   on public.students (student_code)

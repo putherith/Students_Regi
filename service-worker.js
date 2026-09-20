@@ -1,9 +1,10 @@
-const CACHE_NAME = "students-registration-web-v1.8.1";
+const CACHE_NAME = "students-registration-web-v1.9.0";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./assets/moeys-logo.png"
+  "./assets/moeys-logo.png",
+  "./assets/student-card.js"
 ];
 
 self.addEventListener("install", event => {
