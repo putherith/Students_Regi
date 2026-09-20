@@ -544,6 +544,12 @@
             gap: 5px;
         }
 
+        .field-help {
+            color: var(--muted);
+            font-size: .7rem;
+            line-height: 1.45;
+        }
+
         label {
             font-size: .82rem;
             font-weight: 600;
@@ -2918,8 +2924,9 @@
                                 </div>
                                 <div class="field">
                                     <label for="dob" class="required">ថ្ងៃខែឆ្នាំកំណើត</label>
-                                    <input id="dob" name="dob" type="text" inputmode="numeric" required
-                                           placeholder="ឧ. 15/05/2010">
+                                    <input id="dob" name="dob" type="text" inputmode="text" required
+                                           aria-describedby="dob-help" placeholder="ឧ. 23/មិថុនា/2006">
+                                    <small id="dob-help" class="field-help">ទម្រង់៖ ថ្ងៃ/ខែជាខ្មែរ/ឆ្នាំ</small>
                                 </div>
                                 <div class="field">
                                     <label for="fatherName">ឈ្មោះឪពុក</label>
@@ -3223,7 +3230,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.0</span>
+        <span class="footer-version">កំណែ 2.0.1</span>
     </footer>
 
 </main><!-- end .app -->
@@ -3973,7 +3980,7 @@
         "currentVillage", "currentCommune", "currentDistrict", "currentProvince", "applicationNumber", "photo"
     ];
     const STUDENT_TEMPLATE_EXAMPLE = [
-        "", "ហ៊ុន", "ណារ", "ប្រុស", "15/05/2010", "7A", "សាលាបឋមសិក្សាព្រៃខ្លា",
+        "", "ហ៊ុន", "ណារ", "ប្រុស", "15/ឧសភា/2010", "7A", "សាលាបឋមសិក្សាព្រៃខ្លា",
         "ព្រៃមេលងខាងជើង", "ព្រៃខ្លា", "ស្រុកកោះអណ្តែត", "ខេត្តតាកែវ",
         "012345678", "ហ៊ុន សក្កដា", "កសិករ", "គង់ សុភី", "អាជីវករ", "ហ៊ុន សក្កដា",
         "ព្រៃមេលងខាងជើង", "ព្រៃខ្លា", "ស្រុកកោះអណ្តែត", "ខេត្តតាកែវ", "", "", "001/2026"
@@ -4001,10 +4008,39 @@
         return isNaN(t) ? 0 : t;
     }
 
+    const KHMER_MONTH_NAMES = [
+        "មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា",
+        "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"
+    ];
+    const KHMER_MONTH_ALIASES = new Map([
+        ["មករា",1], ["កុម្ភៈ",2], ["កុម្ភះ",2], ["មីនា",3], ["មេសា",4],
+        ["ឧសភា",5], ["មិថុនា",6], ["កក្កដា",7], ["សីហា",8], ["កញ្ញា",9],
+        ["តុលា",10], ["វិច្ឆិកា",11], ["ធ្នូ",12]
+    ]);
+
+    function latinDigits(v) {
+        return String(v ?? "").replace(/[០-៩]/g, digit => String("០១២៣៤៥៦៧៨៩".indexOf(digit)));
+    }
+
+    function dateMonthNumber(v) {
+        const token = latinDigits(v).trim().replace(/^ខែ/, "").replace(/\s+/g, "");
+        if (/^\d{1,2}$/.test(token)) return Number(token);
+        return KHMER_MONTH_ALIASES.get(token) || 0;
+    }
+
+    function validIsoDate(year, month, day) {
+        if (year < 1000 || month < 1 || month > 12 || day < 1 || day > 31) return "";
+        const date = new Date(Date.UTC(year, month - 1, day));
+        if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return "";
+        return `${String(year).padStart(4,"0")}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+    }
+
     function formatDate(v) {
         if (!v) return "";
-        const p = String(v).split("-");
-        return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : v;
+        const normalized = normDate(v);
+        const match = String(normalized).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!match) return String(v);
+        return `${Number(match[3])}/${KHMER_MONTH_NAMES[Number(match[2]) - 1]}/${match[1]}`;
     }
 
     function normDate(v) {
@@ -4014,12 +4050,26 @@
             const d = new Date(Math.round((v - 25569) * 86400 * 1000));
             return isNaN(d) ? "" : d.toISOString().slice(0,10);
         }
-        const t = String(v).trim();
+        const original = String(v).trim();
+        const t = latinDigits(original);
         const m1 = t.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
-        if (m1) return `${m1[1]}-${m1[2].padStart(2,"0")}-${m1[3].padStart(2,"0")}`;
-        const m2 = t.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})$/);
-        if (m2) { const y = m2[3].length===2 ? `20${m2[3]}` : m2[3]; return `${y}-${m2[2].padStart(2,"0")}-${m2[1].padStart(2,"0")}`; }
-        return t;
+        if (m1) return validIsoDate(Number(m1[1]), Number(m1[2]), Number(m1[3])) || original;
+        const m2 = t.match(/^(\d{1,2})\s*[-/]\s*([^-/]+?)\s*[-/]\s*(\d{2,4})$/);
+        if (m2) {
+            const year = Number(m2[3].length === 2 ? `20${m2[3]}` : m2[3]);
+            return validIsoDate(year, dateMonthNumber(m2[2]), Number(m2[1])) || original;
+        }
+        return original;
+    }
+
+    function normalizeDobInput() {
+        const input = document.getElementById("dob");
+        const raw = input.value.trim();
+        const normalized = normDate(raw);
+        const isValid = /^\d{4}-\d{2}-\d{2}$/.test(normalized);
+        input.setCustomValidity(isValid ? "" : "សូមវាយថ្ងៃកំណើតតាមទម្រង់ 23/មិថុនា/2006");
+        if (isValid) input.value = formatDate(normalized);
+        return isValid ? normalized : "";
     }
 
     function normText(v) { return String(v||"").trim().toLocaleLowerCase("km-KH").replace(/\s+/g,""); }
@@ -6070,6 +6120,7 @@
     function resetForm() {
         closeMobileEditPanel();
         els.registrationForm.reset();
+        document.getElementById("dob").setCustomValidity("");
         setPhotoPreview("");
         setEditMode("");
         resetAddressGroup(pobGroup);
@@ -6088,6 +6139,7 @@
         const s = found ? normalizeStudentIdentity(found) : null;
         if (!s) { showToast("រកមិនឃើញទិន្នន័យសិស្ស","error"); return; }
         fieldIds.forEach(fid => setValue(fid, s[fid]||""));
+        setValue("dob", formatDate(s.dob));
 
         // Handle photo
         setPhotoPreview(s.photo || "");
@@ -6141,6 +6193,7 @@
 
     async function handleFormSubmit(e) {
         e.preventDefault();
+        normalizeDobInput();
         if (!els.registrationForm.reportValidity()) return;
 
         const editingId = els.editingId.value;
@@ -7173,6 +7226,11 @@
         });
 
         // Form
+        const dobInput = document.getElementById("dob");
+        dobInput.addEventListener("input", () => dobInput.setCustomValidity(""));
+        dobInput.addEventListener("blur", () => {
+            if (dobInput.value.trim()) normalizeDobInput();
+        });
         els.registrationForm.addEventListener("submit",handleFormSubmit);
         els.clearBtn.addEventListener("click",resetForm);
         els.openCameraBtn?.addEventListener("click",openCameraModal);
