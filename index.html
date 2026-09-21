@@ -3290,7 +3290,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.1</span>
+        <span class="footer-version">កំណែ 2.1.2</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4075,6 +4075,9 @@
     function esc(v) { return String(v ?? "").replace(/[&<>"']/g, c => escMap[c]); }
     function getValue(id) { return document.getElementById(id).value.trim(); }
     function setValue(id, v) { document.getElementById(id).value = v || ""; }
+    function compareKhmer(a, b, options={}) {
+        return String(a ?? "").localeCompare(String(b ?? ""), "km-KH", options);
+    }
     function tsMillis(v) {
         if (!v) return 0;
         if (typeof v.toMillis === "function") return v.toMillis();
@@ -4421,7 +4424,7 @@
             const className = String(student.className || "").trim();
             if (className) names.add(className);
         });
-        return [...names].sort((a,b)=>a.localeCompare(b,"km-KH"));
+        return [...names].sort((a,b)=>compareKhmer(a,b));
     }
 
     function renderTeacherSettings() {
@@ -5119,8 +5122,17 @@
 
     function normalizeCloudStudent(item={}, idx=0) {
         const raw = item.student && typeof item.student === "object" ? { ...item.student } : { ...item };
-        const studentCode = raw.studentCode || raw.studentId || item.studentId || "";
-        const id = raw.recordId || raw.id || studentCode || `cloud-${idx}-${Math.random().toString(36).slice(2)}`;
+        const textFields = [
+            "studentCode","studentId","studentName","studentSurname","studentGivenName","gender","className","fromSchool",
+            "pobVillage","pobCommune","pobDistrict","pobProvince","contact","fatherName","fatherOccupation","fatherPhone",
+            "motherName","motherOccupation","motherPhone","guardianName","currentVillage","currentCommune","currentDistrict",
+            "currentProvince","applicationNumber"
+        ];
+        textFields.forEach(field => {
+            if (raw[field] !== null && raw[field] !== undefined) raw[field] = String(raw[field]).trim();
+        });
+        const studentCode = String(raw.studentCode || raw.studentId || item.studentId || "").trim();
+        const id = String(raw.recordId || raw.id || studentCode || `cloud-${idx}-${Math.random().toString(36).slice(2)}`).trim();
         const student = normalizeStudentIdentity({
             ...raw,
             id,
@@ -6591,7 +6603,7 @@
         const sel = els.schoolFilter.value;
         const formSchools = Array.from(els.fromSchool.options).map(o=>o.value).filter(Boolean);
         const dataSchools = allStudents.map(s=>s.fromSchool).filter(Boolean);
-        const schools = [...new Set([...formSchools,...dataSchools])].sort((a,b)=>a.localeCompare(b,"km-KH"));
+        const schools = [...new Set([...formSchools,...dataSchools].map(value=>String(value)))].sort((a,b)=>compareKhmer(a,b));
         els.schoolFilter.innerHTML = '<option value="">សាលាទាំងអស់</option>';
         schools.forEach(s => els.schoolFilter.append(new Option(s,s)));
         els.schoolFilter.value = schools.includes(sel) ? sel : "";
@@ -6599,7 +6611,7 @@
 
     function buildClassFilter() {
         const sel = els.classFilter.value;
-        const classes = [...new Set(allStudents.map(s=>s.className).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"km-KH",{numeric:true}));
+        const classes = [...new Set(allStudents.map(s=>String(s.className ?? "").trim()).filter(Boolean))].sort((a,b)=>compareKhmer(a,b,{numeric:true}));
         els.classFilter.innerHTML = '<option value="">ថ្នាក់ទាំងអស់</option>';
         classes.forEach(c => els.classFilter.append(new Option(c,c)));
         els.classFilter.value = classes.includes(sel) ? sel : "";
@@ -6622,8 +6634,8 @@
         filteredStudents = allStudents.filter(s =>
             (!term || studentSearchText(s).includes(term)) &&
             (!gender || s.gender === gender) &&
-            (!className || s.className === className) &&
-            (!school || s.fromSchool === school)
+            (!className || String(s.className ?? "") === className) &&
+            (!school || String(s.fromSchool ?? "") === school)
         );
 
         if (isShowAll()) {
@@ -6668,11 +6680,11 @@
     function groupedByClass(students) {
         const groups = new Map();
         students.forEach(s => {
-            const cls = s.className || "មិនទាន់បញ្ចូលថ្នាក់";
+            const cls = String(s.className || "មិនទាន់បញ្ចូលថ្នាក់");
             if (!groups.has(cls)) groups.set(cls, []);
             groups.get(cls).push(s);
         });
-        return [...groups.entries()].sort(([a],[b]) => a.localeCompare(b,"km-KH",{numeric:true}));
+        return [...groups.entries()].sort(([a],[b]) => compareKhmer(a,b,{numeric:true}));
     }
 
     // ===================== RENDER =====================
