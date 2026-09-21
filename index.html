@@ -3302,7 +3302,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.4</span>
+        <span class="footer-version">កំណែ 2.1.5</span>
     </footer>
 
 </main><!-- end .app -->
@@ -3888,6 +3888,7 @@
             "ខណ្ឌព្រះស្ទីង": { "ព": ["ព","្រ"] }
         }
     };
+    const ADDRESS_PROVINCE_CHOICES = ["ខេត្តតាកែវ"];
 
     // ===================== ELEMENT REFS =====================
     const els = {
@@ -5245,7 +5246,8 @@
     // ===================== ADDRESS CASCADE =====================
     function populateSelect(sel, items, placeholder, selected="") {
         const vals = [...new Set((items||[]).filter(Boolean))];
-        if (selected && !vals.includes(selected)) vals.push(selected);
+        // Text inputs can keep custom values without adding them to the suggested list.
+        if (selected && !vals.includes(selected) && !sel.list) vals.push(selected);
         if (sel.list) {
             sel.list.innerHTML = "";
             vals.forEach(v => {
@@ -5264,7 +5266,7 @@
     }
 
     function resetAddressGroup(g) {
-        populateSelect(g.province, Object.keys(cambodiaData), "ជ្រើសរើសខេត្ត/រាជធានី");
+        populateSelect(g.province, ADDRESS_PROVINCE_CHOICES, "ជ្រើសរើសខេត្ត/រាជធានី");
         populateSelect(g.district, [], "ជ្រើសរើសស្រុក/ខណ្ឌ");
         populateSelect(g.commune, [], "ជ្រើសរើសឃុំ/សង្កាត់");
         populateSelect(g.village, [], "ជ្រើសរើសភូមិ");
@@ -5273,7 +5275,7 @@
 
     function setAddressGroup(g, a) {
         const prov = a.province||"", dist = a.district||"", comm = a.commune||"", vill = a.village||"";
-        populateSelect(g.province, Object.keys(cambodiaData), "ជ្រើសរើសខេត្ត/រាជធានី", prov);
+        populateSelect(g.province, ADDRESS_PROVINCE_CHOICES, "ជ្រើសរើសខេត្ត/រាជធានី", prov);
         populateSelect(g.district, prov ? Object.keys(cambodiaData[prov]||{}) : [], "ជ្រើសរើសស្រុក/ខណ្ឌ", dist);
         g.district.disabled = !prov;
         populateSelect(g.commune, prov&&dist ? Object.keys(cambodiaData[prov]?.[dist]||{}) : [], "ជ្រើសរើសឃុំ/សង្កាត់", comm);
