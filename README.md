@@ -68,6 +68,12 @@ The phone-camera link contains a random token that changes whenever the app rest
 - Google Sheet: deploy the latest `google-sheet-backend.gs` as a new Apps Script version, then click `Backup` once so the new column is added and formatted.
 - Supabase: run the latest `supabase-schema.sql` once to add `application_number` without deleting existing records.
 
+## Parent and guardian birth dates
+
+The form includes optional day/month/year selectors for the father, mother, and guardian. These fields are included in Google Sheet sync, Supabase, Excel/CSV import and export, search, and the printable student form.
+
+After this update, replace the Apps Script code with the latest `google-sheet-backend.gs`, then use `Deploy -> Manage deployments -> Edit -> New version -> Deploy`. Open the app and run `Backup` once to add and format the three new Google Sheet columns. Supabase users should run the latest `supabase-schema.sql` once.
+
 ## Student card settings
 
 The reference card uses a 75 × 100 mm print boundary with a blue border, ministry logo and watermark, two date lines, and the principal signature only. Headings use Khmer Moul and body text uses Khmer OS Siemreap (Siemreap web fallback). Print at 100% / actual size.

@@ -37,7 +37,10 @@ const HEADERS = [
   "guardianName",
   "applicationNumber",
   "fatherPhone",
-  "motherPhone"
+  "motherPhone",
+  "fatherDob",
+  "motherDob",
+  "guardianDob"
 ];
 
 const HEADER_LABELS = {
@@ -54,7 +57,9 @@ const HEADER_LABELS = {
   pobProvince: "ខេត្ត/ក្រុងកំណើត",
   contact: "លេខទូរស័ព្ទ",
   fatherName: "ឈ្មោះឪពុក",
+  fatherDob: "ថ្ងៃខែឆ្នាំកំណើតឪពុក",
   motherName: "ឈ្មោះម្តាយ",
+  motherDob: "ថ្ងៃខែឆ្នាំកំណើតម្តាយ",
   currentVillage: "ភូមិបច្ចុប្បន្ន",
   currentCommune: "ឃុំ/សង្កាត់បច្ចុប្បន្ន",
   currentDistrict: "ស្រុក/ខណ្ឌបច្ចុប្បន្ន",
@@ -67,6 +72,7 @@ const HEADER_LABELS = {
   fatherOccupation: "មុខរបរឪពុក",
   motherOccupation: "មុខរបរម្តាយ",
   guardianName: "ឈ្មោះអាណាព្យាបាល",
+  guardianDob: "ថ្ងៃខែឆ្នាំកំណើតអាណាព្យាបាល",
   applicationNumber: "លេខពាក្យ",
   fatherPhone: "លេខទូរសព្ទឪពុក",
   motherPhone: "លេខទូរសព្ទម្តាយ"
@@ -82,10 +88,13 @@ const VIEW_FIELDS = [
   "fromSchool",
   "contact",
   "fatherName",
+  "fatherDob",
   "fatherOccupation",
   "motherName",
+  "motherDob",
   "motherOccupation",
   "guardianName",
+  "guardianDob",
   "pobVillage",
   "pobCommune",
   "pobDistrict",
@@ -103,8 +112,8 @@ const VIEW_FIELDS = [
 const HEADER_ROW = HEADERS.map(function(key) { return HEADER_LABELS[key] || key; });
 const VIEW_HEADER_ROW = VIEW_FIELDS.map(function(key) { return HEADER_LABELS[key] || key; });
 
-const STUDENT_COLUMN_WIDTHS = [90, 95, 170, 60, 105, 80, 165, 115, 135, 135, 135, 120, 130, 130, 125, 150, 150, 150, 100, 145, 145, 120, 120, 125, 125, 145, 105, 125, 125];
-const VIEW_COLUMN_WIDTHS = [95, 120, 120, 60, 105, 80, 165, 120, 130, 125, 130, 125, 145, 115, 135, 135, 135, 125, 150, 150, 150, 100, 125, 125, 105];
+const STUDENT_COLUMN_WIDTHS = [90, 95, 170, 60, 105, 80, 165, 115, 135, 135, 135, 120, 130, 130, 125, 150, 150, 150, 100, 145, 145, 120, 120, 125, 125, 145, 105, 125, 125, 135, 135, 150];
+const VIEW_COLUMN_WIDTHS = [95, 120, 120, 60, 105, 80, 165, 120, 130, 135, 125, 130, 135, 125, 145, 150, 115, 135, 135, 135, 125, 150, 150, 150, 100, 125, 125, 105];
 const CLASS_TAB_COLORS = ["#0f766e", "#2563eb", "#7c3aed", "#15803d", "#b45309", "#be123c", "#0891b2", "#4f46e5"];
 
 function doGet(e) {
@@ -657,8 +666,11 @@ function formatStudentsSheet_(sheet) {
     const body = sheet.getRange(2, 1, lastRow - 1, HEADERS.length);
     styleBody_(body);
     sheet.getRange(2, 2, lastRow - 1, 1).setNumberFormat("@");
-    sheet.getRange(2, 5, lastRow - 1, 1).setNumberFormat("yyyy-mm-dd");
     sheet.getRange(2, 12, lastRow - 1, 1).setNumberFormat("@");
+    ["dob", "fatherDob", "motherDob", "guardianDob"].forEach(function(field) {
+      const column = HEADERS.indexOf(field) + 1;
+      if (column > 0) sheet.getRange(2, column, lastRow - 1, 1).setNumberFormat("yyyy-mm-dd");
+    });
   }
   applyBanding_(sheet, 1, 1, Math.max(lastRow, 2), HEADERS.length);
   recreateFilter_(sheet, 1, 1, Math.max(lastRow, 2), HEADERS.length);
@@ -676,9 +688,11 @@ function formatViewSheet_(sheet, colCount, frozenRows) {
   sheet.setFrozenRows(frozenRows || 1);
   sheet.getRange(1, 1, lastRow, colCount).setFontFamily("Arial").setVerticalAlignment("middle").setWrap(true);
   if (lastRow > 1) {
-    const dobCol = VIEW_FIELDS.indexOf("dob") + 1;
     const phoneCol = VIEW_FIELDS.indexOf("contact") + 1;
-    if (dobCol > 0) sheet.getRange(1, dobCol, lastRow, 1).setNumberFormat("yyyy-mm-dd");
+    ["dob", "fatherDob", "motherDob", "guardianDob"].forEach(function(field) {
+      const column = VIEW_FIELDS.indexOf(field) + 1;
+      if (column > 0) sheet.getRange(1, column, lastRow, 1).setNumberFormat("yyyy-mm-dd");
+    });
     if (phoneCol > 0) sheet.getRange(1, phoneCol, lastRow, 1).setNumberFormat("@");
   }
   sheet.setRowHeights(1, lastRow, 30);

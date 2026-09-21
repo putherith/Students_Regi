@@ -2966,28 +2966,55 @@
                                     <input id="fatherName" name="fatherName" type="text" placeholder="ឪពុក">
                                 </div>
                                 <div class="field">
+                                    <label for="fatherDob">ថ្ងៃខែឆ្នាំកំណើតឪពុក</label>
+                                    <div class="dob-select-grid" role="group" aria-label="ជ្រើសថ្ងៃខែឆ្នាំកំណើតឪពុក">
+                                        <select id="father-dob-day" aria-label="ថ្ងៃកំណើតឪពុក"><option value="">ថ្ងៃ</option></select>
+                                        <select id="father-dob-month" aria-label="ខែកំណើតឪពុក"><option value="">ខែ</option></select>
+                                        <select id="father-dob-year" aria-label="ឆ្នាំកំណើតឪពុក"><option value="">ឆ្នាំ</option></select>
+                                    </div>
+                                    <input id="fatherDob" name="fatherDob" type="hidden">
+                                </div>
+                                <div class="field">
                                     <label for="fatherOccupation">មុខរបរឪពុក</label>
                                     <input id="fatherOccupation" name="fatherOccupation" type="text" placeholder="ឧ. កសិករ">
-                                </div>
-                                <div class="field">
-                                    <label for="motherName">ឈ្មោះម្តាយ</label>
-                                    <input id="motherName" name="motherName" type="text" placeholder="ម្តាយ">
-                                </div>
-                                <div class="field">
-                                    <label for="motherOccupation">មុខរបរម្តាយ</label>
-                                    <input id="motherOccupation" name="motherOccupation" type="text" placeholder="ឧ. អាជីវករ">
-                                </div>
-                                <div class="field field-full">
-                                    <label for="guardianName">ឈ្មោះអាណាព្យាបាល</label>
-                                    <input id="guardianName" name="guardianName" type="text" placeholder="ឈ្មោះអ្នកទទួលខុសត្រូវសិស្ស">
                                 </div>
                                 <div class="field">
                                     <label for="fatherPhone">លេខទូរសព្ទឪពុក</label>
                                     <input id="fatherPhone" name="fatherPhone" type="tel">
                                 </div>
                                 <div class="field">
+                                    <label for="motherName">ឈ្មោះម្តាយ</label>
+                                    <input id="motherName" name="motherName" type="text" placeholder="ម្តាយ">
+                                </div>
+                                <div class="field">
+                                    <label for="motherDob">ថ្ងៃខែឆ្នាំកំណើតម្តាយ</label>
+                                    <div class="dob-select-grid" role="group" aria-label="ជ្រើសថ្ងៃខែឆ្នាំកំណើតម្តាយ">
+                                        <select id="mother-dob-day" aria-label="ថ្ងៃកំណើតម្តាយ"><option value="">ថ្ងៃ</option></select>
+                                        <select id="mother-dob-month" aria-label="ខែកំណើតម្តាយ"><option value="">ខែ</option></select>
+                                        <select id="mother-dob-year" aria-label="ឆ្នាំកំណើតម្តាយ"><option value="">ឆ្នាំ</option></select>
+                                    </div>
+                                    <input id="motherDob" name="motherDob" type="hidden">
+                                </div>
+                                <div class="field">
+                                    <label for="motherOccupation">មុខរបរម្តាយ</label>
+                                    <input id="motherOccupation" name="motherOccupation" type="text" placeholder="ឧ. អាជីវករ">
+                                </div>
+                                <div class="field">
                                     <label for="motherPhone">លេខទូរសព្ទម្តាយ</label>
                                     <input id="motherPhone" name="motherPhone" type="tel">
+                                </div>
+                                <div class="field">
+                                    <label for="guardianName">ឈ្មោះអាណាព្យាបាល</label>
+                                    <input id="guardianName" name="guardianName" type="text" placeholder="ឈ្មោះអ្នកទទួលខុសត្រូវសិស្ស">
+                                </div>
+                                <div class="field">
+                                    <label for="guardianDob">ថ្ងៃខែឆ្នាំកំណើតអាណាព្យាបាល</label>
+                                    <div class="dob-select-grid" role="group" aria-label="ជ្រើសថ្ងៃខែឆ្នាំកំណើតអាណាព្យាបាល">
+                                        <select id="guardian-dob-day" aria-label="ថ្ងៃកំណើតអាណាព្យាបាល"><option value="">ថ្ងៃ</option></select>
+                                        <select id="guardian-dob-month" aria-label="ខែកំណើតអាណាព្យាបាល"><option value="">ខែ</option></select>
+                                        <select id="guardian-dob-year" aria-label="ឆ្នាំកំណើតអាណាព្យាបាល"><option value="">ឆ្នាំ</option></select>
+                                    </div>
+                                    <input id="guardianDob" name="guardianDob" type="hidden">
                                 </div>
                             </div>
                         </div>
@@ -3263,7 +3290,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.0.2</span>
+        <span class="footer-version">កំណែ 2.1.0</span>
     </footer>
 
 </main><!-- end .app -->
@@ -3624,12 +3651,15 @@
         pobProvince: "pob_province",
         contact: "contact",
         fatherName: "father_name",
+        fatherDob: "father_dob",
         fatherOccupation: "father_occupation",
         fatherPhone: "father_phone",
         motherName: "mother_name",
+        motherDob: "mother_dob",
         motherOccupation: "mother_occupation",
         motherPhone: "mother_phone",
         guardianName: "guardian_name",
+        guardianDob: "guardian_dob",
         currentVillage: "current_village",
         currentCommune: "current_commune",
         currentDistrict: "current_district",
@@ -3640,7 +3670,7 @@
         updatedAt: "updated_at"
     };
     const SUPABASE_OPTIONAL_COLUMNS = new Set([
-        "photo", "student_surname", "student_given_name", "father_occupation", "mother_occupation", "guardian_name", "application_number", "father_phone", "mother_phone"
+        "photo", "student_surname", "student_given_name", "father_dob", "father_occupation", "mother_dob", "mother_occupation", "guardian_name", "guardian_dob", "application_number", "father_phone", "mother_phone"
     ]);
 
     // ===================== LOCAL STORAGE DB HANDLERS =====================
@@ -3977,7 +4007,7 @@
     const disabledSupabaseColumns = new Set();
 
     const fieldIds = [
-        "studentCode","studentSurname","studentGivenName","dob","fatherName","fatherOccupation","fatherPhone","motherName","motherOccupation","motherPhone","guardianName",
+        "studentCode","studentSurname","studentGivenName","dob","fatherName","fatherDob","fatherOccupation","fatherPhone","motherName","motherDob","motherOccupation","motherPhone","guardianName","guardianDob",
         "pobProvince","pobDistrict","pobCommune","pobVillage",
         "currentProvince","currentDistrict","currentCommune","currentVillage",
         "fromSchool","className","contact","applicationNumber"
@@ -3985,25 +4015,25 @@
 
     const STUDENT_TEMPLATE_TOP_HEADERS = [
         "អត្តលេខ", "គោត្តនាម", "នាមខ្លួន", "ភេទ", "ថ្ងៃកំណើត", "ថ្នាក់", "សាលា",
-        "ទីកន្លែងកំណើត", "", "", "", "លេខទូរស័ព្ទ", "ឈ្មោះឪពុក", "មុខរបរឪពុក", "ឈ្មោះម្តាយ", "មុខរបរម្តាយ", "ឈ្មោះអាណាព្យាបាល",
+        "ទីកន្លែងកំណើត", "", "", "", "លេខទូរស័ព្ទ", "ឈ្មោះឪពុក", "ថ្ងៃកំណើតឪពុក", "មុខរបរឪពុក", "ឈ្មោះម្តាយ", "ថ្ងៃកំណើតម្តាយ", "មុខរបរម្តាយ", "ឈ្មោះអាណាព្យាបាល", "ថ្ងៃកំណើតអាណាព្យាបាល",
         "អាសយដ្ឋានបច្ចុប្បន្ន", "", "", "", "លេខទូរសព្ទឪពុក", "លេខទូរសព្ទម្តាយ", "លេខពាក្យ"
     ];
     const STUDENT_TEMPLATE_SUB_HEADERS = [
         "", "", "", "", "", "", "", "ភូមិ", "ឃុំ/សង្កាត់", "ស្រុក/ខណ្ឌ", "ខេត្ត/ក្រុង",
-        "", "", "", "", "", "", "ភូមិ", "ឃុំ/សង្កាត់", "ស្រុក/ខណ្ឌ", "ខេត្ត/ក្រុង", "", "", ""
+        "", "", "", "", "", "", "", "", "", "ភូមិ", "ឃុំ/សង្កាត់", "ស្រុក/ខណ្ឌ", "ខេត្ត/ក្រុង", "", "", ""
     ];
     const STUDENT_CSV_HEADERS = [
         "អត្តលេខ", "គោត្តនាម", "នាមខ្លួន", "ភេទ", "ថ្ងៃកំណើត", "ថ្នាក់", "សាលា",
         "ទីកន្លែងកំណើត - ភូមិ", "ទីកន្លែងកំណើត - ឃុំ/សង្កាត់",
         "ទីកន្លែងកំណើត - ស្រុក/ខណ្ឌ", "ទីកន្លែងកំណើត - ខេត្ត/ក្រុង",
-        "លេខទូរស័ព្ទ", "ឈ្មោះឪពុក", "មុខរបរឪពុក", "ឈ្មោះម្តាយ", "មុខរបរម្តាយ", "ឈ្មោះអាណាព្យាបាល",
+        "លេខទូរស័ព្ទ", "ឈ្មោះឪពុក", "ថ្ងៃកំណើតឪពុក", "មុខរបរឪពុក", "ឈ្មោះម្តាយ", "ថ្ងៃកំណើតម្តាយ", "មុខរបរម្តាយ", "ឈ្មោះអាណាព្យាបាល", "ថ្ងៃកំណើតអាណាព្យាបាល",
         "អាសយដ្ឋានបច្ចុប្បន្ន - ភូមិ", "អាសយដ្ឋានបច្ចុប្បន្ន - ឃុំ/សង្កាត់",
         "អាសយដ្ឋានបច្ចុប្បន្ន - ស្រុក/ខណ្ឌ", "អាសយដ្ឋានបច្ចុប្បន្ន - ខេត្ត/ក្រុង", "លេខទូរសព្ទឪពុក", "លេខទូរសព្ទម្តាយ", "លេខពាក្យ"
     ];
     const STUDENT_IMPORT_FIELDS = [
         "studentCode", "studentSurname", "studentGivenName", "gender", "dob", "className", "fromSchool",
         "pobVillage", "pobCommune", "pobDistrict", "pobProvince",
-        "contact", "fatherName", "fatherOccupation", "motherName", "motherOccupation", "guardianName",
+        "contact", "fatherName", "fatherDob", "fatherOccupation", "motherName", "motherDob", "motherOccupation", "guardianName", "guardianDob",
         "currentVillage", "currentCommune", "currentDistrict", "currentProvince", "fatherPhone", "motherPhone", "applicationNumber"
     ];
     const STUDENT_DATA_FIELDS = [
@@ -4015,16 +4045,17 @@
     const STUDENT_TEMPLATE_EXAMPLE = [
         "", "ហ៊ុន", "ណារ", "ប្រុស", "15/ឧសភា/2010", "7A", "សាលាបឋមសិក្សាព្រៃខ្លា",
         "ព្រៃមេលងខាងជើង", "ព្រៃខ្លា", "ស្រុកកោះអណ្តែត", "ខេត្តតាកែវ",
-        "012345678", "ហ៊ុន សក្កដា", "កសិករ", "គង់ សុភី", "អាជីវករ", "ហ៊ុន សក្កដា",
+        "012345678", "ហ៊ុន សក្កដា", "10/មករា/1980", "កសិករ", "គង់ សុភី", "22/កក្កដា/1985", "អាជីវករ", "ហ៊ុន សក្កដា", "10/មករា/1980",
         "ព្រៃមេលងខាងជើង", "ព្រៃខ្លា", "ស្រុកកោះអណ្តែត", "ខេត្តតាកែវ", "", "", "001/2026"
     ];
-    const STUDENT_TEMPLATE_MERGES = [0,1,2,3,4,5,6,11,12,13,14,15,16,21,22,23]
+    const STUDENT_TEMPLATE_MERGES = [0,1,2,3,4,5,6,11,12,13,14,15,16,17,18,19,24,25,26]
         .map(c => ({ s:{r:3,c}, e:{r:4,c} }))
-        .concat([{s:{r:3,c:7},e:{r:3,c:10}}, {s:{r:3,c:17},e:{r:3,c:20}}]);
+        .concat([{s:{r:3,c:7},e:{r:3,c:10}}, {s:{r:3,c:20},e:{r:3,c:23}}]);
     const STUDENT_TEMPLATE_COLS = [
         {wch:15}, {wch:16}, {wch:16}, {wch:10}, {wch:15}, {wch:10}, {wch:22},
-        {wch:16}, {wch:16}, {wch:16}, {wch:16}, {wch:15}, {wch:18}, {wch:16},
-        {wch:18}, {wch:16}, {wch:20}, {wch:16}, {wch:16}, {wch:16}, {wch:16}, {wch:18}, {wch:18}, {wch:14}
+        {wch:16}, {wch:16}, {wch:16}, {wch:16}, {wch:15},
+        {wch:18}, {wch:16}, {wch:16}, {wch:18}, {wch:16}, {wch:16}, {wch:20}, {wch:16},
+        {wch:16}, {wch:16}, {wch:16}, {wch:16}, {wch:18}, {wch:18}, {wch:14}
     ];
 
     // ===================== UTILITY =====================
@@ -4095,33 +4126,49 @@
         return original;
     }
 
-    function populateDobSelectors() {
-        const daySelect = document.getElementById("dob-day");
-        const yearSelect = document.getElementById("dob-year");
+    const DATE_SELECTOR_CONFIGS = [
+        { prefix:"dob", fieldId:"dob", minAge:0, maxAge:45 },
+        { prefix:"father-dob", fieldId:"fatherDob", minAge:15, maxAge:100 },
+        { prefix:"mother-dob", fieldId:"motherDob", minAge:15, maxAge:100 },
+        { prefix:"guardian-dob", fieldId:"guardianDob", minAge:15, maxAge:100 }
+    ];
+
+    function populateDateSelectors(config) {
+        const daySelect = document.getElementById(`${config.prefix}-day`);
+        const monthSelect = document.getElementById(`${config.prefix}-month`);
+        const yearSelect = document.getElementById(`${config.prefix}-year`);
+        if (!daySelect || !monthSelect || !yearSelect) return;
         if (daySelect.options.length === 1) {
             for (let day = 1; day <= 31; day++) daySelect.append(new Option(String(day), String(day)));
         }
+        if (monthSelect.options.length === 1) {
+            KHMER_MONTH_NAMES.forEach((month, index) => monthSelect.append(new Option(month, String(index + 1))));
+        }
         if (yearSelect.options.length === 1) {
             const currentYear = new Date().getFullYear();
-            for (let year = currentYear; year >= currentYear - 45; year--) {
+            for (let year = currentYear - config.minAge; year >= currentYear - config.maxAge; year--) {
                 yearSelect.append(new Option(String(year), String(year)));
             }
         }
     }
 
-    function setDobSelectors(value) {
-        populateDobSelectors();
+    function populateDobSelectors() {
+        DATE_SELECTOR_CONFIGS.forEach(populateDateSelectors);
+    }
+
+    function setDateSelectors(config, value) {
+        populateDateSelectors(config);
         const normalized = normDate(value);
         const match = String(normalized).match(/^(\d{4})-(\d{2})-(\d{2})$/);
-        const daySelect = document.getElementById("dob-day");
-        const monthSelect = document.getElementById("dob-month");
-        const yearSelect = document.getElementById("dob-year");
+        const daySelect = document.getElementById(`${config.prefix}-day`);
+        const monthSelect = document.getElementById(`${config.prefix}-month`);
+        const yearSelect = document.getElementById(`${config.prefix}-year`);
         daySelect.setCustomValidity("");
         if (!match) {
             daySelect.value = "";
             monthSelect.value = "";
             yearSelect.value = "";
-            document.getElementById("dob").value = "";
+            document.getElementById(config.fieldId).value = "";
             return;
         }
         const year = match[1];
@@ -4131,25 +4178,43 @@
         daySelect.value = String(Number(match[3]));
         monthSelect.value = String(Number(match[2]));
         yearSelect.value = year;
-        document.getElementById("dob").value = normalized;
+        document.getElementById(config.fieldId).value = normalized;
     }
 
-    function syncDobFromSelectors() {
-        const daySelect = document.getElementById("dob-day");
-        const monthSelect = document.getElementById("dob-month");
-        const yearSelect = document.getElementById("dob-year");
+    function setDobSelectors(value) {
+        setDateSelectors(DATE_SELECTOR_CONFIGS[0], value);
+    }
+
+    function setFamilyDobSelectors(student = {}) {
+        DATE_SELECTOR_CONFIGS.slice(1).forEach(config => setDateSelectors(config, student[config.fieldId]));
+    }
+
+    function syncDateFromSelectors(config) {
+        const daySelect = document.getElementById(`${config.prefix}-day`);
+        const monthSelect = document.getElementById(`${config.prefix}-month`);
+        const yearSelect = document.getElementById(`${config.prefix}-year`);
+        const hiddenInput = document.getElementById(config.fieldId);
         const day = Number(daySelect.value);
         const month = Number(monthSelect.value);
         const year = Number(yearSelect.value);
         if (!daySelect.value || !monthSelect.value || !yearSelect.value) {
-            document.getElementById("dob").value = "";
-            daySelect.setCustomValidity("");
+            hiddenInput.value = "";
+            const allEmpty = !daySelect.value && !monthSelect.value && !yearSelect.value;
+            daySelect.setCustomValidity(allEmpty ? "" : "សូមជ្រើសថ្ងៃ ខែ និងឆ្នាំឱ្យពេញ");
             return "";
         }
         const normalized = validIsoDate(year, month, day);
         daySelect.setCustomValidity(normalized ? "" : "ថ្ងៃនេះមិនត្រឹមត្រូវសម្រាប់ខែដែលបានជ្រើស");
-        document.getElementById("dob").value = normalized;
+        hiddenInput.value = normalized;
         return normalized;
+    }
+
+    function syncDobFromSelectors() {
+        return syncDateFromSelectors(DATE_SELECTOR_CONFIGS[0]);
+    }
+
+    function syncAllDateSelectors() {
+        DATE_SELECTOR_CONFIGS.forEach(syncDateFromSelectors);
     }
 
     function normText(v) { return String(v||"").trim().toLocaleLowerCase("km-KH").replace(/\s+/g,""); }
@@ -4190,7 +4255,7 @@
         return [
             studentVisibleId(s), s.studentSurname, s.studentGivenName, s.gender, formatDate(s.dob), s.className, s.fromSchool,
             s.pobVillage, s.pobCommune, s.pobDistrict, s.pobProvince,
-            s.contact, s.fatherName, s.fatherOccupation, s.motherName, s.motherOccupation, s.guardianName,
+            s.contact, s.fatherName, formatDate(s.fatherDob), s.fatherOccupation, s.motherName, formatDate(s.motherDob), s.motherOccupation, s.guardianName, formatDate(s.guardianDob),
             s.currentVillage, s.currentCommune, s.currentDistrict, s.currentProvince, s.fatherPhone, s.motherPhone, s.applicationNumber
         ];
     }
@@ -6154,12 +6219,15 @@
             gender: document.querySelector('input[name="gender"]:checked')?.value || "ប្រុស",
             dob: normDate(getValue("dob")),
             fatherName: getValue("fatherName"),
+            fatherDob: normDate(getValue("fatherDob")),
             fatherOccupation: getValue("fatherOccupation"),
             fatherPhone: getValue("fatherPhone"),
             motherName: getValue("motherName"),
+            motherDob: normDate(getValue("motherDob")),
             motherOccupation: getValue("motherOccupation"),
             motherPhone: getValue("motherPhone"),
             guardianName: getValue("guardianName"),
+            guardianDob: normDate(getValue("guardianDob")),
             pobProvince: pobGroup.province.value,
             pobDistrict: pobGroup.district.value,
             pobCommune: pobGroup.commune.value,
@@ -6225,8 +6293,10 @@
     function resetForm() {
         closeMobileEditPanel();
         els.registrationForm.reset();
-        document.getElementById("dob").value = "";
-        document.getElementById("dob-day").setCustomValidity("");
+        DATE_SELECTOR_CONFIGS.forEach(config => {
+            document.getElementById(config.fieldId).value = "";
+            document.getElementById(`${config.prefix}-day`).setCustomValidity("");
+        });
         setPhotoPreview("");
         setEditMode("");
         resetAddressGroup(pobGroup);
@@ -6246,6 +6316,7 @@
         if (!s) { showToast("រកមិនឃើញទិន្នន័យសិស្ស","error"); return; }
         fieldIds.forEach(fid => setValue(fid, s[fid]||""));
         setDobSelectors(s.dob);
+        setFamilyDobSelectors(s);
 
         // Handle photo
         setPhotoPreview(s.photo || "");
@@ -6299,7 +6370,7 @@
 
     async function handleFormSubmit(e) {
         e.preventDefault();
-        syncDobFromSelectors();
+        syncAllDateSelectors();
         if (!els.registrationForm.reportValidity()) return;
 
         const editingId = els.editingId.value;
@@ -6470,7 +6541,7 @@
     const studentSearchTextCache = new WeakMap();
     function studentSearchText(s) {
         if (studentSearchTextCache.has(s)) return studentSearchTextCache.get(s);
-        const text = [studentDisplayId(s),studentFullName(s),s.gender,s.dob,s.fatherName,s.fatherOccupation,s.motherName,s.motherOccupation,s.guardianName,s.fromSchool,s.className,s.contact,s.applicationNumber,addressText(s,"pob"),addressText(s,"current")].filter(Boolean).join(" ").toLowerCase();
+        const text = [studentDisplayId(s),studentFullName(s),s.gender,s.dob,s.fatherName,s.fatherDob,s.fatherOccupation,s.motherName,s.motherDob,s.motherOccupation,s.guardianName,s.guardianDob,s.fromSchool,s.className,s.contact,s.applicationNumber,addressText(s,"pob"),addressText(s,"current")].filter(Boolean).join(" ").toLowerCase();
         studentSearchTextCache.set(s, text);
         return text;
     }
@@ -6860,7 +6931,9 @@
             ["លេខសម្គាល់",studentVisibleId(s)],["គោត្តនាម",s.studentSurname],["នាមខ្លួន",s.studentGivenName],["ឈ្មោះពេញ",studentFullName(s)],["ភេទ",s.gender],
             ["ថ្ងៃខែឆ្នាំកំណើត",formatDate(s.dob)],["ថ្នាក់",s.className],["សាលា",s.fromSchool],
             ["ទីកន្លែងកំណើត",addressText(s,"pob")],["លេខទូរស័ព្ទ",s.contact],
-            ["ឈ្មោះឪពុក",s.fatherName],["មុខរបរឪពុក",s.fatherOccupation],["ឈ្មោះម្តាយ",s.motherName],["មុខរបរម្តាយ",s.motherOccupation],["ឈ្មោះអាណាព្យាបាល",s.guardianName],
+            ["ឈ្មោះឪពុក",s.fatherName],["ថ្ងៃខែឆ្នាំកំណើតឪពុក",formatDate(s.fatherDob)],["មុខរបរឪពុក",s.fatherOccupation],
+            ["ឈ្មោះម្តាយ",s.motherName],["ថ្ងៃខែឆ្នាំកំណើតម្តាយ",formatDate(s.motherDob)],["មុខរបរម្តាយ",s.motherOccupation],
+            ["ឈ្មោះអាណាព្យាបាល",s.guardianName],["ថ្ងៃខែឆ្នាំកំណើតអាណាព្យាបាល",formatDate(s.guardianDob)],
             ["អាសយដ្ឋានបច្ចុប្បន្ន",addressText(s,"current")],["លេខពាក្យ",s.applicationNumber]
         ].map(([l,v]) => `<tr><th>${esc(l)}</th><td>${esc(v||"–")}</td></tr>`).join("");
         printWindow("ពាក្យចុះឈ្មោះ",`
@@ -7071,12 +7144,15 @@
         pobDistrict:["ស្រុក/ខណ្ឌ","ស្រុក/ខណ្ឌ (កំណើត)","ស្រុកខណ្ឌកំណើត","ទីកន្លែងកំណើត - ស្រុក/ខណ្ឌ","pobDistrict"],
         pobProvince:["ខេត្ត/ក្រុង","ខេត្ត/ក្រុង (កំណើត)","ខេត្តរាជធានីកំណើត","ទីកន្លែងកំណើត - ខេត្ត/ក្រុង","pobProvince"],
         fatherName:["ឈ្មោះឳពុក","ឈ្មោះឪពុក","fatherName","father"],
+        fatherDob:["ថ្ងៃកំណើតឪពុក","ថ្ងៃខែឆ្នាំកំណើតឪពុក","fatherDob","father date of birth"],
         fatherOccupation:["មុខរបរឪពុក","មុខរបរឳពុក","fatherOccupation","father occupation"],
         fatherPhone:["លេខទូរសព្ទឪពុក","fatherPhone","father phone"],
         motherName:["ឈ្មោះម្តាយ","ឈ្មោះម្ដាយ","motherName","mother"],
+        motherDob:["ថ្ងៃកំណើតម្តាយ","ថ្ងៃខែឆ្នាំកំណើតម្តាយ","ថ្ងៃកំណើតម្ដាយ","motherDob","mother date of birth"],
         motherOccupation:["មុខរបរម្តាយ","មុខរបរម្ដាយ","motherOccupation","mother occupation"],
         motherPhone:["លេខទូរសព្ទម្តាយ","motherPhone","mother phone"],
         guardianName:["ឈ្មោះអាណាព្យាបាល","អាណាព្យាបាល","guardian","parent"],
+        guardianDob:["ថ្ងៃកំណើតអាណាព្យាបាល","ថ្ងៃខែឆ្នាំកំណើតអាណាព្យាបាល","guardianDob","guardian date of birth"],
         currentVillage:["ភូមិ (បច្ចុប្បន្ន)","ភូមិបច្ចុប្បន្ន","អាសយដ្ឋានបច្ចុប្បន្ន - ភូមិ","currentVillage"],
         currentCommune:["ឃុំ/សង្កាត់ (បច្ចុប្បន្ន)","ឃុំសង្កាត់បច្ចុប្បន្ន","អាសយដ្ឋានបច្ចុប្បន្ន - ឃុំ/សង្កាត់","currentCommune"],
         currentDistrict:["ស្រុក/ខណ្ឌ (បច្ចុប្បន្ន)","ស្រុកខណ្ឌបច្ចុប្បន្ន","អាសយដ្ឋានបច្ចុប្បន្ន - ស្រុក/ខណ្ឌ","currentDistrict"],
@@ -7136,8 +7212,9 @@
         return {
             studentCode:r("studentCode"), ...identity,
             gender:normGender(r("gender")), dob:normDate(readImportVal(row,"dob")),
-            fatherName:r("fatherName"), fatherOccupation:r("fatherOccupation"), fatherPhone:r("fatherPhone"),
-            motherName:r("motherName"), motherOccupation:r("motherOccupation"), motherPhone:r("motherPhone"), guardianName:guardian,
+            fatherName:r("fatherName"), fatherDob:normDate(readImportVal(row,"fatherDob")), fatherOccupation:r("fatherOccupation"), fatherPhone:r("fatherPhone"),
+            motherName:r("motherName"), motherDob:normDate(readImportVal(row,"motherDob")), motherOccupation:r("motherOccupation"), motherPhone:r("motherPhone"),
+            guardianName:guardian, guardianDob:normDate(readImportVal(row,"guardianDob")),
             pobProvince:r("pobProvince"),pobDistrict:r("pobDistrict"),pobCommune:r("pobCommune"),pobVillage:r("pobVillage"),
             currentProvince:r("currentProvince"),currentDistrict:r("currentDistrict"),currentCommune:r("currentCommune"),currentVillage:r("currentVillage")||addr,
             fromSchool:r("fromSchool"),className:r("className"),contact:r("contact"),applicationNumber:r("applicationNumber")
@@ -7338,8 +7415,10 @@
 
         // Form
         populateDobSelectors();
-        ["dob-day", "dob-month", "dob-year"].forEach(id => {
-            document.getElementById(id).addEventListener("change", syncDobFromSelectors);
+        DATE_SELECTOR_CONFIGS.forEach(config => {
+            ["day", "month", "year"].forEach(part => {
+                document.getElementById(`${config.prefix}-${part}`).addEventListener("change", () => syncDateFromSelectors(config));
+            });
         });
         els.registrationForm.addEventListener("submit",handleFormSubmit);
         els.clearBtn.addEventListener("click",resetForm);
