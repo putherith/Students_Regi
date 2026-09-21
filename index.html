@@ -2671,6 +2671,198 @@
         @media (max-width: 360px) {
             .admin-overview-actions { grid-template-columns: 1fr; }
         }
+
+        /* ========================
+           PHONE-FIRST WORKSPACE
+           Keep the phone view full-width, thumb-friendly and free of
+           duplicated desktop dashboard content.
+        ======================== */
+        @media (max-width: 860px) {
+            html,
+            body {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .app {
+                width: 100%;
+                max-width: none;
+                padding: 0 8px calc(80px + env(safe-area-inset-bottom));
+            }
+
+            .topbar {
+                min-height: 60px;
+                height: 60px;
+                gap: 6px;
+                padding: 6px 8px;
+                margin: 0 -8px 8px;
+            }
+
+            .brand { gap: 7px; }
+            .brand-mark { width: 38px; height: 38px; padding: 3px; border-radius: 10px; }
+            .topbar .brand-title {
+                max-width: none;
+                font-size: .82rem;
+                line-height: 1.35;
+            }
+
+            .topbar-actions { gap: 4px; }
+            .topbar .status-pill {
+                width: 34px;
+                min-width: 34px;
+                max-width: 34px;
+                height: 34px;
+                justify-content: center;
+                padding: 0;
+            }
+            .topbar #connection-text {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                white-space: nowrap;
+                border: 0;
+            }
+            .mobile-menu-btn,
+            .theme-btn { width: 38px; height: 38px; }
+
+            .admin-overview { display: none; }
+
+            .metrics {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+                margin: 10px 0;
+                padding: 0;
+                overflow: visible;
+            }
+
+            .metric {
+                width: 100%;
+                min-width: 0;
+                min-height: 70px;
+                padding: 9px 10px;
+                gap: 8px;
+                border-radius: 12px;
+                scroll-snap-align: none;
+            }
+            .metric-icon { width: 36px; height: 36px; border-radius: 10px; }
+            .metric-label { font-size: .7rem; }
+            .metric-value { font-size: 1.14rem; }
+
+            body.mobile-form-view .metrics { display: none; }
+
+            .mobile-tabs {
+                top: 60px;
+                gap: 6px;
+                margin: 0 -8px 8px;
+                padding: 6px 8px;
+                background: rgba(244, 247, 251, .97);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+            }
+            [data-theme="dark"] .mobile-tabs { background: rgba(19, 31, 29, .97); }
+            body.mobile-form-view .mobile-tabs { margin-bottom: 0; }
+            .mobile-tab-btn { height: 44px; border-radius: 10px; }
+
+            .main-layout { width: 100%; min-width: 0; }
+            .panel { width: auto; margin: 0 -8px; }
+            .list-panel > .panel-header { min-height: 58px; padding: 10px 14px; }
+
+            .toolbar {
+                top: 112px;
+                padding: 8px;
+            }
+            .search-wrap input,
+            .toolbar-filters-pane select { height: 46px; }
+
+            .cards-list { padding: 9px 8px 16px; gap: 9px; }
+            .student-card { padding: 12px; border-radius: 12px; }
+            .mobile-student-row {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 10px;
+            }
+            .mobile-student-title { align-items: flex-start; }
+            .mobile-student-title .student-name,
+            .mobile-student-mini {
+                overflow: visible;
+                white-space: normal;
+                text-overflow: clip;
+            }
+            .mobile-quick-actions .btn-icon { width: 40px; height: 40px; }
+            .pager { padding: 10px 8px 14px; }
+
+            .form-panel > .panel-header {
+                min-height: 72px;
+                padding: 11px 14px;
+            }
+            .form-panel > .panel-header::before { top: 7px; font-size: .64rem; }
+            .form-panel > .panel-header .panel-title { padding-top: 12px; font-size: 1rem; }
+            .form-panel > .panel-header .panel-sub { font-size: .75rem; }
+            .form-panel .form-body { padding: 0 12px calc(96px + env(safe-area-inset-bottom)); }
+            .form-panel .form-section { padding: 14px 0; }
+            .form-panel .section-header { min-height: 40px; margin-bottom: 12px; }
+            .form-panel .field-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+            .form-panel .field { min-width: 0; gap: 7px; }
+            .form-panel label { font-size: .82rem; }
+            .form-panel input,
+            .form-panel select,
+            .form-panel .gender-opt span {
+                height: 48px;
+                min-width: 0;
+                font-size: 16px;
+                border-radius: 10px;
+            }
+            .dob-select-grid {
+                grid-template-columns: minmax(0, .8fr) minmax(0, 1.35fr) minmax(0, 1fr);
+                gap: 6px;
+            }
+            .dob-select-grid select { padding: 0 5px; font-size: 15px; }
+            .form-panel .check-row { min-height: 48px; }
+
+            .form-panel .form-section[data-step="៥"] .section-body { padding: 12px; }
+            .form-panel .photo-upload-wrap {
+                flex-direction: row;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .form-panel .photo-preview {
+                width: 96px;
+                height: 124px;
+                flex: 0 0 96px;
+            }
+            .form-panel .photo-actions { min-width: 0; gap: 6px; }
+            .form-panel .photo-actions .btn {
+                min-height: 44px;
+                padding: 0 10px;
+                font-size: .82rem;
+            }
+
+            .form-panel .form-save-bar {
+                grid-template-columns: minmax(0, 1fr) 56px;
+                gap: 8px;
+                padding: 9px 8px calc(9px + env(safe-area-inset-bottom));
+            }
+            .form-save-bar .btn { min-height: 50px; }
+            .form-save-bar .btn-ghost { width: 56px; }
+
+            body.mobile-form-view .app-footer { display: none; }
+            .app-footer { margin: 12px -8px 0; padding: 12px 10px; }
+            .modal-dialog { width: min(100%, 680px); max-height: calc(100dvh - 16px); }
+        }
+
+        @media (max-width: 360px) {
+            .topbar .brand-title { font-size: .76rem; }
+            .metric { padding: 8px; gap: 6px; }
+            .metric-icon { width: 34px; height: 34px; }
+            .form-panel .photo-upload-wrap { flex-direction: column; align-items: center; }
+            .form-panel .photo-actions { width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -3302,7 +3494,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.5</span>
+        <span class="footer-version">កំណែ 2.1.6</span>
     </footer>
 
 </main><!-- end .app -->
@@ -6392,11 +6584,14 @@
         if (!els.mainLayout) return;
         closeMobileEditPanel();
         const isForm = tab === "form";
+        document.body.classList.toggle("mobile-form-view", isForm);
         els.mainLayout.classList.toggle("show-form", isForm);
         els.mainLayout.classList.toggle("show-list", !isForm);
         els.tabFormBtn?.classList.toggle("active", isForm);
         els.tabListBtn?.classList.toggle("active", !isForm);
-        if (options.scroll !== false) window.scrollTo({ top: 0, behavior: "smooth" });
+        if (options.scroll !== false) {
+            requestAnimationFrame(() => window.scrollTo({ top:0, behavior:isMobileView() ? "auto" : "smooth" }));
+        }
     }
 
     function resetForm() {
