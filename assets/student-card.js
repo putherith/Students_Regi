@@ -2,11 +2,11 @@
 (function () {
     const escape = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
     const khmer = value => String(value).replace(/\d/g, d => "០១២៣៤៥៦៧៨៩"[Number(d)]);
-    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const months = ["មករា","កុម្ភៈ","មីនា","មេសា","ឧសភា","មិថុនា","កក្កដា","សីហា","កញ្ញា","តុលា","វិច្ឆិកា","ធ្នូ"];
     function birthDate(value) {
         const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
         return match && Number(match[2]) >= 1 && Number(match[2]) <= 12
-            ? `${Number(match[3])}-${months[Number(match[2])-1]}-${match[1]}` : value || "";
+            ? `${khmer(Number(match[3]))}-${months[Number(match[2])-1]}-${khmer(match[1])}` : value || "";
     }
     function address(student, prefix) {
         return ["Village","Commune","District","Province"].map(part => student[prefix + part]).filter(Boolean).join(" ");

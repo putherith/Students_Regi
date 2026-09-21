@@ -3290,7 +3290,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.2</span>
+        <span class="footer-version">កំណែ 2.1.3</span>
     </footer>
 
 </main><!-- end .app -->
@@ -5610,7 +5610,7 @@
             els.phoneCameraStatus.className = "phone-camera-status connected";
             closePhoneCameraModal();
             const blob = await fetch(payload.dataUrl).then(response => response.blob());
-            await processPhoto(blob, { fast:true });
+            await processPhoto(blob);
             showToast("ទទួលរូបពីទូរសព្ទរួច។ Session នៅភ្ជាប់សម្រាប់សិស្សបន្ទាប់");
         } catch (error) {
             console.error("Phone photo processing error:", error);
@@ -6083,7 +6083,19 @@
         return selfieSegmentationLoader;
     }
 
-    async function segmentPersonWithMediaPipe(img) {
+    function resizeImageForAi(img, maxWidth=640, maxHeight=820) {
+        const sourceWidth = img.naturalWidth || img.width;
+        const sourceHeight = img.naturalHeight || img.height;
+        const scale = Math.min(1, maxWidth / sourceWidth, maxHeight / sourceHeight);
+        if (scale >= 1) return img;
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+        canvas.height = Math.max(1, Math.round(sourceHeight * scale));
+        canvas.getContext("2d", { alpha:false }).drawImage(img, 0, 0, canvas.width, canvas.height);
+        return canvas;
+    }
+
+    async function segmentPersonWithMediaPipe(img, modelSelection=1) {
         const SelfieSegmentation = await getSelfieSegmentationCtor();
         return new Promise((resolve, reject) => {
             let settled = false;
@@ -6098,7 +6110,7 @@
             }, 16000);
 
             model.setOptions({
-                modelSelection: 1,
+                modelSelection,
                 selfieMode: false
             });
             model.onResults(results => {
@@ -6216,23 +6228,21 @@
         return canvas.toDataURL("image/jpeg", 0.76);
     }
 
-    async function processPhoto(imageSource, options={}) {
-        const lowMemoryPhone = isMobileView() || Number(navigator.deviceMemory || 8) <= 4;
-        const fastMode = Boolean(options.fast || lowMemoryPhone);
-        setPhotoProcessing(true, fastMode ? "កំពុងរៀបចំរូបថត..." : "កំពុងកាត់ផ្ទៃខាងក្រោយ...");
+    async function processPhoto(imageSource) {
+        const lowMemoryDevice = isMobileView() || Number(navigator.deviceMemory || 8) <= 4;
+        setPhotoProcessing(true, "កំពុងកាត់ផ្ទៃខាងក្រោយ...");
         if (els.photoPreviewBox) els.photoPreviewBox.innerHTML = '<div class="spinner spinner-dark"></div>';
         let originalImg = null;
         let subjectImg = null;
         try {
             originalImg = await loadImageFromBlob(imageSource);
-            if (fastMode) {
-                setPhotoPreview(composeStudentPhoto(originalImg, false));
-                showToast("បានរៀបចំរូបថតរួចរាល់");
-                closeCameraModal();
-                return;
-            }
+            const aiInput = resizeImageForAi(
+                originalImg,
+                lowMemoryDevice ? 480 : 640,
+                lowMemoryDevice ? 610 : 820
+            );
             setPhotoProcessing(true, "កំពុងកាត់មនុស្សចេញពីផ្ទៃក្រោយ...");
-            const segmentedBlob = await segmentPersonWithMediaPipe(originalImg);
+            const segmentedBlob = await segmentPersonWithMediaPipe(aiInput, lowMemoryDevice ? 0 : 1);
             subjectImg = await loadImageFromBlob(segmentedBlob);
             setPhotoProcessing(true, "កំពុងដាក់ផ្ទៃក្រោយពណ៌ខៀវ...");
             const base64 = composeStudentPhoto(subjectImg, true);
@@ -6242,6 +6252,7 @@
         } catch (err) {
             console.warn("MediaPipe segmentation failed:", err);
             try {
+                if (lowMemoryDevice) throw new Error("Heavy background-removal fallback skipped on low-memory device");
                 setPhotoProcessing(true, "កំពុងប្រើវិធីកាត់ផ្ទៃក្រោយជំនួស...");
                 const processedBlob = await removePhotoBackground(imageSource);
                 subjectImg = await loadImageFromBlob(processedBlob);
