@@ -14,6 +14,10 @@
     const blank = "........................";
     function render(students, settings, logoUrl, academicYear) {
         const date = /^(\d{4})-(\d{2})-(\d{2})$/.exec(settings.issueDate || "");
+        const artworkScaleX = 74.24 * 96 / 25.4 / 584;
+        const artworkScaleY = 99.24 * 96 / 25.4 / 608;
+        const photoCounterScaleY = artworkScaleX / artworkScaleY;
+        const photoOversize = artworkScaleY / artworkScaleX * 100;
         const dateDay = date ? khmer(Number(date[3])) : "................";
         const dateMonth = date ? khmer(Number(date[2])) : "................";
         const dateYear = date ? khmer(date[1]) : "................";
@@ -48,7 +52,7 @@
           body { background:#fff; }
           .cards-grid { display:grid; grid-template-columns:repeat(3,75mm); gap:2mm; justify-content:center; align-items:start; }
           .certificate-student-card { position:relative; width:75mm; height:100mm; border:.38mm solid #1717ff; background:#fff; box-sizing:border-box; overflow:hidden; break-inside:avoid; page-break-inside:avoid; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
-          .reference-artwork { --card-body:"Khmer OS Siemreap","KhmerOSSiemreap","Siemreap",sans-serif; --card-heading:"Khmer OS Muol Light","Khmer OS Moul","Moul",serif; position:relative; width:584px; height:608px; transform-origin:top left; transform:scale(${(74.24*96/25.4/584).toFixed(9)},${(99.24*96/25.4/608).toFixed(9)}); color:#102932; font:18px/1.65 var(--card-body); }
+          .reference-artwork { --card-body:"Khmer OS Siemreap","KhmerOSSiemreap","Siemreap",sans-serif; --card-heading:"Khmer OS Muol Light","Khmer OS Moul","Moul",serif; position:relative; width:584px; height:608px; transform-origin:top left; transform:scale(${artworkScaleX.toFixed(9)},${artworkScaleY.toFixed(9)}); color:#102932; font:18px/1.65 var(--card-body); }
           .reference-artwork * { box-sizing:border-box; }
           .reference-artwork strong { color:#1111ff; font-weight:400; }
           .card-watermark { position:absolute; left:78px; top:90px; width:410px; height:420px; object-fit:fill; opacity:.13; }
@@ -71,7 +75,7 @@
           .reference-photo-box { position:absolute; left:17px; top:388px; width:142px; height:210px; border:2px solid #5585ff; display:grid; grid-template-rows:33px minmax(0,1fr); }
           .card-id-code { border-bottom:2px solid #5585ff; color:#152932; text-align:center; font:bold 16px/31px "Times New Roman",serif; white-space:nowrap; }
           .card-photo-slot { min-height:0; display:grid; place-items:center; overflow:hidden; color:#111; font:16px Arial,sans-serif; }
-          .card-photo-slot img { width:100%; height:100%; object-fit:cover; }
+          .card-photo-slot img { display:block; width:${photoOversize.toFixed(3)}%; height:${photoOversize.toFixed(3)}%; max-width:none; object-fit:cover; transform:scaleY(${photoCounterScaleY.toFixed(6)}); transform-origin:center; }
           .family-line { position:absolute; left:163px; width:410px; display:grid; grid-template-columns:138px 126px 130px; column-gap:8px; align-items:center; min-height:32px; }
           .father-line { top:393px; }
           .mother-line { top:428px; }

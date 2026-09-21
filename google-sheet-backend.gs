@@ -180,6 +180,15 @@ function doPost(e) {
       });
       return output_({ ok: true, action: action, studentId: student.studentCode || student.id }, e);
     }
+    if (action === "upsertmany") {
+      const rows = Array.isArray(body.students) ? body.students : [];
+      const count = withWriteLock_(function() {
+        const mergedCount = mergeStudents_(rows.map(normalizeIncomingStudent_));
+        touchRevision_(DATA_REVISION_PROPERTY);
+        return mergedCount;
+      });
+      return output_({ ok: true, action: action, mode: "merge", count: count }, e);
+    }
     if (action === "delete") {
       const key = String(body.studentId || (body.student && (body.student.studentCode || body.student.id)) || "").trim();
       withWriteLock_(function() {
@@ -366,7 +375,7 @@ function mergeStudents_(incomingStudents) {
     });
     if (index >= 0) {
       const createdAt = students[index].createdAt;
-      students[index] = Object.assign({}, students[index], student);
+      students[index] = mergeStudentRecord_(students[index], student);
       if (createdAt) students[index].createdAt = createdAt;
     } else {
       students.push(student);
@@ -386,7 +395,7 @@ function upsertStudent_(student) {
     for (let i = 0; i < rows.length; i++) {
       const existing = rowToStudent_(rows[i]);
       if (studentMatchesKey_(existing, key)) {
-        const merged = Object.assign({}, existing, student);
+        const merged = mergeStudentRecord_(existing, student);
         merged.createdAt = existing.createdAt || student.createdAt;
         sheet.getRange(i + 2, 1, 1, HEADERS.length).setValues([studentToRow_(merged)]);
         return;
@@ -394,6 +403,19 @@ function upsertStudent_(student) {
     }
   }
   sheet.getRange(Math.max(2, lastRow + 1), 1, 1, HEADERS.length).setValues([studentToRow_(student)]);
+}
+
+function mergeStudentRecord_(existing, incoming) {
+  const merged = Object.assign({}, existing || {}, incoming || {});
+  ["studentName", "studentSurname", "studentGivenName"].forEach(function(field) {
+    if (!String((incoming && incoming[field]) || "").trim() && String((existing && existing[field]) || "").trim()) {
+      merged[field] = existing[field];
+    }
+  });
+  if (!String(merged.studentName || "").trim()) {
+    merged.studentName = [merged.studentSurname, merged.studentGivenName].filter(Boolean).join(" ");
+  }
+  return merged;
 }
 
 function deleteStudent_(key) {
@@ -432,10 +454,16 @@ function normalizeIncomingStudent_(item) {
   normalized.studentSurname = cell_(student.studentSurname);
   normalized.studentGivenName = cell_(student.studentGivenName);
   normalized.studentName = cell_(student.studentName || [normalized.studentSurname, normalized.studentGivenName].filter(Boolean).join(" "));
-  if (!normalized.studentSurname && !normalized.studentGivenName && normalized.studentName) {
+  if ((!normalized.studentSurname || !normalized.studentGivenName) && normalized.studentName) {
     const parts = String(normalized.studentName).trim().split(/\s+/).filter(Boolean);
-    normalized.studentSurname = parts.shift() || "";
-    normalized.studentGivenName = parts.join(" ");
+    if (!normalized.studentSurname && normalized.studentGivenName && normalized.studentName.endsWith(normalized.studentGivenName)) {
+      normalized.studentSurname = normalized.studentName.slice(0, -normalized.studentGivenName.length).trim();
+    }
+    if (!normalized.studentGivenName && normalized.studentSurname && normalized.studentName.indexOf(normalized.studentSurname) === 0) {
+      normalized.studentGivenName = normalized.studentName.slice(normalized.studentSurname.length).trim();
+    }
+    if (!normalized.studentSurname) normalized.studentSurname = parts[0] || "";
+    if (!normalized.studentGivenName && parts.length > 1) normalized.studentGivenName = parts.slice(1).join(" ");
   }
   normalized.createdAt = student.createdAt || now;
   normalized.updatedAt = now;

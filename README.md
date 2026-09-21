@@ -74,6 +74,12 @@ The form includes optional day/month/year selectors for the father, mother, and 
 
 After this update, replace the Apps Script code with the latest `google-sheet-backend.gs`, then use `Deploy -> Manage deployments -> Edit -> New version -> Deploy`. Open the app and run `Backup` once to add and format the three new Google Sheet columns. Supabase users should run the latest `supabase-schema.sql` once.
 
+## Sync and phone performance
+
+Version 2.1.1 saves and deletes optimistically while cloud writes run through an ordered background queue. An empty shared store is treated as authoritative, so deleted records no longer return from an old browser cache. Bulk imports use merge-only batch writes, students may share one family telephone number, and incomplete split-name data is repaired from the full name instead of being shortened.
+
+Phone-camera frames are resized before transfer, and low-memory/mobile devices use a fast photo path instead of loading the heavy background-removal model. The service worker uses network-first updates so new fixes replace cached app files promptly.
+
 ## Student card settings
 
 The reference card uses a 75 × 100 mm print boundary with a blue border, ministry logo and watermark, two date lines, and the principal signature only. Headings use Khmer Moul and body text uses Khmer OS Siemreap (Siemreap web fallback). Print at 100% / actual size.

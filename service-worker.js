@@ -1,4 +1,4 @@
-const CACHE_NAME = "students-registration-web-v2.1.0";
+const CACHE_NAME = "students-registration-web-v2.1.1";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -32,7 +32,7 @@ self.addEventListener("fetch", event => {
 
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request)
+      fetch(new Request(request, { cache:"no-cache" }))
         .then(response => {
           const copy = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
@@ -44,12 +44,9 @@ self.addEventListener("fetch", event => {
   }
 
   event.respondWith(
-    caches.match(request).then(cached => cached || fetch(request).then(response => {
-      if (response.ok) {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-      }
+    fetch(new Request(request, { cache:"no-cache" })).then(response => {
+      if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
       return response;
-    }))
+    }).catch(() => caches.match(request))
   );
 });

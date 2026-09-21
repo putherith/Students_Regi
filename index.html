@@ -3290,7 +3290,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.0</span>
+        <span class="footer-version">កំណែ 2.1.1</span>
     </footer>
 
 </main><!-- end .app -->
@@ -3631,6 +3631,8 @@
     const SHARED_DATA_REFRESH_MS     = 20000;
     let sharedDataRefreshTimer = null;
     let sharedDataRefreshInFlight = false;
+    let pendingCloudMutations = 0;
+    let cloudMutationQueue = Promise.resolve();
     let lastGoogleDataRevision = localStorage.getItem(GOOGLE_DATA_REVISION_STORAGE_KEY) || "";
     let lastGoogleSettingsRevision = localStorage.getItem(GOOGLE_SETTINGS_REVISION_STORAGE_KEY) || "";
     let appSettings = loadAppSettingsFromLocal();
@@ -3686,11 +3688,21 @@
     }
 
     function saveToLocalStorage(students) {
+        const withoutCloudPhotos = () => students.map(student => ({ ...student, photo:"" }));
         try {
-            localStorage.setItem(LOCAL_STUDENTS_KEY, JSON.stringify(students));
+            // Serializing every base64 photo repeatedly freezes low-memory phones.
+            // Shared-storage mode reloads photos from the cloud when the app opens.
+            const localStudents = hasCloudStorageConfig() ? withoutCloudPhotos() : students;
+            localStorage.setItem(LOCAL_STUDENTS_KEY, JSON.stringify(localStudents));
         } catch (e) {
             console.error("Error saving students to localStorage:", e);
-            showToast("រក្សាទុកក្នុង Local Storage បរាជ័យ", "error");
+            try {
+                localStorage.setItem(LOCAL_STUDENTS_KEY, JSON.stringify(withoutCloudPhotos()));
+                showToast("ឧបករណ៍ជិតពេញ៖ បានរក្សាទុកព័ត៌មានសិស្សដោយមិនរក្សារូបក្នុង cache", "warning");
+            } catch (fallbackError) {
+                console.error("Local text-only save failed:", fallbackError);
+                showToast("រក្សាទុកក្នុង Local Storage បរាជ័យ", "error");
+            }
         }
     }
 
@@ -4234,12 +4246,20 @@
     function normalizeStudentIdentity(student={}) {
         const legacyName = String(student.studentName || "").trim();
         const legacyParts = legacyName.split(/\s+/).filter(Boolean);
-        const fallbackSurname = legacyParts.shift() || "";
-        const fallbackGivenName = legacyParts.join(" ");
-        const hasSplitName = String(student.studentSurname || "").trim() || String(student.studentGivenName || "").trim();
-        const studentSurname = String(student.studentSurname || "").trim() || (!hasSplitName ? fallbackSurname : "");
-        const studentGivenName = String(student.studentGivenName || "").trim() || (!hasSplitName ? fallbackGivenName : "");
-        const studentName = [studentSurname, studentGivenName].filter(Boolean).join(" ") || legacyName;
+        let studentSurname = String(student.studentSurname || "").trim();
+        let studentGivenName = String(student.studentGivenName || "").trim();
+        if (legacyName && (!studentSurname || !studentGivenName)) {
+            if (!studentSurname && studentGivenName && legacyName.endsWith(studentGivenName)) {
+                studentSurname = legacyName.slice(0, -studentGivenName.length).trim();
+            }
+            if (!studentGivenName && studentSurname && legacyName.startsWith(studentSurname)) {
+                studentGivenName = legacyName.slice(studentSurname.length).trim();
+            }
+            if (!studentSurname) studentSurname = legacyParts[0] || "";
+            if (!studentGivenName && legacyParts.length > 1) studentGivenName = legacyParts.slice(1).join(" ");
+        }
+        const composedName = [studentSurname, studentGivenName].filter(Boolean).join(" ");
+        const studentName = legacyName && legacyName.length > composedName.length ? legacyName : (composedName || legacyName);
         return { ...student, studentSurname, studentGivenName, studentName };
     }
 
@@ -4526,7 +4546,7 @@
     }
 
     async function refreshSharedDataInBackground() {
-        if (sharedDataRefreshInFlight || document.visibilityState === "hidden") return;
+        if (sharedDataRefreshInFlight || pendingCloudMutations > 0 || document.visibilityState === "hidden") return;
         if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl()) return;
         sharedDataRefreshInFlight = true;
         try {
@@ -4535,7 +4555,7 @@
             const dataChanged = String(status?.revision ?? "") !== lastGoogleDataRevision;
             const settingsChanged = String(status?.settingsRevision ?? "") !== lastGoogleSettingsRevision;
             if (!supportsRevision || dataChanged || settingsChanged) {
-                await loadStudentsFromGoogleSheet({ silent:true, keepLocalWhenCloudEmpty:true, background:true });
+                await loadStudentsFromGoogleSheet({ silent:true, keepLocalWhenCloudEmpty:false, background:true });
             }
         } catch (error) {
             console.debug("Shared data status check skipped:", error);
@@ -4697,7 +4717,7 @@
             setCloudControlsLoading(false);
             showToast("បានរក្សាទុក Supabase Storage");
             restartSharedDataRefresh();
-            loadStudentsFromCloudStorage({ silent:false, keepLocalWhenCloudEmpty:true });
+            loadStudentsFromCloudStorage({ silent:false, keepLocalWhenCloudEmpty:false });
             return;
         }
 
@@ -4718,7 +4738,7 @@
         setCloudControlsLoading(false);
         showToast("បានរក្សាទុក Google Sheet URL");
         restartSharedDataRefresh();
-        loadStudentsFromCloudStorage({ silent:false, keepLocalWhenCloudEmpty:true });
+        loadStudentsFromCloudStorage({ silent:false, keepLocalWhenCloudEmpty:false });
     }
 
     function setStorageTestLoading(loading) {
@@ -4906,7 +4926,7 @@
 
     async function readSupabaseStudents() {
         const rows = await readSupabaseRows("students?select=*&order=class_name.asc,student_name.asc");
-        return rows.map(normalizeSupabaseRow).filter(s => s.studentName);
+        return rows.map(normalizeSupabaseRow).filter(s => s.id || s.studentCode || s.studentName);
     }
 
     async function syncSupabaseStorage(action, student={}, studentId="", students=null) {
@@ -4932,11 +4952,16 @@
         } else if (action === "upsert") {
             const row = supabaseStudentToDbRow(student, studentId);
             await upsertSupabaseRows([row]);
+        } else if (action === "upsertmany") {
+            const rows = Array.isArray(students)
+                ? students.map(item => supabaseStudentToDbRow(item, studentDisplayId(item, item.id)))
+                : [];
+            if (rows.length) await upsertSupabaseRows(rows);
         } else if (action === "delete") {
             const key = encodeURIComponent(String(studentId || student.studentCode || student.id || "").trim());
             if (key) await supabaseFetch(`students?or=(id.eq.${key},student_code.eq.${key})`, { method:"DELETE", headers:{ "Prefer":"return=minimal" } });
         }
-        if (["upsert","delete","backup","replace"].includes(action)) {
+        if (["upsert","upsertmany","delete","backup","replace"].includes(action)) {
             localStorage.setItem(BACKUP_TIME_STORAGE_KEY, new Date().toISOString());
         }
         return true;
@@ -4967,7 +4992,7 @@
             body.students = students.map(i => ({ studentId: studentDisplayId(i, i.id), student: {...i, studentId: studentDisplayId(i,i.id)} }));
         }
         await fetch(url, { method:"POST", mode:"no-cors", cache:"no-cache", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(body), redirect:"follow" });
-        if (["upsert","delete","backup"].includes(action)) {
+        if (["upsert","upsertmany","delete","backup","replace"].includes(action)) {
             localStorage.setItem(BACKUP_TIME_STORAGE_KEY, new Date().toISOString());
         }
         return true;
@@ -4977,6 +5002,11 @@
         lastCloudError = "";
         cloudSyncWarning = "";
         try {
+            if (action === "clearall") {
+                return getCloudProvider() === SUPABASE_PROVIDER
+                    ? await syncSupabaseStorage("backup", {}, "", [])
+                    : await syncGoogleSheet("replace", {}, "", []);
+            }
             if (getCloudProvider() === SUPABASE_PROVIDER) {
                 return await syncSupabaseStorage(action, student, studentId, students);
             }
@@ -4996,6 +5026,33 @@
             showToast(cloudSyncWarning, "warning");
         }
         return ok;
+    }
+
+    function enqueueCloudMutation(action, student={}, studentId="", students=null) {
+        if (!hasCloudStorageConfig()) return Promise.resolve(true);
+        pendingCloudMutations += 1;
+        const studentSnapshot = { ...student };
+        const studentsSnapshot = Array.isArray(students) ? students.map(item => ({ ...item })) : null;
+        const run = async () => {
+            let ok = false;
+            for (let attempt = 0; attempt < 2 && !ok; attempt++) {
+                ok = await syncCloudStorage(action, studentSnapshot, studentId, studentsSnapshot);
+                if (!ok && attempt === 0) await new Promise(resolve => setTimeout(resolve, 700));
+            }
+            if (!ok) {
+                showToast(`${currentStorageName()} sync មិនបាន${lastCloudError ? ": " + lastCloudError.slice(0, 70) : ""}`, "warning");
+            } else if (cloudSyncWarning) {
+                showToast(cloudSyncWarning, "warning");
+            }
+            if (ok && getCloudProvider() === GOOGLE_SHEET_PROVIDER) {
+                setTimeout(() => refreshSharedDataInBackground(), 1200);
+            }
+            return ok;
+        };
+        const task = cloudMutationQueue.then(run, run);
+        cloudMutationQueue = task.catch(() => false);
+        task.finally(() => { pendingCloudMutations = Math.max(0, pendingCloudMutations - 1); });
+        return task;
     }
 
     function readGoogleSheetJsonp(params={}) {
@@ -5052,6 +5109,9 @@
         return students.map(student => [
             student.id || "",
             student.studentCode || "",
+            student.studentSurname || "",
+            student.studentGivenName || "",
+            student.studentName || "",
             student.updatedAt || "",
             String(student.photo || "").length
         ].join(":")).sort().join("|");
@@ -5074,7 +5134,7 @@
         return { ...student, ...normStudentFields(student) };
     }
 
-    async function loadStudentsFromSupabase({ silent=false, keepLocalWhenCloudEmpty=true }={}) {
+    async function loadStudentsFromSupabase({ silent=false, keepLocalWhenCloudEmpty=false }={}) {
         if (!hasSupabaseConfig()) {
             setStatus("ឡូកាល់ (Offline)", "connected");
             setCloudControlsLoading(false);
@@ -5108,7 +5168,7 @@
         }
     }
 
-    async function loadStudentsFromGoogleSheet({ silent=false, keepLocalWhenCloudEmpty=true, background=false }={}) {
+    async function loadStudentsFromGoogleSheet({ silent=false, keepLocalWhenCloudEmpty=false, background=false }={}) {
         if (!hasGoogleScriptUrl()) {
             setStatus("ឡូកាល់ (Offline)", "connected");
             setCloudControlsLoading(false);
@@ -5124,7 +5184,7 @@
             if (payload.ok === false) throw new Error(payload.error || "Google Sheet error");
             applySharedAppSettings(payload.settings);
             const cloudRows = Array.isArray(payload.students) ? payload.students : [];
-            const cloudStudents = cloudRows.map(normalizeCloudStudent).filter(s => s.studentName);
+            const cloudStudents = cloudRows.map(normalizeCloudStudent).filter(s => s.id || s.studentCode || s.studentName);
             rememberGoogleSheetRevisions(payload);
             if (!cloudStudents.length && keepLocalWhenCloudEmpty && allStudents.length) {
                 if (!background) setStatus("Sheet ទទេ - រក្សាទុក Local", "connected");
@@ -5258,11 +5318,9 @@
         const nameKey = normText(studentFullName(student));
         const classKey = normText(student.className);
         const dobKey = normDate(student.dob);
-        const phoneKey = normPhone(student.contact);
         for (const e of source) {
             if (e.id && e.id === ignoreId) continue;
             if (codeKey && normText(e.studentCode||e.studentId) === codeKey) return { type:"studentCode", student:e };
-            if (phoneKey && normPhone(e.contact) === phoneKey) return { type:"phone", student:e };
             if (nameKey && dobKey && normText(studentFullName(e))===nameKey && normDate(e.dob)===dobKey) return { type:"student", student:e };
             if (nameKey && classKey && normText(studentFullName(e))===nameKey && normText(e.className)===classKey) return { type:"student", student:e };
         }
@@ -5276,7 +5334,6 @@
     function duplicateMsg(dup) {
         if (!dup) return "";
         if (dup.type === "studentCode") return `លេខសម្គាល់នេះមានរួចហើយ: ${studentDisplayId(dup.student)}`;
-        if (dup.type === "phone") return `លេខទូរស័ព្ទនេះមានរួចហើយ: ${studentFullName(dup.student)}`;
         return `សិស្សនេះមានរួចហើយ: ${studentFullName(dup.student)}`;
     }
 
@@ -5541,7 +5598,7 @@
             els.phoneCameraStatus.className = "phone-camera-status connected";
             closePhoneCameraModal();
             const blob = await fetch(payload.dataUrl).then(response => response.blob());
-            await processPhoto(blob);
+            await processPhoto(blob, { fast:true });
             showToast("ទទួលរូបពីទូរសព្ទរួច។ Session នៅភ្ជាប់សម្រាប់សិស្សបន្ទាប់");
         } catch (error) {
             console.error("Phone photo processing error:", error);
@@ -5572,15 +5629,15 @@
 
     async function compressPhonePhoto(file) {
         const decoded = await decodePhonePhoto(file);
-        const maxWidth = 900;
-        const maxHeight = 1200;
+        const maxWidth = 630;
+        const maxHeight = 800;
         const scale = Math.min(1, maxWidth / decoded.width, maxHeight / decoded.height);
         const canvas = document.createElement("canvas");
         canvas.width = Math.max(1, Math.round(decoded.width * scale));
         canvas.height = Math.max(1, Math.round(decoded.height * scale));
         canvas.getContext("2d", { alpha:false }).drawImage(decoded.image, 0, 0, canvas.width, canvas.height);
         decoded.cleanup();
-        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", .84));
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", .72));
         if (!blob) throw new Error("Cannot prepare phone photo");
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -5617,7 +5674,7 @@
         els.webPhonePreviewPlaceholder.textContent = "រួចរាល់សម្រាប់សិស្សបន្ទាប់";
     }
 
-    function canvasToJpegDataUrl(canvas, quality=.88) {
+    function canvasToJpegDataUrl(canvas, quality=.72) {
         return new Promise((resolve, reject) => {
             canvas.toBlob(blob => {
                 if (!blob) { reject(new Error("Cannot prepare camera frame")); return; }
@@ -5634,8 +5691,8 @@
         if (!webPhoneCameraStream?.active || !video?.videoWidth || !video?.videoHeight) {
             throw new Error("Phone camera is not ready");
         }
-        const maxWidth = 1200;
-        const maxHeight = 1600;
+        const maxWidth = 630;
+        const maxHeight = 800;
         const scale = Math.min(1, maxWidth / video.videoWidth, maxHeight / video.videoHeight);
         const canvas = document.createElement("canvas");
         canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
@@ -5661,8 +5718,8 @@
             webPhoneCameraStream = await navigator.mediaDevices.getUserMedia({
                 video: {
                     facingMode: { ideal:"environment" },
-                    width: { ideal:1440 },
-                    height: { ideal:1920 },
+                    width: { ideal:720, max:960 },
+                    height: { ideal:960, max:1280 },
                     aspectRatio: { ideal:315/400 }
                 },
                 audio:false
@@ -6147,12 +6204,21 @@
         return canvas.toDataURL("image/jpeg", 0.76);
     }
 
-    async function processPhoto(imageSource) {
-        setPhotoProcessing(true, "កំពុងកាត់ផ្ទៃខាងក្រោយ...");
+    async function processPhoto(imageSource, options={}) {
+        const lowMemoryPhone = isMobileView() || Number(navigator.deviceMemory || 8) <= 4;
+        const fastMode = Boolean(options.fast || lowMemoryPhone);
+        setPhotoProcessing(true, fastMode ? "កំពុងរៀបចំរូបថត..." : "កំពុងកាត់ផ្ទៃខាងក្រោយ...");
         if (els.photoPreviewBox) els.photoPreviewBox.innerHTML = '<div class="spinner spinner-dark"></div>';
+        let originalImg = null;
         let subjectImg = null;
         try {
-            const originalImg = await loadImageFromBlob(imageSource);
+            originalImg = await loadImageFromBlob(imageSource);
+            if (fastMode) {
+                setPhotoPreview(composeStudentPhoto(originalImg, false));
+                showToast("បានរៀបចំរូបថតរួចរាល់");
+                closeCameraModal();
+                return;
+            }
             setPhotoProcessing(true, "កំពុងកាត់មនុស្សចេញពីផ្ទៃក្រោយ...");
             const segmentedBlob = await segmentPersonWithMediaPipe(originalImg);
             subjectImg = await loadImageFromBlob(segmentedBlob);
@@ -6173,8 +6239,14 @@
                 closeCameraModal();
             } catch (fallbackErr) {
                 console.error("Photo processing error:", fallbackErr);
-                showToast("កាត់ផ្ទៃក្រោយមិនបាន។ សូមព្យាយាមថតមុខឱ្យច្បាស់ និងពន្លឺគ្រប់គ្រាន់", "error");
-                setPhotoPreview("");
+                if (originalImg) {
+                    setPhotoPreview(composeStudentPhoto(originalImg, false));
+                    showToast("មិនអាចកាត់ផ្ទៃក្រោយបាន ប៉ុន្តែបានរក្សារូបថតធម្មតា", "warning");
+                    closeCameraModal();
+                } else {
+                    showToast("រៀបចំរូបថតមិនបាន។ សូមព្យាយាមថតម្ដងទៀត", "error");
+                    setPhotoPreview("");
+                }
             }
         } finally {
             setPhotoProcessing(false);
@@ -6401,7 +6473,7 @@
                 }
                 saveToLocalStorage(allStudents);
                 await logHistory("edited", payload.studentName, { studentId: payload.studentCode, recordId: editingId });
-                await syncCloudStorageWithToast("upsert", {...payload, recordId: editingId}, payload.studentCode||editingId);
+                enqueueCloudMutation("upsert", {...payload, recordId: editingId}, payload.studentCode||editingId);
                 showToast("បានកែសម្រួលព័ត៌មានសិស្ស");
             } else {
                 if (!payload.studentCode) payload.studentCode = await generateStudentCode();
@@ -6416,7 +6488,7 @@
                 allStudents.unshift(newStudent);
                 saveToLocalStorage(allStudents);
                 await logHistory("added", payload.studentName, { studentId: payload.studentCode, recordId: newId, ...payload });
-                await syncCloudStorageWithToast("upsert", {...payload, recordId: newId}, payload.studentCode);
+                enqueueCloudMutation("upsert", {...payload, recordId: newId}, payload.studentCode);
                 showToast(`បានបន្ថែម ${payload.studentName} (${payload.studentCode})`);
             }
             resetForm();
@@ -6442,17 +6514,18 @@
 
     async function handleDeleteStudent() {
         if (!studentToDeleteId) return;
-        const s = allStudents.find(i => i.id === studentToDeleteId);
+        const deletingId = studentToDeleteId;
+        const s = allStudents.find(i => i.id === deletingId);
         const name = s?.studentName || "Unknown";
         els.confirmDeleteBtn.disabled = true;
         try {
-            allStudents = allStudents.filter(i => i.id !== studentToDeleteId);
+            allStudents = allStudents.filter(i => i.id !== deletingId);
             saveToLocalStorage(allStudents);
-            await logHistory("deleted", name, { studentId: studentDisplayId(s, studentToDeleteId), recordId: studentToDeleteId });
-            await syncCloudStorageWithToast("delete", s||{studentName:name}, studentDisplayId(s, studentToDeleteId));
+            await logHistory("deleted", name, { studentId: studentDisplayId(s, deletingId), recordId: deletingId });
+            enqueueCloudMutation("delete", s||{studentName:name}, s?.id || deletingId);
             closeDeleteModal();
             showToast("បានលុបសិស្ស");
-            if (els.editingId.value === studentToDeleteId) resetForm();
+            if (els.editingId.value === deletingId) resetForm();
             await refreshStudents({ source:"memory" });
         } catch(e) {
             console.error("Delete error:", e);
@@ -6485,20 +6558,14 @@
         els.confirmDeleteAllBtn.disabled = true;
         els.cancelDeleteAllBtn.disabled = true;
         try {
-            const cloudClear = clearAllCloudStudents();
             allStudents = [];
             saveToLocalStorage(allStudents);
             await logHistory("cleared", "ទិន្នន័យសិស្សទាំងអស់", { total: count });
+            enqueueCloudMutation("clearall");
             closeDeleteAllModal();
             resetForm();
             await refreshStudents({ reset: true, source:"memory" });
-            showToast(`កំពុងលុបទិន្នន័យសិស្ស ${count} នាក់ពី Storage...`);
-            const cloudOk = await cloudClear;
-            if (!cloudOk) {
-                showToast(`បានលុបពីឧបករណ៍ ប៉ុន្តែ Storage លុបមិនបាន${lastCloudError ? ": " + lastCloudError.slice(0, 60) : ""}`, "warning");
-            } else {
-                showToast(`បានលុបទិន្នន័យសិស្ស ${count} នាក់រួចរាល់`);
-            }
+            showToast(`បានលុបទិន្នន័យសិស្ស ${count} នាក់ · កំពុង sync នៅខាងក្រោយ`);
         } catch(e) {
             console.error("Delete all error:", e);
             showToast("លុបទិន្នន័យទាំងអស់មិនបាន","error");
@@ -7304,7 +7371,13 @@
     function assignCodes(students,start=1){
         const prefix=appSettings.studentCodePrefix||DEFAULT_STUDENT_CODE_PREFIX;
         const digits=appSettings.studentCodeDigits||4;
-        let n=Math.max(1,start);const used=new Set(students.map(s=>s.studentCode).filter(Boolean));
+        const used=new Set([...allStudents,...students].map(s=>s.studentCode).filter(Boolean));
+        let maxExisting=0;
+        used.forEach(code=>{
+            const match=String(code).match(new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}-(\\d+)$`));
+            if(match) maxExisting=Math.max(maxExisting,Number(match[1]));
+        });
+        let n=Math.max(1,start,maxExisting+1);
         return students.map(s=>{
             if(s.studentCode) return s;let code="";
             do{code=`${prefix}-${String(n).padStart(digits,"0")}`;n++;}while(used.has(code));
@@ -7336,7 +7409,7 @@
             allStudents=[...saved,...allStudents];
             saveToLocalStorage(allStudents);
             await logHistory("imported",label,{total:saved.length,skipped:skipped.length});
-            await syncCloudStorageWithToast("backup",{},"",allStudents);
+            enqueueCloudMutation("upsertmany",{},"",saved);
         }
         return{accepted:saved,skipped};
     }
@@ -7466,7 +7539,7 @@
         els.deleteAllBtn.addEventListener("click",openDeleteAllModal);
 
         // Backup
-        els.loadSheetBtn.addEventListener("click",()=>loadStudentsFromCloudStorage({ silent:false, keepLocalWhenCloudEmpty:true }));
+        els.loadSheetBtn.addEventListener("click",()=>loadStudentsFromCloudStorage({ silent:false, keepLocalWhenCloudEmpty:false }));
         els.backupNowBtn.addEventListener("click",backupAllStudents);
 
         // App settings modal
@@ -7585,7 +7658,7 @@
         const logs = loadHistoryFromLocalStorage();
         renderHistory(logs);
         refreshStudents({ reset: true }).then(() => {
-            if (hasCloudStorageConfig()) loadStudentsFromCloudStorage({ silent:true, keepLocalWhenCloudEmpty:true });
+            if (hasCloudStorageConfig()) loadStudentsFromCloudStorage({ silent:true, keepLocalWhenCloudEmpty:false });
         });
     }
 
