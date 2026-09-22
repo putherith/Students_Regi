@@ -39,7 +39,7 @@
             <div class="card-line address-line birth-address"><span>ទីកន្លែងកំណើត</span><strong data-card-fit>${escape(address(s,"pob") || blank)}</strong></div>
             <div class="card-line address-line current-address"><span>អាសយដ្ឋានបច្ចុប្បន្ន</span><strong data-card-fit>${escape(address(s,"current") || blank)}</strong></div>
             <div class="card-line contacts-line"><span>លេខទូរសព្ទនាយក</span><strong class="latin-value" data-card-fit>${escape(settings.principalPhone || blank)}</strong><span>លេខទូរសព្ទ ICT</span><strong class="latin-value" data-card-fit>${escape(settings.ictPhone || blank)}</strong></div>
-            <div class="reference-photo-box"><div class="card-id-code" data-card-fit>${escape(s.studentCode || s.studentId || "")}</div><div class="card-photo-slot">${s.photo ? `<img src="${escape(s.photo)}" alt="រូបថតសិស្ស">` : "<span>3X4</span>"}</div></div>
+            <div class="reference-photo-box"><div class="card-id-code" data-card-fit>${escape(s.studentCode || s.studentId || "")}</div><div class="card-photo-slot">${s.photo ? `<img src="${escape(s.photo)}" alt="រូបថតសិស្ស" data-card-photo>` : "<span>3X4</span>"}</div></div>
             <div class="family-line father-line"><strong data-card-fit>ឪពុក៖ ${escape(s.fatherName || blank)}</strong><span>លេខទូរសព្ទ៖</span><strong class="latin-value" data-card-fit>${escape(s.fatherPhone || blank)}</strong></div>
             <div class="family-line mother-line"><strong data-card-fit>ម្តាយ៖ ${escape(s.motherName || blank)}</strong><span>លេខទូរសព្ទ៖</span><strong class="latin-value" data-card-fit>${escape(s.motherPhone || blank)}</strong></div>
             <div class="reference-lunar-date" data-card-fit><span>${escape(settings.cardLunarDate || "....................ខែ....................ឆ្នាំ....................ព.ស............")}</span></div>
@@ -87,7 +87,87 @@
           @media print { .cards-grid { gap:2mm; } }
         </style><div class="cards-grid">${cards}</div>`;
     }
-    function fitText(doc) {
+    function photoBackgroundSample(ctx, width, height) {
+        const size = Math.max(3, Math.round(Math.min(width, height) * 0.025));
+        const image = ctx.getImageData(0, 0, width, Math.min(height, size)).data;
+        let red = 0, green = 0, blue = 0, count = 0;
+        for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+                for (const px of [x, width - 1 - x]) {
+                    const offset = ((y * width + px) * 4);
+                    red += image[offset]; green += image[offset + 1]; blue += image[offset + 2]; count++;
+                }
+            }
+        }
+        return { red:red / count, green:green / count, blue:blue / count };
+    }
+
+    async function reframeBluePhoto(img, doc) {
+        const width = img.naturalWidth || img.width;
+        const height = img.naturalHeight || img.height;
+        if (!width || !height || !String(img.currentSrc || img.src).startsWith("data:image/")) return;
+        const sourceCanvas = doc.createElement("canvas");
+        sourceCanvas.width = width;
+        sourceCanvas.height = height;
+        const sourceCtx = sourceCanvas.getContext("2d", { willReadFrequently:true });
+        sourceCtx.drawImage(img, 0, 0, width, height);
+        const background = photoBackgroundSample(sourceCtx, width, height);
+        // Only touch photos that were already composed on the app's blue ID background.
+        if (!(background.blue > 175 && background.blue > background.green + 45 && background.green > background.red + 35)) return;
+
+        const pixels = sourceCtx.getImageData(0, 0, width, height).data;
+        const rowHits = new Uint32Array(height);
+        const columnHits = new Uint32Array(width);
+        const threshold = 48 * 48;
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const offset = ((y * width + x) * 4);
+                const dr = pixels[offset] - background.red;
+                const dg = pixels[offset + 1] - background.green;
+                const db = pixels[offset + 2] - background.blue;
+                if ((dr * dr) + (dg * dg) + (db * db) > threshold) {
+                    rowHits[y]++;
+                    columnHits[x]++;
+                }
+            }
+        }
+        const rowMinimum = Math.max(3, Math.round(width * 0.012));
+        const columnMinimum = Math.max(3, Math.round(height * 0.01));
+        const minX = columnHits.findIndex(value => value >= columnMinimum);
+        const minY = rowHits.findIndex(value => value >= rowMinimum);
+        let maxX = -1, maxY = -1;
+        for (let x = width - 1; x >= 0; x--) if (columnHits[x] >= columnMinimum) { maxX = x; break; }
+        for (let y = height - 1; y >= 0; y--) if (rowHits[y] >= rowMinimum) { maxY = y; break; }
+        if (minX < 0 || minY < 0 || maxX <= minX || maxY <= minY) return;
+
+        // New photos already occupy the frame. This path mainly upgrades older stored photos.
+        if (minY <= height * 0.035 && maxY >= height * 0.95) return;
+        const subjectWidth = maxX - minX + 1;
+        const subjectHeight = maxY - minY + 1;
+        const padX = Math.round(subjectWidth * 0.05);
+        const padTop = Math.round(subjectHeight * 0.008);
+        const padBottom = Math.round(subjectHeight * 0.025);
+        const sx = Math.max(0, minX - padX);
+        const sy = Math.max(0, minY - padTop);
+        const sw = Math.min(width - sx, subjectWidth + (padX * 2));
+        const sh = Math.min(height - sy, subjectHeight + padTop + padBottom);
+        const output = doc.createElement("canvas");
+        output.width = 315;
+        output.height = 400;
+        const ctx = output.getContext("2d");
+        ctx.fillStyle = `rgb(${Math.round(background.red)},${Math.round(background.green)},${Math.round(background.blue)})`;
+        ctx.fillRect(0, 0, output.width, output.height);
+        const scale = Math.min((output.width * 0.94) / sw, (output.height * 0.99) / sh);
+        const drawWidth = sw * scale;
+        const drawHeight = sh * scale;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(sourceCanvas, sx, sy, sw, sh, (output.width - drawWidth) / 2, output.height * 0.005, drawWidth, drawHeight);
+        img.src = output.toDataURL("image/jpeg", .88);
+        try { await img.decode(); } catch {}
+    }
+
+    async function fitText(doc) {
         doc.querySelectorAll("[data-card-fit], .card-line > span, .family-line > span").forEach(el => {
             // Fit long real student data without ellipses or truncating the record.
             const size = parseFloat(doc.defaultView.getComputedStyle(el).fontSize);
@@ -97,6 +177,7 @@
                 el.style.setProperty("font-size", `${current}px`, "important");
             }
         });
+        await Promise.all(Array.from(doc.querySelectorAll("img[data-card-photo]"), img => reframeBluePhoto(img, doc)));
     }
     globalThis.StudentCardTemplate = Object.freeze({ render, fitText });
 })();

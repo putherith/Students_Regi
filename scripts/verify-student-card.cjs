@@ -22,7 +22,14 @@ app.whenReady().then(async () => {
     for (const part of ['Village','Commune','District','Province']) student['current'+part] = student['pob'+part];
     const settings = { principalPhone:'092 30 59 01', ictPhone:'099 42 92 41', issueDate:'2026-08-05', principalName:'សុខ សុវណ្ណ' };
     await win.webContents.executeJavaScript(`
-        document.body.innerHTML = StudentCardTemplate.render(${JSON.stringify([student])}, ${JSON.stringify(settings)}, ${JSON.stringify(logo)}, '២០២៥-២០២៦');
+        const oldPhoto = document.createElement('canvas');
+        oldPhoto.width = 315; oldPhoto.height = 400;
+        const oldPhotoContext = oldPhoto.getContext('2d');
+        oldPhotoContext.fillStyle = '#3b86ee'; oldPhotoContext.fillRect(0, 0, 315, 400);
+        oldPhotoContext.fillStyle = '#33251f'; oldPhotoContext.beginPath(); oldPhotoContext.arc(157, 155, 52, 0, Math.PI * 2); oldPhotoContext.fill();
+        oldPhotoContext.fillStyle = '#f0f3f7'; oldPhotoContext.fillRect(58, 205, 198, 195);
+        const studentWithPhoto = { ...${JSON.stringify(student)}, photo:oldPhoto.toDataURL('image/png') };
+        document.body.innerHTML = StudentCardTemplate.render([studentWithPhoto], ${JSON.stringify(settings)}, ${JSON.stringify(logo)}, '២០២៥-២០២៦');
         document.body.style.margin='0';
         document.querySelector('.cards-grid').style.justifyContent='start';
         document.querySelector('.cards-grid').style.gridTemplateColumns='75mm';
@@ -34,7 +41,8 @@ app.whenReady().then(async () => {
     const metrics = await win.webContents.executeJavaScript(`(() => {
         const card = document.querySelector('.certificate-student-card').getBoundingClientRect();
         const overflow = [...document.querySelectorAll('[data-card-fit]')].filter(el => el.scrollWidth > el.clientWidth + 1).map(el => el.textContent);
-        return { width:card.width, height:card.height, overflow, teacherVisible:document.body.innerText.includes('គ្រូបន្ទុកថ្នាក់'), fonts:document.fonts.check('18px "Khmer OS Siemreap"') };
+        const photo = document.querySelector('[data-card-photo]');
+        return { width:card.width, height:card.height, overflow, teacherVisible:document.body.innerText.includes('គ្រូបន្ទុកថ្នាក់'), fonts:document.fonts.check('18px "Khmer OS Siemreap"'), photoReframed:photo?.src.startsWith('data:image/jpeg') };
     })()`);
     const shot = await win.webContents.capturePage({ x:0,y:0,width:Math.ceil(metrics.width),height:Math.ceil(metrics.height) });
     fs.writeFileSync(path.join(out, 'student-card-75x100.png'), shot.toPNG());
@@ -54,6 +62,6 @@ app.whenReady().then(async () => {
     fs.writeFileSync(path.join(out, 'metrics.json'), JSON.stringify(metrics, null, 2));
     console.log(JSON.stringify(metrics));
     win.destroy();
-    if (Math.abs(metrics.width - 75*96/25.4) > .1 || Math.abs(metrics.height - 100*96/25.4) > .1 || metrics.overflow.length || metrics.teacherVisible) throw new Error('Card layout validation failed');
+    if (Math.abs(metrics.width - 75*96/25.4) > .1 || Math.abs(metrics.height - 100*96/25.4) > .1 || metrics.overflow.length || metrics.teacherVisible || !metrics.photoReframed) throw new Error('Card layout validation failed');
     app.quit();
 }).catch(error => { console.error(error); app.exit(1); });

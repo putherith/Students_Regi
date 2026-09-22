@@ -632,6 +632,129 @@
             color: var(--text);
         }
 
+        .choice-picker-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 3200;
+            border: 0;
+            padding: 0;
+            background: rgba(15, 23, 42, .48);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .18s ease;
+        }
+
+        .choice-picker {
+            position: fixed;
+            left: 50%;
+            bottom: 18px;
+            z-index: 3201;
+            width: min(460px, calc(100% - 24px));
+            max-height: min(78dvh, 620px);
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: var(--surface);
+            box-shadow: 0 24px 70px rgba(15, 23, 42, .28);
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, calc(100% + 40px));
+            transition: transform .22s ease, opacity .18s ease;
+        }
+
+        .choice-picker.is-open,
+        .choice-picker-backdrop.is-open { opacity: 1; pointer-events: auto; }
+        .choice-picker.is-open { transform: translate(-50%, 0); }
+
+        .choice-picker-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 58px;
+            padding: 10px 12px 10px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .choice-picker-title { margin: 0; color: var(--text); font-size: 1rem; }
+        .choice-picker-close {
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+            border: 0;
+            border-radius: 10px;
+            background: var(--surface-3);
+            color: var(--text);
+            font-size: 1.35rem;
+        }
+
+        .choice-picker-options {
+            min-height: 100px;
+            display: grid;
+            align-content: start;
+            gap: 8px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            padding: 12px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .choice-picker-option {
+            width: 100%;
+            min-height: 48px;
+            padding: 8px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 11px;
+            background: var(--surface-2);
+            color: var(--text);
+            font-family: inherit;
+            font-size: .95rem;
+            font-weight: 600;
+            line-height: 1.45;
+            text-align: left;
+        }
+
+        .choice-picker-option:active,
+        .choice-picker-option.is-selected {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+            color: var(--primary-dark);
+        }
+
+        .choice-picker-custom {
+            min-height: 58px;
+            padding: 9px 12px;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .choice-picker-custom .btn { width: 100%; min-height: 42px; }
+
+        body.choice-picker-open { overflow: hidden; }
+
+        @media (max-width: 640px) {
+            .choice-picker {
+                left: 0;
+                bottom: 0;
+                width: 100%;
+                max-height: 82dvh;
+                border-right: 0;
+                border-bottom: 0;
+                border-left: 0;
+                border-radius: 20px 20px 0 0;
+                transform: translateY(calc(100% + 24px));
+            }
+            .choice-picker.is-open { transform: translateY(0); }
+            .choice-picker-header { min-height: 62px; }
+            .choice-picker-options { padding: 12px 14px; }
+            .choice-picker-option { min-height: 52px; font-size: 1rem; }
+            .choice-picker-custom { padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); }
+        }
+
         input:read-only {
             background: var(--surface-3);
             color: var(--muted);
@@ -3542,7 +3665,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.7</span>
+        <span class="footer-version">កំណែ 2.1.8</span>
     </footer>
 
 </main><!-- end .app -->
@@ -6426,24 +6549,37 @@
         const ctx = canvas.getContext("2d", { willReadFrequently:true });
         ctx.drawImage(img, 0, 0, width, height);
         const data = ctx.getImageData(0, 0, width, height).data;
-        let minX = width, minY = height, maxX = -1, maxY = -1;
+        const rowHits = new Uint32Array(height);
+        const columnHits = new Uint32Array(width);
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
                 const alpha = data[((y * width + x) * 4) + 3];
-                if (alpha > 18) {
-                    if (x < minX) minX = x;
-                    if (x > maxX) maxX = x;
-                    if (y < minY) minY = y;
-                    if (y > maxY) maxY = y;
+                // Ignore the faint mask haze MediaPipe can leave around a person.
+                // Counting solid pixels per row/column prevents one noisy pixel from
+                // making the whole camera frame look like the person's bounds.
+                if (alpha >= 64) {
+                    rowHits[y]++;
+                    columnHits[x]++;
                 }
             }
         }
-        if (maxX < minX || maxY < minY) return null;
+        const minRowHits = Math.max(2, Math.round(width * 0.008));
+        const minColumnHits = Math.max(2, Math.round(height * 0.008));
+        let minX = columnHits.findIndex(count => count >= minColumnHits);
+        let minY = rowHits.findIndex(count => count >= minRowHits);
+        let maxX = -1, maxY = -1;
+        for (let x = width - 1; x >= 0; x--) {
+            if (columnHits[x] >= minColumnHits) { maxX = x; break; }
+        }
+        for (let y = height - 1; y >= 0; y--) {
+            if (rowHits[y] >= minRowHits) { maxY = y; break; }
+        }
+        if (minX < 0 || minY < 0 || maxX < minX || maxY < minY) return null;
         const subjectWidth = maxX - minX + 1;
         const subjectHeight = maxY - minY + 1;
         const padX = Math.round(subjectWidth * 0.05);
-        const padTop = Math.round(subjectHeight * 0.01);
-        const padBottom = Math.round(subjectHeight * 0.035);
+        const padTop = Math.round(subjectHeight * 0.008);
+        const padBottom = Math.round(subjectHeight * 0.025);
         minX = Math.max(0, minX - padX);
         minY = Math.max(0, minY - padTop);
         maxX = Math.min(width - 1, maxX + padX);
@@ -6462,13 +6598,13 @@
             const bounds = getAlphaBounds(img);
             const source = bounds || { x:0, y:0, w:img.naturalWidth || img.width, h:img.naturalHeight || img.height };
             const scale = Math.min(
-                (canvas.width * 0.92) / source.w,
-                (canvas.height * 0.97) / source.h
+                (canvas.width * 0.94) / source.w,
+                (canvas.height * 0.99) / source.h
             );
             const w = source.w * scale;
             const h = source.h * scale;
             const x = (canvas.width - w) / 2;
-            const y = Math.round(canvas.height * 0.0125);
+            const y = Math.round(canvas.height * 0.005);
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = "high";
             ctx.drawImage(img, source.x, source.y, source.w, source.h, x, y, w, h);
@@ -7267,7 +7403,7 @@
                 })
             ));
             if (win.closed) return;
-            window.StudentCardTemplate.fitText(win.document);
+            await window.StudentCardTemplate.fitText(win.document);
             win.focus();
             win.print();
         };
@@ -7741,23 +7877,95 @@
         showToast(`ទាញយក CSV ${rows.length} នាក់`);
     }
 
+    let activeChoiceInput = null;
+
+    function choicePickerElements() {
+        let picker = document.getElementById("choice-picker");
+        let backdrop = document.getElementById("choice-picker-backdrop");
+        if (picker && backdrop) return { picker, backdrop };
+
+        backdrop = document.createElement("button");
+        backdrop.type = "button";
+        backdrop.id = "choice-picker-backdrop";
+        backdrop.className = "choice-picker-backdrop";
+        backdrop.setAttribute("aria-label", "បិទបញ្ជីជម្រើស");
+
+        picker = document.createElement("section");
+        picker.id = "choice-picker";
+        picker.className = "choice-picker";
+        picker.setAttribute("role", "dialog");
+        picker.setAttribute("aria-modal", "true");
+        picker.setAttribute("aria-labelledby", "choice-picker-title");
+        picker.innerHTML = `
+            <div class="choice-picker-header">
+                <h3 class="choice-picker-title" id="choice-picker-title">ជ្រើសរើស</h3>
+                <button class="choice-picker-close" type="button" aria-label="បិទ">×</button>
+            </div>
+            <div class="choice-picker-options" id="choice-picker-options"></div>
+            <div class="choice-picker-custom">
+                <button class="btn btn-ghost" type="button" data-choice-custom>
+                    <ion-icon name="create-outline"></ion-icon> វាយបញ្ចូលដោយផ្ទាល់
+                </button>
+            </div>`;
+        document.body.append(backdrop, picker);
+        backdrop.addEventListener("click", closeChoicePicker);
+        picker.querySelector(".choice-picker-close")?.addEventListener("click", closeChoicePicker);
+        picker.querySelector("[data-choice-custom]")?.addEventListener("click", () => {
+            const input = activeChoiceInput;
+            closeChoicePicker(false);
+            input?.focus({ preventScroll:true });
+        });
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape" && picker.classList.contains("is-open")) closeChoicePicker();
+        });
+        return { picker, backdrop };
+    }
+
+    function closeChoicePicker(restoreFocus = true) {
+        const input = activeChoiceInput;
+        const picker = document.getElementById("choice-picker");
+        const backdrop = document.getElementById("choice-picker-backdrop");
+        picker?.classList.remove("is-open");
+        backdrop?.classList.remove("is-open");
+        document.body.classList.remove("choice-picker-open");
+        activeChoiceInput = null;
+        if (restoreFocus && input) input.focus({ preventScroll:true });
+    }
+
     function openChoicePicker(input) {
         if (!input || input.disabled) return;
-        input.focus({ preventScroll:true });
-        if (typeof input.showPicker === "function") {
-            try {
-                input.showPicker();
-                return;
-            } catch (error) {
-                console.debug("Native choice picker unavailable:", error);
-            }
+        const list = input.list;
+        const values = [...new Set(Array.from(list?.options || [], option => option.value || option.textContent).filter(Boolean))];
+        if (!values.length) {
+            input.focus({ preventScroll:true });
+            return;
         }
-        input.dispatchEvent(new KeyboardEvent("keydown", {
-            key:"ArrowDown",
-            code:"ArrowDown",
-            altKey:true,
-            bubbles:true
-        }));
+
+        const { picker, backdrop } = choicePickerElements();
+        const label = input.id ? document.querySelector(`label[for="${input.id}"]`) : null;
+        picker.querySelector(".choice-picker-title").textContent = label?.textContent?.trim() || "ជ្រើសរើស";
+        const options = picker.querySelector(".choice-picker-options");
+        options.replaceChildren();
+        values.forEach(value => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "choice-picker-option";
+            button.textContent = value;
+            button.dataset.value = value;
+            if (value === input.value) button.classList.add("is-selected");
+            button.addEventListener("click", () => {
+                input.value = value;
+                input.dispatchEvent(new Event("input", { bubbles:true }));
+                closeChoicePicker();
+            });
+            options.append(button);
+        });
+
+        activeChoiceInput = input;
+        document.body.classList.add("choice-picker-open");
+        backdrop.classList.add("is-open");
+        picker.classList.add("is-open");
+        requestAnimationFrame(() => options.querySelector(".is-selected, .choice-picker-option")?.focus({ preventScroll:true }));
     }
 
     function enhanceChoiceInputs() {
