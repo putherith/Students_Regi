@@ -3665,7 +3665,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.10</span>
+        <span class="footer-version">កំណែ 2.1.11</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4002,6 +4002,8 @@
     const GOOGLE_SETTINGS_REVISION_STORAGE_KEY = "studentRegistrationGoogleSettingsRevision";
     const BACKUP_TIME_STORAGE_KEY    = "studentRegistrationLastBackupAt";
     const PENDING_CLOUD_MUTATIONS_STORAGE_KEY = "studentRegistrationPendingCloudMutationsV1";
+    const PHOTO_CACHE_DB_NAME = "studentRegistrationPhotoCache";
+    const PHOTO_CACHE_STORE_NAME = "studentPhotos";
     const DEFAULT_STUDENT_CODE_PREFIX = "STU";
     const SUPABASE_READ_PAGE_SIZE    = 1000;
     const SHARED_DATA_REFRESH_MS     = 20000;
@@ -4010,6 +4012,7 @@
     let pendingCloudMutations = 0;
     let cloudMutationQueue = Promise.resolve();
     let cloudFlushInFlight = null;
+    let photoCacheDbPromise = null;
     let lastGoogleDataRevision = localStorage.getItem(GOOGLE_DATA_REVISION_STORAGE_KEY) || "";
     let lastGoogleSettingsRevision = localStorage.getItem(GOOGLE_SETTINGS_REVISION_STORAGE_KEY) || "";
     let appSettings = loadAppSettingsFromLocal();
@@ -4068,6 +4071,7 @@
     }
 
     function saveToLocalStorage(students) {
+        rememberStudentPhotos(students);
         const withoutCloudPhotos = () => students.map(student => ({ ...student, photo:"" }));
         try {
             // Serializing every base64 photo repeatedly freezes low-memory phones.
@@ -4084,6 +4088,111 @@
                 showToast("រក្សាទុកក្នុង Local Storage បរាជ័យ", "error");
             }
         }
+    }
+
+    function studentPhotoCacheKey(student={}, fallback="") {
+        return String(student.id || student.recordId || student.studentCode || student.studentId || fallback || "").trim();
+    }
+
+    function openPhotoCache() {
+        if (photoCacheDbPromise) return photoCacheDbPromise;
+        if (!("indexedDB" in window)) return Promise.resolve(null);
+        photoCacheDbPromise = new Promise(resolve => {
+            try {
+                const request = indexedDB.open(PHOTO_CACHE_DB_NAME, 1);
+                request.onupgradeneeded = () => {
+                    const db = request.result;
+                    if (!db.objectStoreNames.contains(PHOTO_CACHE_STORE_NAME)) {
+                        db.createObjectStore(PHOTO_CACHE_STORE_NAME, { keyPath:"id" });
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => resolve(null);
+            } catch (error) {
+                console.debug("Photo cache is unavailable:", error);
+                resolve(null);
+            }
+        });
+        return photoCacheDbPromise;
+    }
+
+    async function cacheStudentPhoto(student={}, fallback="") {
+        const id = studentPhotoCacheKey(student, fallback);
+        const photo = safePhotoSrc(student.photo);
+        if (!id || !photo) return false;
+        const db = await openPhotoCache();
+        if (!db) return false;
+        return new Promise(resolve => {
+            try {
+                const transaction = db.transaction(PHOTO_CACHE_STORE_NAME, "readwrite");
+                transaction.objectStore(PHOTO_CACHE_STORE_NAME).put({ id, photo, updatedAt:new Date().toISOString() });
+                transaction.oncomplete = () => resolve(true);
+                transaction.onerror = transaction.onabort = () => resolve(false);
+            } catch (error) {
+                console.debug("Cannot cache student photo:", error);
+                resolve(false);
+            }
+        });
+    }
+
+    function rememberStudentPhotos(students=[]) {
+        (students || []).forEach(student => {
+            if (safePhotoSrc(student?.photo)) cacheStudentPhoto(student);
+        });
+    }
+
+    async function cachedStudentPhoto(student={}, fallback="") {
+        const id = studentPhotoCacheKey(student, fallback);
+        if (!id) return "";
+        const db = await openPhotoCache();
+        if (!db) return "";
+        return new Promise(resolve => {
+            try {
+                const transaction = db.transaction(PHOTO_CACHE_STORE_NAME, "readonly");
+                const request = transaction.objectStore(PHOTO_CACHE_STORE_NAME).get(id);
+                request.onsuccess = () => resolve(safePhotoSrc(request.result?.photo));
+                request.onerror = () => resolve("");
+            } catch (error) {
+                console.debug("Cannot read cached student photo:", error);
+                resolve("");
+            }
+        });
+    }
+
+    function historicalStudentPhoto(student={}) {
+        const id = studentPhotoCacheKey(student);
+        const code = String(student.studentCode || student.studentId || "").trim();
+        const name = normText(studentFullName(student));
+        for (const log of loadHistoryFromLocalStorage()) {
+            try {
+                const details = JSON.parse(log.details || "{}");
+                const matches = (id && String(details.recordId || "") === id)
+                    || (code && String(details.studentId || "") === code)
+                    || (name && normText(details.studentName || log.studentName) === name);
+                const photo = safePhotoSrc(details.photo);
+                if (matches && photo) return photo;
+            } catch {}
+        }
+        return "";
+    }
+
+    async function restoreStudentPhoto(student={}) {
+        if (safePhotoSrc(student.photo)) {
+            cacheStudentPhoto(student);
+            return student;
+        }
+        const restored = await cachedStudentPhoto(student) || historicalStudentPhoto(student);
+        if (restored) {
+            student.photo = restored;
+            cacheStudentPhoto(student);
+        }
+        return student;
+    }
+
+    async function restoreStudentPhotos(students=[]) {
+        // Process serially to keep low-memory phones smooth when a class has many photos.
+        for (const student of students || []) await restoreStudentPhoto(student);
+        return students;
     }
 
     function loadPendingCloudMutations() {
@@ -5717,6 +5826,7 @@
             const cloudRows = await readSupabaseStudents();
             const queuedOperations = loadPendingCloudMutations();
             const cloudStudents = applyPendingMutationsToStudents(cloudRows, queuedOperations);
+            await restoreStudentPhotos(cloudStudents);
             if (!cloudRows.length && keepLocalWhenCloudEmpty && allStudents.length && !queuedOperations.length) {
                 setStatus("Supabase ទទេ - រក្សាទុក Local", "connected");
                 if (!silent) showToast("Supabase ទទេ។ ទិន្នន័យក្នុង browser ត្រូវបានរក្សាទុក","warning");
@@ -5759,6 +5869,7 @@
             const normalizedCloudStudents = cloudRows.map(normalizeCloudStudent).filter(s => s.id || s.studentCode || s.studentName);
             const queuedOperations = loadPendingCloudMutations();
             const cloudStudents = applyPendingMutationsToStudents(normalizedCloudStudents, queuedOperations);
+            await restoreStudentPhotos(cloudStudents);
             rememberGoogleSheetRevisions(payload);
             if (!normalizedCloudStudents.length && keepLocalWhenCloudEmpty && allStudents.length && !queuedOperations.length) {
                 if (!background) setStatus("Sheet ទទេ - រក្សាទុក Local", "connected");
@@ -7081,8 +7192,12 @@
             if (dup) { showToast(duplicateMsg(dup),"warning"); return; }
             const nowIso = new Date().toISOString();
             if (editingId) {
+                const existing = allStudents.find(i => i.id === editingId);
+                // Editing text must never erase a photo that is already stored locally or in IndexedDB.
+                if (!safePhotoSrc(payload.photo)) {
+                    payload.photo = safePhotoSrc(existing?.photo) || await cachedStudentPhoto(existing || { id:editingId }, editingId);
+                }
                 if (!payload.studentCode) {
-                    const existing = allStudents.find(i => i.id === editingId);
                     payload.studentCode = studentDisplayId(existing, editingId);
                 }
                 const idx = allStudents.findIndex(i => i.id === editingId);
@@ -7108,6 +7223,7 @@
                     createdAt: nowIso,
                     updatedAt: nowIso
                 };
+                await cacheStudentPhoto(newStudent);
                 allStudents.unshift(newStudent);
                 saveToLocalStorage(allStudents);
                 await logHistory("added", payload.studentName, { studentId: payload.studentCode, recordId: newId, ...payload });
@@ -7498,6 +7614,7 @@
     async function refreshStudents({ reset=false, source="local" }={}) {
         if (reset) resetPagination();
         if (source !== "memory") allStudents = loadFromLocalStorage();
+        await restoreStudentPhotos(allStudents);
         allStudents.sort((a,b) => tsMillis(b.createdAt)-tsMillis(a.createdAt));
         await updateStats();
         buildSchoolFilter();
@@ -7551,7 +7668,8 @@
                 openSheetModal();
                 return;
             }
-            const ok = await syncCloudStorage("backup", {}, "", allStudents);
+            const studentsForBackup = await restoreStudentPhotos(allStudents.map(student => ({ ...student })));
+            const ok = await syncCloudStorage("backup", {}, "", studentsForBackup);
             if (!ok) throw new Error(`${currentStorageName()} backup failed`);
             localStorage.setItem(BACKUP_TIME_STORAGE_KEY, new Date().toISOString());
             await logHistory("backup", currentStorageName(), { total: allStudents.length });

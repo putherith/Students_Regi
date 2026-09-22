@@ -412,7 +412,9 @@ function upsertStudent_(student) {
 
 function mergeStudentRecord_(existing, incoming) {
   const merged = Object.assign({}, existing || {}, incoming || {});
-  ["studentName", "studentSurname", "studentGivenName"].forEach(function(field) {
+  // Never let a text-only edit or an offline retry with no cached image clear a photo
+  // that already exists in the shared Sheet.
+  ["studentName", "studentSurname", "studentGivenName", "photo"].forEach(function(field) {
     if (!String((incoming && incoming[field]) || "").trim() && String((existing && existing[field]) || "").trim()) {
       merged[field] = existing[field];
     }

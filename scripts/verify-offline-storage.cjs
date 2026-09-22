@@ -39,6 +39,7 @@ app.whenReady().then(async () => {
         document.getElementById('studentSurname').value = 'ហ៊ុន';
         document.getElementById('studentGivenName').value = 'សុភា';
         document.getElementById('contact').value = '012345678';
+        document.getElementById('studentPhotoData').value = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
         for (const [id, value] of [['dob-day','2'], ['dob-month','2'], ['dob-year','2012']]) {
             const select = document.getElementById(id);
             select.value = value;
@@ -51,7 +52,7 @@ app.whenReady().then(async () => {
     await win.loadURL(appUrl);
     const result = await win.webContents.executeJavaScript(`(async () => {
         const started = Date.now();
-        while (document.getElementById('total-students').textContent.trim() !== '1') {
+        while (document.getElementById('total-students').textContent.trim() !== '1' || !document.querySelector('.student-photo-thumbnail')) {
             if (Date.now() - started > 4000) throw new Error('Offline student did not survive reload');
             await new Promise(resolve => setTimeout(resolve, 25));
         }
@@ -60,6 +61,8 @@ app.whenReady().then(async () => {
         return {
             total:document.getElementById('total-students').textContent.trim(),
             localRows:localRows.length,
+            localPhotoWasStripped:!localRows[0]?.photo,
+            restoredPhotoVisible:document.querySelector('.student-photo-thumbnail')?.src.startsWith('data:image') || false,
             pending:pending.length,
             pendingName:pending[0]?.student?.studentName || '',
             status:document.getElementById('connection-text').textContent
@@ -77,7 +80,7 @@ app.whenReady().then(async () => {
     })()`);
     console.log(JSON.stringify(result));
     win.destroy();
-    if (result.total !== '1' || result.localRows !== 1 || result.pending !== 1 || result.pendingName !== 'ហ៊ុន សុភា' || !result.status.includes('រង់ចាំ Sync') || !result.syncedAfterOnline) {
+    if (result.total !== '1' || result.localRows !== 1 || !result.localPhotoWasStripped || !result.restoredPhotoVisible || result.pending !== 1 || result.pendingName !== 'ហ៊ុន សុភា' || !result.status.includes('រង់ចាំ Sync') || !result.syncedAfterOnline) {
         throw new Error('Offline storage validation failed');
     }
     app.quit();
