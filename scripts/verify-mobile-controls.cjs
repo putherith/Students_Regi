@@ -15,6 +15,11 @@ app.whenReady().then(async () => {
         height:844,
         webPreferences:{ offscreen:true, partition:`temporary-mobile-${Date.now()}` }
     });
+    // Keep the verification isolated from the production Google Sheet.
+    win.webContents.session.webRequest.onBeforeRequest(
+        { urls:['https://script.google.com/*', 'https://script.googleusercontent.com/*'] },
+        (_details, callback) => callback({ cancel:true })
+    );
     await win.loadURL(pathToFileURL(path.join(root, 'index.html')).href);
     await win.webContents.executeJavaScript(`new Promise(resolve => {
         if (document.readyState === 'complete') resolve();
@@ -64,20 +69,28 @@ app.whenReady().then(async () => {
         await waitFor(() => !document.getElementById('save-student-btn').disabled);
         const duplicateBlocked = document.getElementById('total-students').textContent.trim() === '1'
             && [...document.querySelectorAll('.toast-msg')].some(element => element.textContent.includes('ឈ្មោះសិស្សនេះមានរួចហើយ'));
+        document.getElementById('sheet-settings-btn').click();
+        const sheetUrlInput = document.getElementById('sheet-url-input');
+        const canonicalSheetUrl = sheetUrlInput.value;
+        const sheetUrlReadOnly = sheetUrlInput.readOnly;
+        document.getElementById('cancel-sheet-url-btn').click();
         return {
             choiceButtons:document.querySelectorAll('.choice-open-btn').length,
             occupation, province, district, commune, village,
             pickerClosed:!document.getElementById('choice-picker').classList.contains('is-open'),
             viewport:innerWidth,
             pickerWidth:picker.width,
-            duplicateBlocked
+            duplicateBlocked,
+            canonicalSheetUrl,
+            sheetUrlReadOnly
         };
     })()`);
     console.log(JSON.stringify(result));
     win.destroy();
     const valid = result.choiceButtons === 10 && result.occupation === 'កសិករ' &&
         result.province === 'ខេត្តតាកែវ' && result.district === 'ស្រុកកោះអណ្តែត' &&
-        result.commune === 'ក្រពុំឈូក' && result.village === 'ដើមដូង' && result.pickerClosed && result.duplicateBlocked;
+        result.commune === 'ក្រពុំឈូក' && result.village === 'ដើមដូង' && result.pickerClosed && result.duplicateBlocked &&
+        result.sheetUrlReadOnly && result.canonicalSheetUrl === 'https://script.google.com/macros/s/AKfycbyc_1v8DBczUTac1CprLsj2Ae5uKt8In-XGpB6lXXmCZj7Mm-4OL1DPSJjNXsD-G2GK/exec';
     if (!valid) throw new Error('Mobile choice control validation failed');
     app.quit();
 }).catch(error => {

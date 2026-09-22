@@ -16,13 +16,16 @@ app.whenReady().then(async () => {
         webPreferences:{ offscreen:true, partition:`temporary-offline-${Date.now()}` }
     });
     const appUrl = pathToFileURL(path.join(root, 'index.html')).href;
+    win.webContents.session.webRequest.onBeforeRequest(
+        { urls:['https://script.google.com/*', 'https://script.googleusercontent.com/*'] },
+        (_details, callback) => callback({ cancel:true })
+    );
     await win.loadURL(appUrl);
     await win.webContents.executeJavaScript(`
         localStorage.clear();
         localStorage.setItem('studentRegistrationCloudProvider', 'google-sheet');
         localStorage.setItem('studentRegistrationGoogleScriptUrl', 'https://script.google.com/macros/s/unavailable-test/exec');
     `);
-    win.webContents.session.enableNetworkEmulation({ offline:true });
     await win.loadURL(appUrl);
 
     await win.webContents.executeJavaScript(`(async () => {
@@ -62,7 +65,6 @@ app.whenReady().then(async () => {
             status:document.getElementById('connection-text').textContent
         };
     })()`);
-    win.webContents.session.disableNetworkEmulation();
     result.syncedAfterOnline = await win.webContents.executeJavaScript(`(async () => {
         window.fetch = async () => ({});
         window.dispatchEvent(new Event('online'));
