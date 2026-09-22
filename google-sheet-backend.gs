@@ -370,16 +370,18 @@ function mergeStudents_(incomingStudents) {
   incomingStudents.forEach(function(incoming) {
     const student = normalizeIncomingStudent_(incoming);
     const key = String(student.id || student.studentCode || "").trim();
-    const index = students.findIndex(function(existing) {
+    const keyIndex = students.findIndex(function(existing) {
       return studentMatchesKey_(existing, key);
     });
-    if (index >= 0) {
-      const createdAt = students[index].createdAt;
-      students[index] = mergeStudentRecord_(students[index], student);
-      if (createdAt) students[index].createdAt = createdAt;
-    } else {
-      students.push(student);
+    if (keyIndex >= 0) {
+      const createdAt = students[keyIndex].createdAt;
+      students[keyIndex] = mergeStudentRecord_(students[keyIndex], student);
+      if (createdAt) students[keyIndex].createdAt = createdAt;
+      return;
     }
+    // A different record with the same normalized Khmer name is a duplicate.
+    if (students.some(function(existing) { return sameStudentName_(existing, student); })) return;
+    students.push(student);
   });
   writeStudents_(students);
   return incomingStudents.length;
@@ -400,6 +402,9 @@ function upsertStudent_(student) {
         sheet.getRange(i + 2, 1, 1, HEADERS.length).setValues([studentToRow_(merged)]);
         return;
       }
+    }
+    for (let i = 0; i < rows.length; i++) {
+      if (sameStudentName_(rowToStudent_(rows[i]), student)) return;
     }
   }
   sheet.getRange(Math.max(2, lastRow + 1), 1, 1, HEADERS.length).setValues([studentToRow_(student)]);
@@ -432,7 +437,7 @@ function deleteStudent_(key) {
 
 function writeStudents_(students) {
   const sheet = getStudentsSheet_();
-  const sorted = sortStudents_(students.map(normalizeIncomingStudent_));
+  const sorted = sortStudents_(dedupeStudentsByName_(students.map(normalizeIncomingStudent_)));
   if (sheet.getLastRow() > 1) {
     sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.length).clearContent();
   }
@@ -487,6 +492,31 @@ function studentMatchesKey_(student, key) {
   const id = String(student.id || "").trim();
   const code = String(student.studentCode || student.studentId || "").trim();
   return id === key || code === key;
+}
+
+function studentNameKey_(student) {
+  const name = String((student && student.studentName) || [student && student.studentSurname, student && student.studentGivenName].filter(Boolean).join(" ") || "");
+  return name
+    .normalize("NFC")
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, "")
+    .toLocaleLowerCase()
+    .replace(/[\s\u00A0]+/g, "");
+}
+
+function sameStudentName_(left, right) {
+  const leftName = studentNameKey_(left);
+  return !!leftName && leftName === studentNameKey_(right);
+}
+
+function dedupeStudentsByName_(students) {
+  const names = {};
+  return students.filter(function(student) {
+    const key = studentNameKey_(student);
+    if (!key) return true;
+    if (names[key]) return false;
+    names[key] = true;
+    return true;
+  });
 }
 
 function sortStudents_(students) {

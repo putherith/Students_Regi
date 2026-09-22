@@ -3665,7 +3665,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.8</span>
+        <span class="footer-version">កំណែ 2.1.9</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4001,6 +4001,7 @@
     const GOOGLE_DATA_REVISION_STORAGE_KEY = "studentRegistrationGoogleDataRevision";
     const GOOGLE_SETTINGS_REVISION_STORAGE_KEY = "studentRegistrationGoogleSettingsRevision";
     const BACKUP_TIME_STORAGE_KEY    = "studentRegistrationLastBackupAt";
+    const PENDING_CLOUD_MUTATIONS_STORAGE_KEY = "studentRegistrationPendingCloudMutationsV1";
     const DEFAULT_STUDENT_CODE_PREFIX = "STU";
     const SUPABASE_READ_PAGE_SIZE    = 1000;
     const SHARED_DATA_REFRESH_MS     = 20000;
@@ -4008,6 +4009,7 @@
     let sharedDataRefreshInFlight = false;
     let pendingCloudMutations = 0;
     let cloudMutationQueue = Promise.resolve();
+    let cloudFlushInFlight = null;
     let lastGoogleDataRevision = localStorage.getItem(GOOGLE_DATA_REVISION_STORAGE_KEY) || "";
     let lastGoogleSettingsRevision = localStorage.getItem(GOOGLE_SETTINGS_REVISION_STORAGE_KEY) || "";
     let appSettings = loadAppSettingsFromLocal();
@@ -4055,7 +4057,10 @@
         try {
             const data = localStorage.getItem(LOCAL_STUDENTS_KEY);
             const parsed = data ? JSON.parse(data) : [];
-            return Array.isArray(parsed) ? parsed.map(normalizeStudentIdentity) : [];
+            const localStudents = Array.isArray(parsed) ? parsed.map(normalizeStudentIdentity) : [];
+            // Re-apply unsynced writes after a reload so a stale/unavailable Sheet
+            // can never erase data that was already saved on this device.
+            return applyPendingMutationsToStudents(localStudents);
         } catch (e) {
             console.error("Error loading students from localStorage:", e);
             return [];
@@ -4077,6 +4082,56 @@
             } catch (fallbackError) {
                 console.error("Local text-only save failed:", fallbackError);
                 showToast("រក្សាទុកក្នុង Local Storage បរាជ័យ", "error");
+            }
+        }
+    }
+
+    function loadPendingCloudMutations() {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(PENDING_CLOUD_MUTATIONS_STORAGE_KEY) || "[]");
+            const operations = Array.isArray(parsed) ? parsed.filter(item => item && item.id && item.action) : [];
+            pendingCloudMutations = operations.length;
+            return operations;
+        } catch (error) {
+            console.error("Error loading pending cloud mutations:", error);
+            pendingCloudMutations = 0;
+            return [];
+        }
+    }
+
+    function stripMutationPhotos(operation) {
+        return {
+            ...operation,
+            student: operation.student ? { ...operation.student, photo:"" } : operation.student,
+            students: Array.isArray(operation.students)
+                ? operation.students.map(student => ({ ...student, photo:"" }))
+                : operation.students
+        };
+    }
+
+    function savePendingCloudMutations(operations, { quiet=false }={}) {
+        const safeOperations = Array.isArray(operations) ? operations : [];
+        try {
+            if (safeOperations.length) {
+                localStorage.setItem(PENDING_CLOUD_MUTATIONS_STORAGE_KEY, JSON.stringify(safeOperations));
+            } else {
+                localStorage.removeItem(PENDING_CLOUD_MUTATIONS_STORAGE_KEY);
+            }
+            pendingCloudMutations = safeOperations.length;
+            return true;
+        } catch (error) {
+            console.error("Error saving pending cloud mutations:", error);
+            try {
+                const textOnly = safeOperations.map(stripMutationPhotos);
+                localStorage.setItem(PENDING_CLOUD_MUTATIONS_STORAGE_KEY, JSON.stringify(textOnly));
+                pendingCloudMutations = textOnly.length;
+                if (!quiet) showToast("ឧបករណ៍ជិតពេញ៖ បានរក្សាទុកទិន្នន័យ Offline ដោយមិនរក្សារូបថត", "warning");
+                return true;
+            } catch (fallbackError) {
+                console.error("Text-only pending mutation save failed:", fallbackError);
+                pendingCloudMutations = safeOperations.length;
+                if (!quiet) showToast("រក្សាជួររង់ចាំ Sync មិនបាន។ សូមកុំបិទ App ហើយសាក Backup ម្តងទៀត", "error");
+                return false;
             }
         }
     }
@@ -4392,6 +4447,7 @@
     let studentToDeleteId = null;
     let lastCloudError = "";
     let cloudSyncWarning = "";
+    let studentSaveInProgress = false;
     const disabledSupabaseColumns = new Set();
 
     const fieldIds = [
@@ -4608,7 +4664,14 @@
         DATE_SELECTOR_CONFIGS.forEach(syncDateFromSelectors);
     }
 
-    function normText(v) { return String(v||"").trim().toLocaleLowerCase("km-KH").replace(/\s+/g,""); }
+    function normText(v) {
+        return String(v || "")
+            .normalize("NFC")
+            .replace(/[\u200B-\u200D\u2060\uFEFF]/g, "")
+            .trim()
+            .toLocaleLowerCase("km-KH")
+            .replace(/[\s\u00A0]+/g, "");
+    }
     function normPhone(v) { const d=String(v||"").replace(/\D/g,""); return d.startsWith("855")?`0${d.slice(3)}`:d; }
 
     function normGender(v) {
@@ -4946,8 +5009,14 @@
     function restartSharedDataRefresh() {
         if (sharedDataRefreshTimer) clearInterval(sharedDataRefreshTimer);
         sharedDataRefreshTimer = null;
-        if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl()) return;
-        sharedDataRefreshTimer = setInterval(refreshSharedDataInBackground, SHARED_DATA_REFRESH_MS);
+        if (!hasCloudStorageConfig()) return;
+        sharedDataRefreshTimer = setInterval(() => {
+            if (loadPendingCloudMutations().length) {
+                queuePendingCloudFlush({ notify:false });
+            } else if (getCloudProvider() === GOOGLE_SHEET_PROVIDER) {
+                refreshSharedDataInBackground();
+            }
+        }, SHARED_DATA_REFRESH_MS);
     }
 
     function readableCloudError(err) {
@@ -5366,11 +5435,18 @@
     async function syncGoogleSheet(action, student={}, studentId="", students=null) {
         const url = getGoogleScriptUrl();
         if (!url) return false;
+        if (navigator.onLine === false) throw new Error("ឧបករណ៍គ្មានអ៊ីនធឺណិត");
         const body = { action, studentId, student: {...student, studentId}, accessKey:getGoogleSheetAccessKey(), sentAt: new Date().toISOString() };
         if (Array.isArray(students)) {
             body.students = students.map(i => ({ studentId: studentDisplayId(i, i.id), student: {...i, studentId: studentDisplayId(i,i.id)} }));
         }
-        await fetch(url, { method:"POST", mode:"no-cors", cache:"no-cache", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(body), redirect:"follow" });
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 12000);
+        try {
+            await fetch(url, { method:"POST", mode:"no-cors", cache:"no-cache", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(body), redirect:"follow", signal:controller.signal });
+        } finally {
+            clearTimeout(timeout);
+        }
         if (["upsert","upsertmany","delete","backup","replace"].includes(action)) {
             localStorage.setItem(BACKUP_TIME_STORAGE_KEY, new Date().toISOString());
         }
@@ -5407,34 +5483,91 @@
         return ok;
     }
 
-    function enqueueCloudMutation(action, student={}, studentId="", students=null) {
-        if (!hasCloudStorageConfig()) return Promise.resolve(true);
-        pendingCloudMutations += 1;
-        const studentSnapshot = { ...student };
-        const studentsSnapshot = Array.isArray(students) ? students.map(item => ({ ...item })) : null;
-        const run = async () => {
+    function mutationRecordKey(operation={}) {
+        return pendingStudentKey(operation.student || {}, operation.studentId);
+    }
+
+    function stageCloudMutation(action, student={}, studentId="", students=null) {
+        let operations = loadPendingCloudMutations();
+        const operation = {
+            id:`mutation-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            action,
+            studentId:String(studentId || ""),
+            student:{ ...student },
+            students:Array.isArray(students) ? students.map(item => ({ ...item })) : null,
+            createdAt:new Date().toISOString()
+        };
+        const key = mutationRecordKey(operation);
+        if (action === "clearall" || action === "replace") {
+            operations = [];
+        } else if (action === "upsert" && key) {
+            operations = operations.filter(existing => !(existing.action === "upsert" && mutationRecordKey(existing) === key));
+        } else if (action === "delete" && key) {
+            operations = operations.filter(existing => !(existing.action === "upsert" && mutationRecordKey(existing) === key));
+        }
+        operations.push(operation);
+        return savePendingCloudMutations(operations) ? operation : null;
+    }
+
+    function removePendingCloudMutation(operationId) {
+        const remaining = loadPendingCloudMutations().filter(operation => operation.id !== operationId);
+        savePendingCloudMutations(remaining, { quiet:true });
+        return remaining;
+    }
+
+    async function flushPendingCloudMutations({ notify=false }={}) {
+        let operations = loadPendingCloudMutations();
+        if (!operations.length) return true;
+        if (!hasCloudStorageConfig() || navigator.onLine === false) {
+            setStatus(`រក្សា Offline · រង់ចាំ Sync ${operations.length}`, "error");
+            if (notify) showToast(`បានរក្សាទុកក្នុងឧបករណ៍ · រង់ចាំ Sync ${operations.length} ទិន្នន័យ`, "warning");
+            return false;
+        }
+
+        while (operations.length) {
+            const operation = operations[0];
             let ok = false;
             for (let attempt = 0; attempt < 2 && !ok; attempt++) {
-                ok = await syncCloudStorage(action, studentSnapshot, studentId, studentsSnapshot);
+                ok = await syncCloudStorage(operation.action, operation.student || {}, operation.studentId || "", operation.students);
                 if (!ok && attempt === 0) await new Promise(resolve => setTimeout(resolve, 700));
             }
             if (!ok) {
-                showToast(`${currentStorageName()} sync មិនបាន${lastCloudError ? ": " + lastCloudError.slice(0, 70) : ""}`, "warning");
-            } else if (cloudSyncWarning) {
-                showToast(cloudSyncWarning, "warning");
+                setStatus(`រក្សា Offline · រង់ចាំ Sync ${operations.length}`, "error");
+                if (notify) {
+                    showToast(`បានរក្សាទុកក្នុងឧបករណ៍ · ${currentStorageName()} មិនទាន់ភ្ជាប់${lastCloudError ? ": " + lastCloudError.slice(0, 55) : ""}`, "warning");
+                }
+                return false;
             }
-            if (ok && getCloudProvider() === GOOGLE_SHEET_PROVIDER) {
-                setTimeout(() => refreshSharedDataInBackground(), 1200);
-            }
-            return ok;
-        };
+            operations = removePendingCloudMutation(operation.id);
+        }
+
+        setStatus(currentStorageName(), "connected");
+        if (notify) showToast(`បាន Sync ទិន្នន័យរង់ចាំទៅ ${currentStorageName()}`);
+        if (cloudSyncWarning) showToast(cloudSyncWarning, "warning");
+        if (getCloudProvider() === GOOGLE_SHEET_PROVIDER) setTimeout(() => refreshSharedDataInBackground(), 1200);
+        return true;
+    }
+
+    function queuePendingCloudFlush(options={}) {
+        if (cloudFlushInFlight) return cloudFlushInFlight;
+        const run = () => flushPendingCloudMutations(options);
         const task = cloudMutationQueue.then(run, run);
         cloudMutationQueue = task.catch(() => false);
-        task.finally(() => { pendingCloudMutations = Math.max(0, pendingCloudMutations - 1); });
+        cloudFlushInFlight = task;
+        task.finally(() => {
+            if (cloudFlushInFlight === task) cloudFlushInFlight = null;
+        });
         return task;
     }
 
-    function readGoogleSheetJsonp(params={}) {
+    function enqueueCloudMutation(action, student={}, studentId="", students=null) {
+        if (!hasCloudStorageConfig()) return Promise.resolve(true);
+        const operation = stageCloudMutation(action, student, studentId, students);
+        if (!operation) return Promise.resolve(false);
+        return queuePendingCloudFlush({ notify:true });
+    }
+
+    function readGoogleSheetJsonp(params={}, timeoutMs=15000) {
         const url = getGoogleScriptUrl();
         if (!url) return Promise.reject(new Error("Missing Google Script URL"));
         return new Promise((resolve, reject) => {
@@ -5443,7 +5576,7 @@
             const timer = setTimeout(() => {
                 cleanup();
                 reject(new Error("Google Sheet response timeout"));
-            }, 15000);
+            }, timeoutMs);
             function cleanup() {
                 clearTimeout(timer);
                 delete window[callback];
@@ -5522,6 +5655,57 @@
         return { ...student, ...normStudentFields(student) };
     }
 
+    function pendingStudentKey(student={}, fallback="") {
+        return String(student.recordId || student.id || student.studentCode || student.studentId || fallback || "").trim();
+    }
+
+    function mergeQueuedStudent(students, rawStudent={}, fallback="") {
+        const incoming = normalizeCloudStudent({ ...rawStudent, recordId:rawStudent.recordId || rawStudent.id || fallback });
+        const key = pendingStudentKey(incoming, fallback);
+        const nameKey = normText(studentFullName(incoming));
+        const index = students.findIndex(existing => {
+            const existingKey = pendingStudentKey(existing);
+            return (key && existingKey === key)
+                || (incoming.studentCode && existing.studentCode === incoming.studentCode)
+                || (nameKey && normText(studentFullName(existing)) === nameKey);
+        });
+        if (index >= 0) {
+            students[index] = normalizeStudentIdentity({ ...students[index], ...incoming });
+        } else {
+            students.unshift(incoming);
+        }
+    }
+
+    function applyPendingMutationsToStudents(sourceStudents=[], operations=loadPendingCloudMutations()) {
+        let students = sourceStudents.map(student => normalizeCloudStudent(student));
+        operations.forEach(operation => {
+            const action = String(operation.action || "").toLowerCase();
+            if (action === "clearall" || action === "replace") {
+                students = [];
+                if (action === "replace") (operation.students || []).forEach(student => mergeQueuedStudent(students, student));
+                return;
+            }
+            if (action === "backup" || action === "upsertmany") {
+                (operation.students || []).forEach(student => mergeQueuedStudent(students, student));
+                return;
+            }
+            if (action === "upsert") {
+                mergeQueuedStudent(students, operation.student || {}, operation.studentId);
+                return;
+            }
+            if (action === "delete") {
+                const wanted = String(operation.studentId || pendingStudentKey(operation.student || {})).trim();
+                const nameKey = normText(studentFullName(operation.student || {}));
+                students = students.filter(student => {
+                    const key = pendingStudentKey(student);
+                    return !((wanted && (key === wanted || student.studentCode === wanted))
+                        || (nameKey && normText(studentFullName(student)) === nameKey));
+                });
+            }
+        });
+        return students;
+    }
+
     async function loadStudentsFromSupabase({ silent=false, keepLocalWhenCloudEmpty=false }={}) {
         if (!hasSupabaseConfig()) {
             setStatus("ឡូកាល់ (Offline)", "connected");
@@ -5532,8 +5716,10 @@
         setCloudControlsLoading(true);
         setStatus("កំពុង Load ពី Supabase...", "");
         try {
-            const cloudStudents = await readSupabaseStudents();
-            if (!cloudStudents.length && keepLocalWhenCloudEmpty && allStudents.length) {
+            const cloudRows = await readSupabaseStudents();
+            const queuedOperations = loadPendingCloudMutations();
+            const cloudStudents = applyPendingMutationsToStudents(cloudRows, queuedOperations);
+            if (!cloudRows.length && keepLocalWhenCloudEmpty && allStudents.length && !queuedOperations.length) {
                 setStatus("Supabase ទទេ - រក្សាទុក Local", "connected");
                 if (!silent) showToast("Supabase ទទេ។ ទិន្នន័យក្នុង browser ត្រូវបានរក្សាទុក","warning");
                 return false;
@@ -5542,7 +5728,7 @@
             saveToLocalStorage(allStudents);
             localStorage.setItem(BACKUP_TIME_STORAGE_KEY, new Date().toISOString());
             await refreshStudents({ reset:true, source:"memory" });
-            setStatus("Supabase", "connected");
+            setStatus(queuedOperations.length ? `រក្សា Offline · រង់ចាំ Sync ${queuedOperations.length}` : "Supabase", queuedOperations.length ? "error" : "connected");
             if (!silent) showToast(`Load ពី Supabase ${allStudents.length} នាក់`);
             return true;
         } catch(e) {
@@ -5572,9 +5758,11 @@
             if (payload.ok === false) throw new Error(payload.error || "Google Sheet error");
             applySharedAppSettings(payload.settings);
             const cloudRows = Array.isArray(payload.students) ? payload.students : [];
-            const cloudStudents = cloudRows.map(normalizeCloudStudent).filter(s => s.id || s.studentCode || s.studentName);
+            const normalizedCloudStudents = cloudRows.map(normalizeCloudStudent).filter(s => s.id || s.studentCode || s.studentName);
+            const queuedOperations = loadPendingCloudMutations();
+            const cloudStudents = applyPendingMutationsToStudents(normalizedCloudStudents, queuedOperations);
             rememberGoogleSheetRevisions(payload);
-            if (!cloudStudents.length && keepLocalWhenCloudEmpty && allStudents.length) {
+            if (!normalizedCloudStudents.length && keepLocalWhenCloudEmpty && allStudents.length && !queuedOperations.length) {
                 if (!background) setStatus("Sheet ទទេ - រក្សាទុក Local", "connected");
                 if (!silent) showToast("Google Sheet ទទេ។ ទិន្នន័យក្នុង browser ត្រូវបានរក្សាទុក","warning");
                 return false;
@@ -5586,7 +5774,7 @@
             saveToLocalStorage(allStudents);
             localStorage.setItem(BACKUP_TIME_STORAGE_KEY, new Date().toISOString());
             await refreshStudents({ reset:true, source:"memory" });
-            if (!background) setStatus("Google Sheet", "connected");
+            if (!background) setStatus(queuedOperations.length ? `រក្សា Offline · រង់ចាំ Sync ${queuedOperations.length}` : "Google Sheet", queuedOperations.length ? "error" : "connected");
             if (!silent) showToast(`Load ពី Google Sheet ${allStudents.length} នាក់`);
             return true;
         } catch(e) {
@@ -5710,6 +5898,9 @@
         for (const e of source) {
             if (e.id && e.id === ignoreId) continue;
             if (codeKey && normText(e.studentCode||e.studentId) === codeKey) return { type:"studentCode", student:e };
+            // The school requested names to be unique across every class and date of birth.
+            // Normalize spaces and invisible characters so visually identical Khmer names match.
+            if (nameKey && normText(studentFullName(e)) === nameKey) return { type:"studentName", student:e };
             if (nameKey && dobKey && normText(studentFullName(e))===nameKey && normDate(e.dob)===dobKey) return { type:"student", student:e };
             if (nameKey && classKey && normText(studentFullName(e))===nameKey && normText(e.className)===classKey) return { type:"student", student:e };
         }
@@ -5717,13 +5908,26 @@
     }
 
     async function findDuplicateOnServer(student, ignoreId="", localSource=[]) {
-        return findDuplicate(student, ignoreId, localSource);
+        const localDuplicate = findDuplicate(student, ignoreId, localSource);
+        if (localDuplicate) return localDuplicate;
+        if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl() || navigator.onLine === false) return null;
+        try {
+            // A short live check closes the gap between multiple phones saving at once.
+            // Failure never blocks offline work; the persistent outbox will keep the record.
+            const payload = await readGoogleSheetJsonp({}, 2500);
+            if (payload?.ok === false || !Array.isArray(payload?.students)) return null;
+            const cloudStudents = payload.students.map(normalizeCloudStudent);
+            return findDuplicate(student, ignoreId, cloudStudents);
+        } catch (error) {
+            console.debug("Live duplicate check skipped:", error);
+            return null;
+        }
     }
 
     function duplicateMsg(dup) {
         if (!dup) return "";
         if (dup.type === "studentCode") return `លេខសម្គាល់នេះមានរួចហើយ: ${studentDisplayId(dup.student)}`;
-        return `សិស្សនេះមានរួចហើយ: ${studentFullName(dup.student)}`;
+        return `ឈ្មោះសិស្សនេះមានរួចហើយ: ${studentFullName(dup.student)} (${studentDisplayId(dup.student) || "គ្មានអត្តលេខ"})`;
     }
 
     // ===================== STUDENT CODE GENERATION =====================
@@ -6862,6 +7066,7 @@
 
     async function handleFormSubmit(e) {
         e.preventDefault();
+        if (studentSaveInProgress) return;
         syncAllDateSelectors();
         if (!els.registrationForm.reportValidity()) return;
 
@@ -6871,11 +7076,11 @@
         if (!payload.studentName) { showToast("សូមបំពេញឈ្មោះសិស្ស","warning"); return; }
         if (!payload.contact) { showToast("សូមបំពេញលេខទូរស័ព្ទ","warning"); return; }
 
-        const dup = await findDuplicateOnServer(payload, editingId, allStudents);
-        if (dup) { showToast(duplicateMsg(dup),"warning"); return; }
-
+        studentSaveInProgress = true;
         setSaving(true);
         try {
+            const dup = await findDuplicateOnServer(payload, editingId, allStudents);
+            if (dup) { showToast(duplicateMsg(dup),"warning"); return; }
             const nowIso = new Date().toISOString();
             if (editingId) {
                 if (!payload.studentCode) {
@@ -6918,6 +7123,7 @@
             console.error("Save error:", e);
             showToast("រក្សាទុកមិនបាន","error");
         } finally {
+            studentSaveInProgress = false;
             setSaving(false);
         }
     }
@@ -8190,12 +8396,30 @@
         setStatus(hasCloudStorageConfig() ? currentStorageName() : "ឡូកាល់ (Offline)", "connected");
         restartSharedDataRefresh();
         document.addEventListener("visibilitychange",()=>{
-            if (document.visibilityState === "visible") refreshSharedDataInBackground();
+            if (document.visibilityState !== "visible") return;
+            if (loadPendingCloudMutations().length) queuePendingCloudFlush({ notify:false });
+            else refreshSharedDataInBackground();
+        });
+        window.addEventListener("online", () => queuePendingCloudFlush({ notify:true }).then(ok => {
+            if (ok) loadStudentsFromCloudStorage({ silent:true, keepLocalWhenCloudEmpty:true });
+        }));
+        window.addEventListener("offline", () => {
+            const queued = loadPendingCloudMutations().length;
+            setStatus(queued ? `រក្សា Offline · រង់ចាំ Sync ${queued}` : "ឡូកាល់ (Offline)", queued ? "error" : "connected");
         });
         const logs = loadHistoryFromLocalStorage();
         renderHistory(logs);
         refreshStudents({ reset: true }).then(() => {
-            if (hasCloudStorageConfig()) loadStudentsFromCloudStorage({ silent:true, keepLocalWhenCloudEmpty:false });
+            if (!hasCloudStorageConfig()) return;
+            const queued = loadPendingCloudMutations().length;
+            if (queued) {
+                setStatus(`រក្សា Offline · រង់ចាំ Sync ${queued}`, "error");
+                queuePendingCloudFlush({ notify:false }).then(ok => {
+                    if (ok) loadStudentsFromCloudStorage({ silent:true, keepLocalWhenCloudEmpty:true });
+                });
+            } else {
+                loadStudentsFromCloudStorage({ silent:true, keepLocalWhenCloudEmpty:true });
+            }
         });
     }
 
