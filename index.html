@@ -586,6 +586,52 @@
             box-shadow: 0 0 0 3px var(--primary-glow);
         }
 
+        .choice-input {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 44px;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .choice-input > input { min-width: 0; }
+        .choice-input > input[list]::-webkit-calendar-picker-indicator { display: none !important; }
+
+        .choice-open-btn {
+            width: 44px;
+            height: 44px;
+            display: inline-grid;
+            place-items: center;
+            padding: 0;
+            border: 1.5px solid #93b4df;
+            border-radius: 10px;
+            background: #eaf2ff;
+            color: #174b8e;
+            font-size: 1.15rem;
+            font-weight: 800;
+            line-height: 1;
+            box-shadow: 0 1px 2px rgba(23, 75, 142, .08);
+        }
+
+        .choice-open-btn:hover,
+        .choice-open-btn:focus-visible {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+            outline: none;
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .choice-open-btn:disabled {
+            cursor: not-allowed;
+            opacity: .46;
+            box-shadow: none;
+        }
+
+        [data-theme="dark"] .choice-open-btn {
+            border-color: var(--border-strong);
+            background: var(--surface-3);
+            color: var(--text);
+        }
+
         input:read-only {
             background: var(--surface-3);
             color: var(--muted);
@@ -2818,6 +2864,8 @@
                 font-size: 16px;
                 border-radius: 10px;
             }
+            .choice-input { grid-template-columns: minmax(0, 1fr) 48px; gap: 7px; }
+            .choice-open-btn { width: 48px; height: 48px; font-size: 1.28rem; }
             .dob-select-grid {
                 grid-template-columns: minmax(0, .8fr) minmax(0, 1.35fr) minmax(0, 1fr);
                 gap: 6px;
@@ -3494,7 +3542,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.6</span>
+        <span class="footer-version">កំណែ 2.1.7</span>
     </footer>
 
 </main><!-- end .app -->
@@ -6391,12 +6439,15 @@
             }
         }
         if (maxX < minX || maxY < minY) return null;
-        const padX = Math.round((maxX - minX + 1) * 0.08);
-        const padY = Math.round((maxY - minY + 1) * 0.04);
+        const subjectWidth = maxX - minX + 1;
+        const subjectHeight = maxY - minY + 1;
+        const padX = Math.round(subjectWidth * 0.05);
+        const padTop = Math.round(subjectHeight * 0.01);
+        const padBottom = Math.round(subjectHeight * 0.035);
         minX = Math.max(0, minX - padX);
-        minY = Math.max(0, minY - padY);
+        minY = Math.max(0, minY - padTop);
         maxX = Math.min(width - 1, maxX + padX);
-        maxY = Math.min(height - 1, maxY + padY);
+        maxY = Math.min(height - 1, maxY + padBottom);
         return { x:minX, y:minY, w:maxX - minX + 1, h:maxY - minY + 1 };
     }
 
@@ -6410,15 +6461,16 @@
         if (hasTransparentSubject) {
             const bounds = getAlphaBounds(img);
             const source = bounds || { x:0, y:0, w:img.naturalWidth || img.width, h:img.naturalHeight || img.height };
-            const maxScaleByHeight = (canvas.height * 0.92) / source.h;
-            const targetScaleByWidth = (canvas.width * 0.98) / source.w;
-            const targetScaleByHeight = (canvas.height * 0.82) / source.h;
-            const scale = Math.min(Math.max(targetScaleByWidth, targetScaleByHeight), maxScaleByHeight);
+            const scale = Math.min(
+                (canvas.width * 0.92) / source.w,
+                (canvas.height * 0.97) / source.h
+            );
             const w = source.w * scale;
             const h = source.h * scale;
             const x = (canvas.width - w) / 2;
-            const bottomPad = Math.round(canvas.height * 0.015);
-            const y = Math.max(Math.round(canvas.height * 0.065), canvas.height - h - bottomPad);
+            const y = Math.round(canvas.height * 0.0125);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
             ctx.drawImage(img, source.x, source.y, source.w, source.h, x, y, w, h);
         } else {
             const sourceWidth = img.naturalWidth || img.width;
@@ -6431,7 +6483,7 @@
             ctx.drawImage(img, x, y, w, h);
         }
 
-        return canvas.toDataURL("image/jpeg", 0.76);
+        return canvas.toDataURL("image/jpeg", 0.82);
     }
 
     async function processPhoto(imageSource) {
@@ -6448,7 +6500,7 @@
                 lowMemoryDevice ? 610 : 820
             );
             setPhotoProcessing(true, "កំពុងកាត់មនុស្សចេញពីផ្ទៃក្រោយ...");
-            const segmentedBlob = await segmentPersonWithMediaPipe(aiInput, lowMemoryDevice ? 0 : 1);
+            const segmentedBlob = await segmentPersonWithMediaPipe(aiInput, 1);
             subjectImg = await loadImageFromBlob(segmentedBlob);
             setPhotoProcessing(true, "កំពុងដាក់ផ្ទៃក្រោយពណ៌ខៀវ...");
             const base64 = composeStudentPhoto(subjectImg, true);
@@ -7689,6 +7741,50 @@
         showToast(`ទាញយក CSV ${rows.length} នាក់`);
     }
 
+    function openChoicePicker(input) {
+        if (!input || input.disabled) return;
+        input.focus({ preventScroll:true });
+        if (typeof input.showPicker === "function") {
+            try {
+                input.showPicker();
+                return;
+            } catch (error) {
+                console.debug("Native choice picker unavailable:", error);
+            }
+        }
+        input.dispatchEvent(new KeyboardEvent("keydown", {
+            key:"ArrowDown",
+            code:"ArrowDown",
+            altKey:true,
+            bubbles:true
+        }));
+    }
+
+    function enhanceChoiceInputs() {
+        document.querySelectorAll('input[list]').forEach(input => {
+            if (input.parentElement?.classList.contains("choice-input")) return;
+            const wrapper = document.createElement("div");
+            wrapper.className = "choice-input";
+            input.parentNode.insertBefore(wrapper, input);
+            wrapper.appendChild(input);
+
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "choice-open-btn";
+            button.dataset.choiceTarget = input.id;
+            button.title = "បង្ហាញជម្រើស";
+            button.setAttribute("aria-label", `បង្ហាញជម្រើសសម្រាប់ ${input.getAttribute("placeholder") || input.name || input.id}`);
+            if (input.list?.id) button.setAttribute("aria-controls", input.list.id);
+            button.innerHTML = '<span aria-hidden="true">▾</span>';
+            button.addEventListener("click", () => openChoicePicker(input));
+            wrapper.appendChild(button);
+
+            const syncDisabled = () => { button.disabled = input.disabled; };
+            syncDisabled();
+            new MutationObserver(syncDisabled).observe(input, { attributes:true, attributeFilter:["disabled"] });
+        });
+    }
+
     // ===================== INIT =====================
     function handleStudentAction(e){
         const btn=e.target.closest("button");if(!btn) return;
@@ -7709,6 +7805,7 @@
             return;
         }
         updateStudentCodeHint();
+        enhanceChoiceInputs();
         // Address
         resetAddressGroup(pobGroup);resetAddressGroup(currentGroup);
         setupAddressListeners(pobGroup,()=>{if(els.sameAddress.checked)syncCurrentFromBirth();});
