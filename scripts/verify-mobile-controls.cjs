@@ -43,6 +43,18 @@ app.whenReady().then(async () => {
         const district = await clickChoice('pobDistrict', 'ស្រុកកោះអណ្តែត');
         const commune = await clickChoice('pobCommune', 'ក្រពុំឈូក');
         const village = await clickChoice('pobVillage', 'ដើមដូង');
+        document.getElementById('fatherName').value = 'សុខ វីរៈ';
+        document.getElementById('fatherPhone').value = '012111222';
+        document.getElementById('motherName').value = 'ចាន់ ស្រីមុំ';
+        document.getElementById('motherPhone').value = '098333444';
+        document.querySelector('[data-guardian-source="father"]').click();
+        const guardianFromFather = document.getElementById('guardianName').value === 'សុខ វីរៈ' &&
+            document.getElementById('contact').value === '012111222';
+        document.querySelector('[data-guardian-source="mother"]').click();
+        const guardianFromMother = document.getElementById('guardianName').value === 'ចាន់ ស្រីមុំ' &&
+            document.getElementById('contact').value === '098333444';
+        const guardianButtonsFit = document.querySelector('.guardian-copy-actions').scrollWidth <=
+            document.querySelector('.guardian-copy-actions').clientWidth + 1;
         const picker = document.getElementById('choice-picker').getBoundingClientRect();
         const waitFor = async (test, timeout=3000) => {
             const started = Date.now();
@@ -81,7 +93,7 @@ app.whenReady().then(async () => {
             pickerClosed:!document.getElementById('choice-picker').classList.contains('is-open'),
             viewport:innerWidth,
             pickerWidth:picker.width,
-            duplicateBlocked,
+            duplicateBlocked, guardianFromFather, guardianFromMother, guardianButtonsFit,
             canonicalSheetUrl,
             sheetUrlReadOnly
         };
@@ -89,7 +101,7 @@ app.whenReady().then(async () => {
     console.log(JSON.stringify(result));
     const valid = result.choiceButtons === 10 && result.occupation === 'កសិករ' &&
         result.province === 'ខេត្តតាកែវ' && result.district === 'ស្រុកកោះអណ្តែត' &&
-        result.commune === 'ក្រពុំឈូក' && result.village === 'ដើមដូង' && result.pickerClosed && result.duplicateBlocked &&
+        result.commune === 'ក្រពុំឈូក' && result.village === 'ដើមដូង' && result.pickerClosed && result.duplicateBlocked && result.guardianFromFather && result.guardianFromMother && result.guardianButtonsFit &&
         result.sheetUrlReadOnly && result.canonicalSheetUrl === 'https://script.google.com/macros/s/AKfycbyc_1v8DBczUTac1CprLsj2Ae5uKt8In-XGpB6lXXmCZj7Mm-4OL1DPSJjNXsD-G2GK/exec';
     if (!valid) throw new Error('Mobile choice control validation failed');
     win.setSize(390, 600);

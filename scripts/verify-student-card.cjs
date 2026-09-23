@@ -42,7 +42,10 @@ app.whenReady().then(async () => {
         const card = document.querySelector('.certificate-student-card').getBoundingClientRect();
         const overflow = [...document.querySelectorAll('[data-card-fit]')].filter(el => el.scrollWidth > el.clientWidth + 1).map(el => el.textContent);
         const photo = document.querySelector('[data-card-photo]');
-        return { width:card.width, height:card.height, overflow, teacherVisible:document.body.innerText.includes('គ្រូបន្ទុកថ្នាក់'), fonts:document.fonts.check('18px "Khmer OS Siemreap"'), photoReframed:photo?.src.startsWith('data:image/jpeg') };
+        const slot = document.querySelector('.card-photo-slot').getBoundingClientRect();
+        const photoBounds = photo.getBoundingClientRect();
+        const frame = document.querySelector('.reference-photo-box').getBoundingClientRect();
+        return { width:card.width, height:card.height, overflow, teacherVisible:document.body.innerText.includes('គ្រូបន្ទុកថ្នាក់'), fonts:document.fonts.check('18px "Khmer OS Siemreap"'), photoReframed:photo?.src.startsWith('data:image/jpeg'), photoFillsSlot:Math.abs(photoBounds.height-slot.height)<1 && Math.abs(photoBounds.width-slot.width)<1, frameHeight:frame.height };
     })()`);
     const shot = await win.webContents.capturePage({ x:0,y:0,width:Math.ceil(metrics.width),height:Math.ceil(metrics.height) });
     fs.writeFileSync(path.join(out, 'student-card-75x100.png'), shot.toPNG());
@@ -62,6 +65,6 @@ app.whenReady().then(async () => {
     fs.writeFileSync(path.join(out, 'metrics.json'), JSON.stringify(metrics, null, 2));
     console.log(JSON.stringify(metrics));
     win.destroy();
-    if (Math.abs(metrics.width - 75*96/25.4) > .1 || Math.abs(metrics.height - 100*96/25.4) > .1 || metrics.overflow.length || metrics.teacherVisible || !metrics.photoReframed) throw new Error('Card layout validation failed');
+    if (Math.abs(metrics.width - 75*96/25.4) > .1 || Math.abs(metrics.height - 100*96/25.4) > .1 || metrics.overflow.length || metrics.teacherVisible || !metrics.photoReframed || !metrics.photoFillsSlot || metrics.frameHeight > 115) throw new Error('Card layout validation failed');
     app.quit();
 }).catch(error => { console.error(error); app.exit(1); });

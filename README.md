@@ -41,6 +41,8 @@ If a photo is absent from all these sources, this recovery cannot recreate it. I
 
 The **សិស្សតាមថ្នាក់** screen groups the students currently loaded in the app. It is a view only; selecting a class does not create or update any Google Sheet tab or student record. The school-settings dialog scrolls within the viewport, and printed documents/cards include a **ត្រឡប់ទៅ App** button.
 
+The **យកពីឪពុក / យកពីម្តាយ** buttons in the guardian section copy the selected parent's name to the guardian field and their phone number to the contact field. They do not add or change Sheet columns. The card photo frame is sized to its photo rather than extending to the bottom edge of the card.
+
 Camera access in a browser requires the Web App to be served over **HTTPS** (or localhost during development).
 
 To send photos from a phone directly into the form open on a computer:

@@ -549,6 +549,8 @@
             font-size: .7rem;
             line-height: 1.45;
         }
+        .guardian-copy-actions { display:flex; flex-wrap:wrap; gap:7px; margin-top:3px; }
+        .guardian-copy-actions .btn { min-height:34px; padding:0 10px; font-size:.76rem; }
 
         .dob-select-grid {
             display: grid;
@@ -3429,9 +3431,14 @@
                                     <label for="motherPhone">លេខទូរសព្ទម្តាយ</label>
                                     <input id="motherPhone" name="motherPhone" type="tel">
                                 </div>
-                                <div class="field">
+                                <div class="field field-full">
                                     <label for="guardianName">ឈ្មោះអាណាព្យាបាល</label>
                                     <input id="guardianName" name="guardianName" type="text" placeholder="ឈ្មោះអ្នកទទួលខុសត្រូវសិស្ស">
+                                    <div class="guardian-copy-actions" aria-label="ចម្លងព័ត៌មានអាណាព្យាបាល">
+                                        <button class="btn btn-ghost guardian-copy-btn" type="button" data-guardian-source="father">យកពីឪពុក</button>
+                                        <button class="btn btn-ghost guardian-copy-btn" type="button" data-guardian-source="mother">យកពីម្តាយ</button>
+                                    </div>
+                                    <small class="field-help">បំពេញឈ្មោះអាណាព្យាបាល និងលេខទូរស័ព្ទទំនាក់ទំនងពីឪពុក ឬម្តាយ។</small>
                                 </div>
                                 <div class="field">
                                     <label for="guardianDob">ថ្ងៃខែឆ្នាំកំណើតអាណាព្យាបាល</label>
@@ -7158,6 +7165,30 @@
     }
 
     // ===================== FORM =====================
+    function copyParentToGuardian(source) {
+        if (source !== "father" && source !== "mother") return;
+        const parentLabel = source === "father" ? "ឪពុក" : "ម្តាយ";
+        const name = getValue(`${source}Name`);
+        const phone = getValue(`${source}Phone`);
+        if (!name && !phone) {
+            showToast(`សូមបំពេញឈ្មោះ ឬលេខទូរសព្ទ${parentLabel}ជាមុន`, "warning");
+            return;
+        }
+        const guardianInput = document.getElementById("guardianName");
+        const contactInput = document.getElementById("contact");
+        if (name) {
+            guardianInput.value = name;
+            guardianInput.dispatchEvent(new Event("input", { bubbles:true }));
+        }
+        if (phone) {
+            contactInput.value = phone;
+            contactInput.dispatchEvent(new Event("input", { bubbles:true }));
+        }
+        showToast(name && phone
+            ? `បានចម្លងឈ្មោះ និងលេខទូរសព្ទ${parentLabel}`
+            : `បានចម្លងព័ត៌មាន${parentLabel}ដែលមាន · សូមពិនិត្យវាលដែលនៅទទេ`, name && phone ? "success" : "warning");
+    }
+
     function collectPayload() {
         if (els.sameAddress.checked) syncCurrentFromBirth();
         const studentSurname = getValue("studentSurname");
@@ -8606,6 +8637,9 @@
         });
         els.registrationForm.addEventListener("submit",handleFormSubmit);
         els.clearBtn.addEventListener("click",resetForm);
+        document.querySelectorAll(".guardian-copy-btn").forEach(button => {
+            button.addEventListener("click", () => copyParentToGuardian(button.dataset.guardianSource));
+        });
         els.openCameraBtn?.addEventListener("click",openCameraModal);
         if (window.desktopCamera) window.desktopCamera.onPhoto(handlePhoneCameraPhoto);
         if (els.phoneCameraBtn) els.phoneCameraBtn.hidden = false;
