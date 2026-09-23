@@ -59,30 +59,44 @@ app.whenReady().then(async () => {
         birthVillageInput.dispatchEvent(new Event('input', { bubbles:true }));
         const uniqueVillageAutofilled = document.getElementById('pobCommune').value === 'ព្រៃខ្លា' &&
             document.getElementById('pobDistrict').value === 'ស្រុកកោះអណ្ដែត';
-        birthVillageInput.value = 'ដើមដូង';
+        birthVillageInput.value = 'ព្រៃបាយ';
         birthVillageInput.dispatchEvent(new Event('input', { bubbles:true }));
         const ambiguousRequiresChoice = !!birthVillageInput.validationMessage && !document.getElementById('pobCommune').value;
+        const firstSameNameVillage = await clickVillage('pobVillage', 'ព្រៃបាយ', '21050205');
+        const firstSameNameCorrect = document.getElementById('pobCommune').value === 'ពេជសារ';
+        const secondSameNameVillage = await clickVillage('currentVillage', 'ព្រៃបាយ', '21050402');
+        const duplicateVillageDisambiguated = firstSameNameVillage.choices === 2 && secondSameNameVillage.choices === 2 &&
+            firstSameNameCorrect && document.getElementById('currentCommune').value === 'ព្រៃយុថ្កា' &&
+            !document.getElementById('currentVillage').validationMessage;
         const villageSelection = await clickVillage('pobVillage', 'ដើមដូង', '21050101');
         const province = document.getElementById('pobProvince').value;
         const district = document.getElementById('pobDistrict').value;
         const commune = document.getElementById('pobCommune').value;
         const village = villageSelection.value;
-        const otherVillageSelection = await clickVillage('currentVillage', 'ដើមដូង', '21020201');
-        const duplicateVillageDisambiguated = villageSelection.choices === 2 && otherVillageSelection.choices === 2 &&
-            document.getElementById('currentProvince').value === 'ខេត្តតាកែវ' &&
-            document.getElementById('currentDistrict').value === 'ស្រុកបាទី' &&
-            document.getElementById('currentCommune').value === 'ចំប៉ី' && !document.getElementById('currentVillage').validationMessage;
+        document.querySelector('[data-choice-target="currentVillage"]').click();
+        document.querySelector('[data-choice-custom]').click();
+        const currentVillageInput = document.getElementById('currentVillage');
+        currentVillageInput.value = 'ដើមដូង';
+        currentVillageInput.dispatchEvent(new Event('input', { bubbles:true }));
         const currentProvinceInput = document.getElementById('currentProvince');
+        currentProvinceInput.value = 'ខេត្តតាកែវ';
+        currentProvinceInput.dispatchEvent(new Event('input', { bubbles:true }));
+        document.getElementById('currentDistrict').value = 'ស្រុកបាទី';
+        document.getElementById('currentDistrict').dispatchEvent(new Event('input', { bubbles:true }));
+        document.getElementById('currentCommune').value = 'ចំប៉ី';
+        document.getElementById('currentCommune').dispatchEvent(new Event('input', { bubbles:true }));
+        const otherDistrictManual = currentProvinceInput.value === 'ខេត្តតាកែវ' &&
+            document.getElementById('currentDistrict').value === 'ស្រុកបាទី' &&
+            document.getElementById('currentCommune').value === 'ចំប៉ី' && currentVillageInput.value === 'ដើមដូង';
         currentProvinceInput.value = 'ខេត្តកំពង់ចាម';
         currentProvinceInput.dispatchEvent(new Event('input', { bubbles:true }));
         document.getElementById('currentDistrict').value = 'ស្រុកផ្សេង';
+        document.getElementById('currentDistrict').dispatchEvent(new Event('input', { bubbles:true }));
         document.getElementById('currentCommune').value = 'ឃុំផ្សេង';
-        document.getElementById('currentVillage').value = 'ភូមិផ្សេង';
-        document.getElementById('currentVillage').dispatchEvent(new Event('input', { bubbles:true }));
+        document.getElementById('currentCommune').dispatchEvent(new Event('input', { bubbles:true }));
         const otherProvinceManual = currentProvinceInput.value === 'ខេត្តកំពង់ចាម' &&
             document.getElementById('currentDistrict').value === 'ស្រុកផ្សេង' &&
-            document.getElementById('currentCommune').value === 'ឃុំផ្សេង';
-        await clickVillage('currentVillage', 'ដើមដូង', '21020201');
+            document.getElementById('currentCommune').value === 'ឃុំផ្សេង' && currentVillageInput.value === 'ដើមដូង';
         document.getElementById('fatherName').value = 'សុខ វីរៈ';
         document.getElementById('fatherPhone').value = '012111222';
         document.getElementById('motherName').value = 'ចាន់ ស្រីមុំ';
@@ -129,8 +143,8 @@ app.whenReady().then(async () => {
         document.getElementById('cancel-sheet-url-btn').click();
         return {
             choiceButtons:document.querySelectorAll('.choice-open-btn').length,
-            officialTakeoVillages:window.TAKEO_VILLAGES_2025?.length,
-            occupation, province, district, commune, village, uniqueVillageAutofilled, ambiguousRequiresChoice, duplicateVillageDisambiguated, otherProvinceManual,
+            officialKaohAndaetVillages:window.KAOH_ANDAET_VILLAGES_2025?.length,
+            occupation, province, district, commune, village, uniqueVillageAutofilled, ambiguousRequiresChoice, duplicateVillageDisambiguated, otherDistrictManual, otherProvinceManual,
             pickerClosed:!document.getElementById('choice-picker').classList.contains('is-open'),
             viewport:innerWidth,
             pickerWidth:picker.width,
@@ -140,9 +154,9 @@ app.whenReady().then(async () => {
         };
     })()`);
     console.log(JSON.stringify(result));
-    const valid = result.choiceButtons === 10 && result.officialTakeoVillages === 1121 && result.occupation === 'កសិករ' &&
+    const valid = result.choiceButtons === 10 && result.officialKaohAndaetVillages === 68 && result.occupation === 'កសិករ' &&
         result.province === 'ខេត្តតាកែវ' && result.district === 'ស្រុកកោះអណ្ដែត' &&
-        result.commune === 'ក្រពុំឈូក' && result.village === 'ដើមដូង' && result.uniqueVillageAutofilled && result.ambiguousRequiresChoice && result.duplicateVillageDisambiguated && result.otherProvinceManual && result.pickerClosed && result.duplicateBlocked && result.guardianFromFather && result.guardianFromMother && result.guardianButtonsFit &&
+        result.commune === 'ក្រពុំឈូក' && result.village === 'ដើមដូង' && result.uniqueVillageAutofilled && result.ambiguousRequiresChoice && result.duplicateVillageDisambiguated && result.otherDistrictManual && result.otherProvinceManual && result.pickerClosed && result.duplicateBlocked && result.guardianFromFather && result.guardianFromMother && result.guardianButtonsFit &&
         result.sheetUrlReadOnly && result.canonicalSheetUrl === 'https://script.google.com/macros/s/AKfycbyc_1v8DBczUTac1CprLsj2Ae5uKt8In-XGpB6lXXmCZj7Mm-4OL1DPSJjNXsD-G2GK/exec';
     if (!valid) throw new Error('Mobile choice control validation failed');
     win.setSize(390, 600);

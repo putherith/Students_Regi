@@ -19,7 +19,7 @@
 <script async type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
 <script async nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 <script async src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script defer src="./assets/takeo-addresses.js"></script>
+<script defer src="./assets/kaoh-andaet-addresses.js"></script>
 <script defer src="./assets/student-card.js"></script>
     <style>
         /* ========================
@@ -3481,9 +3481,9 @@
                                 <div class="field field-full">
                                     <label for="pobVillage">ភូមិ</label>
                                     <input id="pobVillage" name="pobVillage" type="text" list="pobVillageList"
-                                           placeholder="ជ្រើសភូមិ ដើម្បីបំពេញអាសយដ្ឋានស្វ័យប្រវត្តិ" autocomplete="off">
+                                           placeholder="ជ្រើសភូមិស្រុកកោះអណ្ដែត ឬវាយដោយដៃ" autocomplete="off">
                                     <datalist id="pobVillageList"></datalist>
-                                    <small class="field-help">ភូមិឈ្មោះដូចគ្នា៖ ជ្រើសតាមឃុំ និងស្រុកក្នុងបញ្ជី។</small>
+                                    <small class="field-help">ទីតាំងផ្សេង៖ ចុចប៊ូតុងវាយដោយដៃក្នុងបញ្ជីភូមិ។</small>
                                 </div>
                                 <div class="field">
                                     <label for="pobProvince">ខេត្ត/រាជធានី</label>
@@ -3524,9 +3524,9 @@
                                 <div class="field field-full">
                                     <label for="currentVillage">ភូមិ</label>
                                     <input id="currentVillage" name="currentVillage" type="text" list="currentVillageList"
-                                           placeholder="ជ្រើសភូមិ ដើម្បីបំពេញអាសយដ្ឋានស្វ័យប្រវត្តិ" autocomplete="off">
+                                           placeholder="ជ្រើសភូមិស្រុកកោះអណ្ដែត ឬវាយដោយដៃ" autocomplete="off">
                                     <datalist id="currentVillageList"></datalist>
-                                    <small class="field-help">ភូមិឈ្មោះដូចគ្នា៖ ជ្រើសតាមឃុំ និងស្រុកក្នុងបញ្ជី។</small>
+                                    <small class="field-help">ទីតាំងផ្សេង៖ ចុចប៊ូតុងវាយដោយដៃក្នុងបញ្ជីភូមិ។</small>
                                 </div>
                                 <div class="field">
                                     <label for="currentProvince">ខេត្ត/រាជធានី</label>
@@ -4380,7 +4380,7 @@
 
     // ===================== CAMBODIA ADDRESS DATA =====================
     const ADDRESS_PROVINCE_CHOICES = ["ខេត្តតាកែវ"];
-    const takeoVillageRecords = (window.TAKEO_VILLAGES_2025 || []).map(([code, districtCode, districtName, commune, village]) => ({
+    const kaohAndaetVillageRecords = (window.KAOH_ANDAET_VILLAGES_2025 || []).map(([code, districtCode, districtName, commune, village]) => ({
         code,
         province:"ខេត្តតាកែវ",
         district:(districtCode === "2108" ? "ក្រុង" : "ស្រុក") + districtName,
@@ -4388,14 +4388,14 @@
         village
     }));
     const cambodiaData = { "ខេត្តតាកែវ":{} };
-    const takeoVillagesByName = new Map();
-    for (const record of takeoVillageRecords) {
+    const kaohAndaetVillagesByName = new Map();
+    for (const record of kaohAndaetVillageRecords) {
         const districts = cambodiaData["ខេត្តតាកែវ"];
         (districts[record.district] ||= {});
         (districts[record.district][record.commune] ||= []).push(record.village);
         const name = record.village.trim().replace(/\s+/g, " ");
-        if (!takeoVillagesByName.has(name)) takeoVillagesByName.set(name, []);
-        takeoVillagesByName.get(name).push(record);
+        if (!kaohAndaetVillagesByName.has(name)) kaohAndaetVillagesByName.set(name, []);
+        kaohAndaetVillagesByName.get(name).push(record);
     }
 
     // ===================== ELEMENT REFS =====================
@@ -5938,6 +5938,7 @@
         populateSelect(g.commune, [], "ជ្រើសរើសឃុំ/សង្កាត់");
         populateSelect(g.village, [], "ជ្រើសរើសភូមិ");
         g.village.dataset.villageCode = "";
+        g.village.dataset.manualAddress = "";
         g.village.setCustomValidity("");
         Object.values(g).forEach(field => { field.disabled = false; });
     }
@@ -5948,9 +5949,10 @@
         populateSelect(g.district, prov ? Object.keys(cambodiaData[prov]||{}) : [], "ជ្រើសរើសស្រុក/ខណ្ឌ", dist);
         populateSelect(g.commune, prov&&dist ? Object.keys(cambodiaData[prov]?.[dist]||{}) : [], "ជ្រើសរើសឃុំ/សង្កាត់", comm);
         populateSelect(g.village, [], "ជ្រើសរើសភូមិ", vill);
-        const matches = takeoVillagesByName.get(normalizeVillageName(vill)) || [];
+        const matches = kaohAndaetVillagesByName.get(normalizeVillageName(vill)) || [];
         const matched = matches.filter(record => record.province === prov && record.district === dist && record.commune === comm);
         g.village.dataset.villageCode = matched.length === 1 ? matched[0].code : "";
+        g.village.dataset.manualAddress = matched.length === 1 ? "" : (prov || dist || comm || vill ? "true" : "");
         g.village.setCustomValidity("");
         Object.values(g).forEach(field => { field.disabled = false; });
     }
@@ -5962,6 +5964,7 @@
     function applyVillageRecord(g, record) {
         setAddressGroup(g, record);
         g.village.dataset.villageCode = record.code;
+        g.village.dataset.manualAddress = "";
         g.village.setCustomValidity("");
     }
 
@@ -5983,38 +5986,48 @@
         };
         listen(g.province, () => {
             const p = g.province.value;
+            const manualVillage = g.village.dataset.manualAddress === "true" ? g.village.value : "";
             populateSelect(g.district, p ? Object.keys(cambodiaData[p]||{}) : [], "ជ្រើសរើសស្រុក/ខណ្ឌ");
             populateSelect(g.commune, [], "ជ្រើសរើសឃុំ/សង្កាត់");
-            populateSelect(g.village, [], "ជ្រើសរើសភូមិ");
+            populateSelect(g.village, [], "ជ្រើសរើសភូមិ", manualVillage);
             g.village.dataset.villageCode = "";
+            g.village.dataset.manualAddress = p && p !== "ខេត្តតាកែវ" ? "true" : (manualVillage ? "true" : "");
             g.village.setCustomValidity("");
             onChange?.();
         });
         listen(g.district, () => {
             const p=g.province.value, d=g.district.value;
+            const manualVillage = g.village.dataset.manualAddress === "true" ? g.village.value : "";
             populateSelect(g.commune, p&&d ? Object.keys(cambodiaData[p]?.[d]||{}) : [], "ជ្រើសរើសឃុំ/សង្កាត់");
-            populateSelect(g.village, [], "ជ្រើសរើសភូមិ");
+            populateSelect(g.village, [], "ជ្រើសរើសភូមិ", manualVillage);
             g.village.dataset.villageCode = "";
+            g.village.dataset.manualAddress = d && d !== "ស្រុកកោះអណ្ដែត" ? "true" : (manualVillage ? "true" : "");
             g.village.setCustomValidity("");
             onChange?.();
         });
         listen(g.commune, () => {
-            const p=g.province.value;
-            populateSelect(g.village, [], "ជ្រើសរើសភូមិ");
+            const manualVillage = g.village.dataset.manualAddress === "true" ? g.village.value : "";
+            populateSelect(g.village, [], "ជ្រើសរើសភូមិ", manualVillage);
             g.village.dataset.villageCode = "";
+            g.village.dataset.manualAddress = manualVillage ? "true" : "";
             g.village.setCustomValidity("");
             onChange?.();
         });
         listen(g.village, event => {
             const name = normalizeVillageName(g.village.value);
-            const previous = takeoVillageRecords.find(record => record.code === g.village.dataset.villageCode);
+            if (g.village.dataset.manualAddress === "true") {
+                g.village.setCustomValidity("");
+                onChange?.();
+                return;
+            }
+            const previous = kaohAndaetVillageRecords.find(record => record.code === g.village.dataset.villageCode);
             if (previous && name !== previous.village) {
                 g.village.dataset.villageCode = "";
                 populateSelect(g.province, ADDRESS_PROVINCE_CHOICES, "ជ្រើសរើសខេត្ត/រាជធានី");
                 populateSelect(g.district, [], "ជ្រើសរើសស្រុក/ខណ្ឌ");
                 populateSelect(g.commune, [], "ជ្រើសរើសឃុំ/សង្កាត់");
             }
-            const matches = takeoVillagesByName.get(name) || [];
+            const matches = kaohAndaetVillagesByName.get(name) || [];
             const selected = matches.find(record => record.code === g.village.dataset.villageCode);
             const contextual = matches.filter(record =>
                 (!g.province.value || g.province.value === record.province) &&
@@ -6027,6 +6040,7 @@
                 if (event.type === "change") openChoicePicker(g.village);
             } else {
                 g.village.setCustomValidity("");
+                if (event.type === "change" && name) g.village.dataset.manualAddress = "true";
             }
             onChange?.();
         });
@@ -8442,6 +8456,11 @@
         picker.querySelector("[data-choice-custom]")?.addEventListener("click", () => {
             const input = activeChoiceInput;
             closeChoicePicker(false);
+            const group = input?.id === "pobVillage" ? pobGroup : input?.id === "currentVillage" ? currentGroup : null;
+            if (group) {
+                setAddressGroup(group, {});
+                group.village.dataset.manualAddress = "true";
+            }
             input?.focus({ preventScroll:true });
         });
         document.addEventListener("keydown", event => {
@@ -8483,7 +8502,7 @@
             options.replaceChildren();
             if (addressGroup) {
                 const query = normalizeVillageName(search.value);
-                const matches = takeoVillageRecords.filter(record =>
+                const matches = kaohAndaetVillageRecords.filter(record =>
                     !query || [record.village, record.commune, record.district].some(part => part.includes(query)));
                 matches.slice(0, 80).forEach(record => {
                     const button = document.createElement("button");
@@ -8505,7 +8524,7 @@
                 if (!matches.length || matches.length > 80) {
                     const hint = document.createElement("small");
                     hint.className = "field-help";
-                    hint.textContent = matches.length ? `មាន ${matches.length} ភូមិ · សូមវាយឈ្មោះដើម្បីស្វែងរកបន្ថែម` : "រកមិនឃើញភូមិក្នុងបញ្ជីខេត្តតាកែវ";
+                    hint.textContent = matches.length ? `មាន ${matches.length} ភូមិ · សូមវាយឈ្មោះដើម្បីស្វែងរកបន្ថែម` : "រកមិនឃើញភូមិក្នុងស្រុកកោះអណ្ដែត";
                     options.append(hint);
                 }
                 return;
