@@ -39,6 +39,8 @@ If a photo is absent from all these sources, this recovery cannot recreate it. I
 
 ## Camera on phones and computers
 
+The **សិស្សតាមថ្នាក់** screen groups the students currently loaded in the app. It is a view only; selecting a class does not create or update any Google Sheet tab or student record. The school-settings dialog scrolls within the viewport, and printed documents/cards include a **ត្រឡប់ទៅ App** button.
+
 Camera access in a browser requires the Web App to be served over **HTTPS** (or localhost during development).
 
 To send photos from a phone directly into the form open on a computer:

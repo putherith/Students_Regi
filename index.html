@@ -1285,6 +1285,9 @@
 
         .modal-dialog {
             width: min(480px, 100%);
+            max-height: calc(100dvh - 40px);
+            display: flex;
+            flex-direction: column;
             border-radius: var(--radius-lg);
             background: var(--surface);
             box-shadow: var(--shadow-lg);
@@ -1292,7 +1295,7 @@
             animation: slideUp 220ms cubic-bezier(.4,0,.2,1);
         }
 
-        .modal-body { padding: 22px; }
+        .modal-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 22px; }
 
         .modal-icon {
             width: 44px;
@@ -1320,6 +1323,7 @@
 
         .modal-footer {
             display: flex;
+            flex: 0 0 auto;
             justify-content: flex-end;
             gap: 10px;
             padding: 14px 22px;
@@ -1663,7 +1667,7 @@
                 top: 58px;
                 z-index: 25;
                 display: grid;
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
                 gap: 4px;
                 margin: 0 -12px 10px;
                 padding: 6px 12px;
@@ -1676,7 +1680,7 @@
             .main-layout { gap: 0; }
             .main-layout.show-list .form-panel { display: none; }
             .main-layout.show-form .list-panel { display: none; }
-            .main-layout.show-form + .history-panel { display: none; }
+            .main-layout.show-form ~ .history-panel { display: none; }
 
             body.mobile-editing { overflow: hidden; }
 
@@ -1959,14 +1963,48 @@
         .web-phone-camera-status { min-height:24px; margin-top:14px; color:var(--muted); text-align:center; font-weight:750; }
         .web-phone-camera-status.connected { color:var(--green); }
         .web-phone-camera-status.error { color:var(--red); }
-        .app-settings-modal .modal-dialog { width:min(680px,100%); }
-        .teacher-settings-list { display:grid; gap:8px; max-height:290px; overflow:auto; margin-top:10px; padding-right:3px; }
+        .app-settings-modal .modal-dialog { width:min(620px,100%); max-height:calc(100dvh - 32px); }
+        .app-settings-modal .modal-body { padding:18px 20px; }
+        .app-settings-modal .modal-footer { position:relative; z-index:1; }
+        .teacher-settings-list { display:grid; gap:8px; margin-top:10px; padding-right:3px; }
         .teacher-setting-row { display:grid; grid-template-columns:minmax(100px,150px) minmax(0,1fr); gap:10px; align-items:center; padding:9px 10px; border:1px solid var(--border); border-radius:9px; background:var(--surface-2); }
         .teacher-setting-class { color:var(--text); font-weight:800; }
         .settings-section-title { margin:18px 0 4px; color:var(--text); font-size:.95rem; }
         .settings-help { margin:0; color:var(--muted); font-size:.8rem; line-height:1.5; }
+        body.class-browser-view .main-layout,
+        body.class-browser-view .history-panel { display:none; }
+        .class-browser-panel { display:none; margin-top:14px; }
+        body.class-browser-view .class-browser-panel { display:block; }
+        .class-browser-panel [hidden] { display:none !important; }
+        .class-browser-panel .panel-header { flex-wrap:wrap; }
+        .class-browser-heading { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+        .class-browser-heading .panel-sub { margin:0; }
+        .class-browser-content { padding:18px; }
+        .class-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:12px; }
+        .class-tile { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:88px; padding:16px; border:1px solid var(--border); border-radius:14px; background:var(--surface-2); color:var(--text); text-align:left; cursor:pointer; }
+        .class-tile:hover, .class-tile:focus-visible { border-color:var(--primary); background:var(--primary-soft); outline:none; }
+        .class-tile strong, .class-tile small { display:block; }
+        .class-tile strong { font-size:1.05rem; }
+        .class-tile small { margin-top:5px; color:var(--muted); }
+        .class-tile ion-icon { flex:0 0 auto; width:22px; height:22px; color:var(--primary); }
+        .class-student-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+        .class-student-item { display:flex; gap:12px; min-width:0; padding:13px; border:1px solid var(--border); border-radius:13px; background:var(--surface-2); }
+        .class-student-photo { flex:0 0 56px; width:56px; height:70px; object-fit:cover; object-position:center; border-radius:8px; background:var(--surface-3); }
+        .class-student-placeholder { display:grid; place-items:center; color:var(--muted); }
+        .class-student-info { min-width:0; flex:1; }
+        .class-student-info strong { display:block; overflow-wrap:anywhere; }
+        .class-student-info small { display:block; margin-top:3px; color:var(--muted); overflow-wrap:anywhere; }
+        .class-student-actions { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+        .class-student-actions .btn { min-height:34px; padding:0 9px; font-size:.76rem; }
         @media (max-width:560px) {
             .phone-camera-connect { grid-template-columns:1fr; justify-items:center; text-align:center; }
+            .app-settings-modal { padding:8px; align-items:flex-end; }
+            .app-settings-modal .modal-dialog { max-height:calc(100dvh - 16px); border-radius:14px; }
+            .app-settings-modal .modal-body { padding:14px; }
+            .app-settings-modal .modal-footer { padding:10px 12px calc(10px + env(safe-area-inset-bottom)); }
+            .teacher-setting-row { grid-template-columns:1fr; gap:4px; }
+            .class-browser-content { padding:12px; }
+            .class-grid, .class-student-grid { grid-template-columns:1fr; }
         }
         .cam-modal .modal-dialog {
             width: min(520px, 100%);
@@ -2937,6 +2975,7 @@
             [data-theme="dark"] .mobile-tabs { background: rgba(19, 31, 29, .97); }
             body.mobile-form-view .mobile-tabs { margin-bottom: 0; }
             .mobile-tab-btn { height: 44px; border-radius: 10px; }
+            .mobile-tab-btn { gap:4px; min-width:0; padding:0 3px; font-size:.76rem; white-space:nowrap; }
 
             .main-layout { width: 100%; min-width: 0; }
             .panel { width: auto; margin: 0 -8px; }
@@ -3156,6 +3195,10 @@
                 <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
                 ស្វែងរកសិស្ស
             </button>
+            <button id="open-class-browser-btn" class="overview-btn" type="button">
+                <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
+                សិស្សតាមថ្នាក់
+            </button>
         </div>
     </section>
 
@@ -3212,6 +3255,10 @@
         <button id="tab-form-btn" class="mobile-tab-btn" type="button">
             <ion-icon name="person-add-outline" aria-hidden="true"></ion-icon>
             <span>ចុះឈ្មោះថ្មី</span>
+        </button>
+        <button id="tab-classes-btn" class="mobile-tab-btn" type="button">
+            <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
+            <span>តាមថ្នាក់</span>
         </button>
     </div>
 
@@ -3650,6 +3697,23 @@
             </div>
         </section>
     </div><!-- end .main-layout -->
+
+    <!-- App-only class browser: derived from currently loaded students, not a Sheet tab. -->
+    <section id="class-browser-panel" class="panel class-browser-panel" aria-label="សិស្សតាមថ្នាក់">
+        <div class="panel-header">
+            <div class="class-browser-heading">
+                <button id="class-browser-back-btn" class="btn btn-ghost btn-sm" type="button" hidden>
+                    <ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon> ថ្នាក់ទាំងអស់
+                </button>
+                <div>
+                    <h2 id="class-browser-title" class="panel-title">សិស្សតាមថ្នាក់</h2>
+                    <p id="class-browser-summary" class="panel-sub">ជ្រើសរើសថ្នាក់ដើម្បីមើលសិស្ស</p>
+                </div>
+            </div>
+            <button id="class-browser-close-btn" class="btn btn-ghost btn-sm" type="button">ត្រឡប់ទៅបញ្ជី</button>
+        </div>
+        <div id="class-browser-content" class="class-browser-content" aria-live="polite"></div>
+    </section>
 
     <!-- Activity History -->
     <section class="panel history-panel" aria-label="ប្រវត្តិសកម្មភាព">
@@ -4525,6 +4589,14 @@
         mobileActionsSheet: document.getElementById("mobile-actions-sheet"),
         tabListBtn: document.getElementById("tab-list-btn"),
         tabFormBtn: document.getElementById("tab-form-btn"),
+        tabClassesBtn: document.getElementById("tab-classes-btn"),
+        openClassBrowserBtn: document.getElementById("open-class-browser-btn"),
+        classBrowserPanel: document.getElementById("class-browser-panel"),
+        classBrowserContent: document.getElementById("class-browser-content"),
+        classBrowserTitle: document.getElementById("class-browser-title"),
+        classBrowserSummary: document.getElementById("class-browser-summary"),
+        classBrowserBackBtn: document.getElementById("class-browser-back-btn"),
+        classBrowserCloseBtn: document.getElementById("class-browser-close-btn"),
         toggleFiltersBtn: document.getElementById("toggle-filters-btn"),
         toolbarFilters: document.getElementById("toolbar-filters"),
         mainLayout: document.querySelector(".main-layout"),
@@ -4576,6 +4648,7 @@
     let allStudents = [];
     let filteredStudents = [];
     let visibleStudents = [];
+    let selectedClassName = null;
     let totalStudentsCount = 0;
     let pageSize = 25; // Keep the initial DOM small for smooth table and mobile rendering.
     let currentPageIndex = 0;
@@ -7161,11 +7234,15 @@
         if (!els.mainLayout) return;
         closeMobileEditPanel();
         const isForm = tab === "form";
+        const isClasses = tab === "classes";
         document.body.classList.toggle("mobile-form-view", isForm);
+        document.body.classList.toggle("class-browser-view", isClasses);
         els.mainLayout.classList.toggle("show-form", isForm);
         els.mainLayout.classList.toggle("show-list", !isForm);
         els.tabFormBtn?.classList.toggle("active", isForm);
-        els.tabListBtn?.classList.toggle("active", !isForm);
+        els.tabListBtn?.classList.toggle("active", !isForm && !isClasses);
+        els.tabClassesBtn?.classList.toggle("active", isClasses);
+        if (isClasses) renderClassBrowser();
         if (options.scroll !== false) {
             requestAnimationFrame(() => window.scrollTo({ top:0, behavior:isMobileView() ? "auto" : "smooth" }));
         }
@@ -7484,11 +7561,52 @@
     function groupedByClass(students) {
         const groups = new Map();
         students.forEach(s => {
-            const cls = String(s.className || "មិនទាន់បញ្ចូលថ្នាក់");
+            const cls = String(s.className || "").trim() || "មិនទាន់បញ្ចូលថ្នាក់";
             if (!groups.has(cls)) groups.set(cls, []);
             groups.get(cls).push(s);
         });
         return [...groups.entries()].sort(([a],[b]) => compareKhmer(a,b,{numeric:true}));
+    }
+
+    // This view only groups the students already loaded in the app. It never writes to the Sheet.
+    function renderClassBrowser() {
+        const groups = groupedByClass(allStudents);
+        const selected = groups.find(([name]) => name === selectedClassName);
+        if (selectedClassName !== null && !selected) selectedClassName = null;
+        els.classBrowserBackBtn.hidden = selectedClassName === null;
+        if (selectedClassName === null) {
+            els.classBrowserTitle.textContent = "សិស្សតាមថ្នាក់";
+            els.classBrowserSummary.textContent = `${groups.length} ថ្នាក់ · សិស្សសរុប ${allStudents.length} នាក់`;
+            els.classBrowserContent.innerHTML = groups.length
+                ? `<div class="class-grid">${groups.map(([name, students]) => {
+                    const label = name === "មិនទាន់បញ្ចូលថ្នាក់" ? name : `ថ្នាក់ ${name}`;
+                    const boys = students.filter(student => student.gender === "ប្រុស").length;
+                    const girls = students.filter(student => student.gender === "ស្រី").length;
+                    return `<button class="class-tile" type="button" data-class="${esc(name)}" aria-label="មើលសិស្ស ${esc(label)}">
+                        <span><strong>${esc(label)}</strong><small>${students.length} នាក់ · ប្រុស ${boys} · ស្រី ${girls}</small></span>
+                        <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+                    </button>`;
+                }).join("")}</div>`
+                : `<div class="empty"><ion-icon name="school-outline"></ion-icon><p>មិនទាន់មានទិន្នន័យសិស្ស</p></div>`;
+            return;
+        }
+        const [className, students] = selected;
+        els.classBrowserTitle.textContent = className === "មិនទាន់បញ្ចូលថ្នាក់" ? className : `ថ្នាក់ ${className}`;
+        els.classBrowserSummary.textContent = `សិស្ស ${students.length} នាក់`;
+        els.classBrowserContent.innerHTML = `<div class="class-student-grid">${students.map((student, index) => {
+            const photo = safePhotoSrc(student.photo);
+            return `<article class="class-student-item">
+                ${photo ? `<img class="class-student-photo" src="${esc(photo)}" alt="" loading="lazy" decoding="async">` : `<div class="class-student-photo class-student-placeholder"><ion-icon name="person-outline" aria-hidden="true"></ion-icon></div>`}
+                <div class="class-student-info">
+                    <strong>${index + 1}. ${esc(studentFullName(student) || "មិនមានឈ្មោះ")}</strong>
+                    <small>${esc(studentVisibleId(student) || "–")} · ${esc(student.gender || "–")} · ${esc(formatDate(student.dob) || "–")}</small>
+                    <div class="class-student-actions">
+                        <button class="btn btn-ghost print-student-btn" type="button" data-id="${esc(student.id)}">មើលឯកសារ</button>
+                        <button class="btn btn-ghost print-student-card-btn" type="button" data-id="${esc(student.id)}">មើលកាត</button>
+                    </div>
+                </div>
+            </article>`;
+        }).join("")}</div>`;
     }
 
     // ===================== RENDER =====================
@@ -7696,6 +7814,7 @@
         buildSchoolFilter();
         buildClassFilter();
         applyFilters();
+        if (document.body.classList.contains("class-browser-view")) renderClassBrowser();
     }
 
     // ===================== HISTORY =====================
@@ -7764,6 +7883,7 @@
     function printWindow(title, content) {
         const win = window.open("","_blank","width=1100,height=800");
         if (!win) { showToast("Browser បានរារាំងផ្ទាំង Print","warning"); return; }
+        const returnUrl = window.location.href;
         const isDark = document.documentElement.getAttribute("data-theme") === "dark";
         win.document.write(`
             <!DOCTYPE html><html lang="km"><head>
@@ -7783,14 +7903,26 @@
                 .form-table th { width:30%; }
                 .sig-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:60px; margin-top:42px; text-align:center; }
                 .sig-line { margin-top:56px; border-top:1px solid #111; padding-top:8px; font-size:12px; }
-                .print-bar { margin:0 0 14px; text-align:right; }
+                .print-bar { position:sticky; top:0; z-index:5; display:flex; justify-content:flex-end; gap:8px; margin:0 0 14px; padding:6px 0; background:#fff; }
                 .print-bar button { height:36px; border:0; border-radius:6px; padding:0 14px; color:#fff; background:#0d9488; font:inherit; font-weight:700; cursor:pointer; }
+                .print-bar .return-btn { background:#e8eef7; color:#17345c; }
                 @media print { .print-bar { display:none; } }
             </style></head><body>
-            <div class="print-bar"><button onclick="window.print()">🖨️ Print / Save PDF</button></div>
+            <div class="print-bar">
+                <button id="return-app-btn" class="return-btn" type="button">← ត្រឡប់ទៅ App</button>
+                <button id="print-now-btn" type="button">🖨️ Print / Save PDF</button>
+            </div>
             ${content}
             </body></html>`);
         win.document.close();
+        win.document.getElementById("print-now-btn")?.addEventListener("click", () => win.print());
+        win.document.getElementById("return-app-btn")?.addEventListener("click", () => {
+            win.close();
+            setTimeout(() => {
+                if (!win.closed) win.location.replace(returnUrl);
+                else window.focus();
+            }, 80);
+        });
         // The print document has its own font/image lifecycle.
         const ready = async () => {
             await win.document.fonts.ready;
@@ -8563,6 +8695,24 @@
         // Mobile UI
         els.tabListBtn?.addEventListener("click", () => setActiveTab("list"));
         els.tabFormBtn?.addEventListener("click", () => setActiveTab("form"));
+        els.tabClassesBtn?.addEventListener("click", () => { selectedClassName = null; setActiveTab("classes"); });
+        els.openClassBrowserBtn?.addEventListener("click", () => { selectedClassName = null; setActiveTab("classes"); });
+        els.classBrowserCloseBtn?.addEventListener("click", () => setActiveTab("list"));
+        els.classBrowserBackBtn?.addEventListener("click", () => {
+            selectedClassName = null;
+            renderClassBrowser();
+            els.classBrowserPanel.scrollIntoView({ block:"start" });
+        });
+        els.classBrowserContent?.addEventListener("click", event => {
+            const tile = event.target.closest("button[data-class]");
+            if (tile) {
+                selectedClassName = tile.dataset.class;
+                renderClassBrowser();
+                els.classBrowserPanel.scrollIntoView({ block:"start" });
+                return;
+            }
+            handleStudentAction(event);
+        });
         window.addEventListener("resize", () => {
             if (!isMobileView()) closeMobileEditPanel();
         });
@@ -8623,6 +8773,11 @@
                 if(els.appSettingsModal.classList.contains("is-open")){closeAppSettings();return;}
                 if(els.phoneCameraModal?.classList.contains("is-open")){closePhoneCameraModal();return;}
                 if(els.mobileActionsSheet?.classList.contains("is-open")){closeMobileActions();return;}
+                if(document.body.classList.contains("class-browser-view")){
+                    if(selectedClassName !== null){selectedClassName=null;renderClassBrowser();}
+                    else setActiveTab("list");
+                    return;
+                }
                 if(els.editingId.value){resetForm();return;}
             }
             if(e.ctrlKey&&e.key==="Enter"&&document.activeElement&&els.registrationForm.contains(document.activeElement)){

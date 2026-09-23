@@ -62,6 +62,7 @@ app.whenReady().then(async () => {
             }
         };
         fillStudent('សុខ', 'ដារ៉ា', 2012);
+        document.getElementById('className').value = '7A';
         document.getElementById('registration-form').requestSubmit();
         await waitFor(() => document.getElementById('total-students').textContent.trim() === '1' && !document.getElementById('save-student-btn').disabled);
         fillStudent(' សុខ​ ', 'ដារ៉ា', 2011);
@@ -86,12 +87,95 @@ app.whenReady().then(async () => {
         };
     })()`);
     console.log(JSON.stringify(result));
-    win.destroy();
     const valid = result.choiceButtons === 10 && result.occupation === 'កសិករ' &&
         result.province === 'ខេត្តតាកែវ' && result.district === 'ស្រុកកោះអណ្តែត' &&
         result.commune === 'ក្រពុំឈូក' && result.village === 'ដើមដូង' && result.pickerClosed && result.duplicateBlocked &&
         result.sheetUrlReadOnly && result.canonicalSheetUrl === 'https://script.google.com/macros/s/AKfycbyc_1v8DBczUTac1CprLsj2Ae5uKt8In-XGpB6lXXmCZj7Mm-4OL1DPSJjNXsD-G2GK/exec';
     if (!valid) throw new Error('Mobile choice control validation failed');
+    win.setSize(390, 600);
+    const navigation = await win.webContents.executeJavaScript(`(async () => {
+        const waitFor = async test => {
+            const started = Date.now();
+            while (!test()) {
+                if (Date.now() - started > 4000) throw new Error('Timed out waiting for UI state');
+                await new Promise(resolve => setTimeout(resolve, 25));
+            }
+        };
+        document.getElementById('studentSurname').value = 'ម៉ៅ';
+        document.getElementById('studentGivenName').value = 'សុភា';
+        document.getElementById('className').value = '8B';
+        document.getElementById('registration-form').requestSubmit();
+        await waitFor(() => document.getElementById('total-students').textContent.trim() === '2');
+        document.getElementById('tab-classes-btn').click();
+        const classTiles = [...document.querySelectorAll('.class-tile')];
+        const classGridHasBoth = classTiles.length === 2 &&
+            classTiles.some(tile => tile.dataset.class === '7A') &&
+            classTiles.some(tile => tile.dataset.class === '8B');
+        const classGridFits = document.documentElement.scrollWidth <= innerWidth + 1;
+        classTiles.find(tile => tile.dataset.class === '7A').click();
+        const classDetailHasOne = document.querySelectorAll('.class-student-item').length === 1 &&
+            document.getElementById('class-browser-title').textContent.includes('7A');
+        const classDetailFits = document.documentElement.scrollWidth <= innerWidth + 1;
+        let popupHtml = '';
+        const buttons = {};
+        window.open = () => {
+            const popup = {
+                closed:false,
+                document:{
+                    write:html => { popupHtml = html; }, close:() => {},
+                    getElementById:id => ({ addEventListener:(_event, callback) => { buttons[id] = callback; } })
+                },
+                addEventListener:() => {},
+                close() { this.closed = true; },
+                focus:() => {}, print:() => {},
+                location:{ replace:() => {} }
+            };
+            window.testPrintPopup = popup;
+            return popup;
+        };
+        document.querySelector('.class-student-item .print-student-btn').click();
+        const printHasReturn = popupHtml.includes('return-app-btn') && typeof buttons['return-app-btn'] === 'function';
+        buttons['return-app-btn']();
+        await new Promise(resolve => setTimeout(resolve, 100));
+        const printClosed = window.testPrintPopup.closed;
+        document.getElementById('class-browser-back-btn').click();
+        const classBackWorks = document.querySelectorAll('.class-tile').length === 2 &&
+            document.getElementById('class-browser-back-btn').hidden;
+        document.getElementById('app-settings-btn').click();
+        await new Promise(resolve => setTimeout(resolve, 260));
+        const modal = document.getElementById('app-settings-modal');
+        const dialog = modal.querySelector('.modal-dialog').getBoundingClientRect();
+        const body = modal.querySelector('.modal-body');
+        const footer = modal.querySelector('.modal-footer').getBoundingClientRect();
+        const scrollHeight = body.scrollHeight;
+        const clientHeight = body.clientHeight;
+        const settingsFits = dialog.top >= 0 && dialog.bottom <= innerHeight + 1 &&
+            footer.bottom <= innerHeight + 1 && scrollHeight > clientHeight;
+        document.getElementById('principal-name-input').value = 'នាយកសាកល្បង';
+        document.getElementById('save-app-settings-btn').click();
+        await waitFor(() => !modal.classList.contains('is-open'));
+        const settingsSaved = JSON.parse(localStorage.getItem('studentRegistrationAppSettings') || '{}').principalName === 'នាយកសាកល្បង';
+        document.getElementById('class-browser-close-btn').click();
+        const closeWorks = !document.body.classList.contains('class-browser-view') &&
+            document.getElementById('tab-list-btn').classList.contains('active');
+        return { classGridHasBoth, classGridFits, classDetailHasOne, classDetailFits, classBackWorks, printHasReturn, printClosed, settingsFits, settingsSaved, closeWorks,
+            settingsGeometry:{ top:dialog.top, bottom:dialog.bottom, viewport:innerHeight, footerBottom:footer.bottom, scrollHeight, clientHeight } };
+    })()`);
+    console.log(JSON.stringify(navigation));
+    if (Object.entries(navigation).some(([key, value]) => key !== 'settingsGeometry' && value !== true)) throw new Error('Mobile navigation/settings validation failed');
+    win.setSize(1280, 800);
+    const desktop = await win.webContents.executeJavaScript(`(() => {
+        document.getElementById('open-class-browser-btn').click();
+        const panelVisible = getComputedStyle(document.getElementById('class-browser-panel')).display !== 'none';
+        const mainHidden = getComputedStyle(document.querySelector('.main-layout')).display === 'none';
+        const classesVisible = document.querySelectorAll('.class-tile').length === 2;
+        document.getElementById('class-browser-close-btn').click();
+        const mainRestored = getComputedStyle(document.querySelector('.main-layout')).display !== 'none';
+        return { panelVisible, mainHidden, classesVisible, mainRestored };
+    })()`);
+    console.log(JSON.stringify(desktop));
+    if (Object.values(desktop).some(value => value !== true)) throw new Error('Desktop class screen validation failed');
+    win.destroy();
     app.quit();
 }).catch(error => {
     console.error(error);
