@@ -19,6 +19,7 @@
 <script async type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
 <script async nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 <script async src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script defer src="./assets/takeo-addresses.js"></script>
 <script defer src="./assets/student-card.js"></script>
     <style>
         /* ========================
@@ -654,7 +655,7 @@
             width: min(460px, calc(100% - 24px));
             max-height: min(78dvh, 620px);
             display: grid;
-            grid-template-rows: auto minmax(0, 1fr) auto;
+            grid-template-rows: auto auto minmax(0, 1fr) auto;
             overflow: hidden;
             border: 1px solid var(--border);
             border-radius: 18px;
@@ -704,6 +705,20 @@
             padding: 12px;
             -webkit-overflow-scrolling: touch;
         }
+
+        .choice-picker-search {
+            width: calc(100% - 24px);
+            margin: 12px 12px 0;
+            min-height: 44px;
+            border: 1.5px solid var(--border-strong);
+            border-radius: 10px;
+            padding: 8px 12px;
+            background: var(--surface);
+            color: var(--text);
+            font: inherit;
+        }
+        .choice-picker-search[hidden] { display: none; }
+        .choice-picker-option small { display:block; color:var(--muted); font-size:.8rem; font-weight:400; }
 
         .choice-picker-option {
             width: 100%;
@@ -3463,6 +3478,13 @@
                         </div>
                         <div class="section-body">
                             <div class="field-grid">
+                                <div class="field field-full">
+                                    <label for="pobVillage">ភូមិ</label>
+                                    <input id="pobVillage" name="pobVillage" type="text" list="pobVillageList"
+                                           placeholder="ជ្រើសភូមិ ដើម្បីបំពេញអាសយដ្ឋានស្វ័យប្រវត្តិ" autocomplete="off">
+                                    <datalist id="pobVillageList"></datalist>
+                                    <small class="field-help">ភូមិឈ្មោះដូចគ្នា៖ ជ្រើសតាមឃុំ និងស្រុកក្នុងបញ្ជី។</small>
+                                </div>
                                 <div class="field">
                                     <label for="pobProvince">ខេត្ត/រាជធានី</label>
                                     <input id="pobProvince" name="pobProvince" type="text" list="pobProvinceList"
@@ -3480,12 +3502,6 @@
                                     <input id="pobCommune" name="pobCommune" type="text" list="pobCommuneList"
                                            placeholder="ជ្រើស ឬវាយឃុំ/សង្កាត់" autocomplete="off" disabled>
                                     <datalist id="pobCommuneList"></datalist>
-                                </div>
-                                <div class="field">
-                                    <label for="pobVillage">ភូមិ</label>
-                                    <input id="pobVillage" name="pobVillage" type="text" list="pobVillageList"
-                                           placeholder="ជ្រើស ឬវាយភូមិ" autocomplete="off" disabled>
-                                    <datalist id="pobVillageList"></datalist>
                                 </div>
                             </div>
                         </div>
@@ -3505,6 +3521,13 @@
                                 <span>ដូចទីកន្លែងកំណើត</span>
                             </label>
                             <div class="field-grid">
+                                <div class="field field-full">
+                                    <label for="currentVillage">ភូមិ</label>
+                                    <input id="currentVillage" name="currentVillage" type="text" list="currentVillageList"
+                                           placeholder="ជ្រើសភូមិ ដើម្បីបំពេញអាសយដ្ឋានស្វ័យប្រវត្តិ" autocomplete="off">
+                                    <datalist id="currentVillageList"></datalist>
+                                    <small class="field-help">ភូមិឈ្មោះដូចគ្នា៖ ជ្រើសតាមឃុំ និងស្រុកក្នុងបញ្ជី។</small>
+                                </div>
                                 <div class="field">
                                     <label for="currentProvince">ខេត្ត/រាជធានី</label>
                                     <input id="currentProvince" name="currentProvince" type="text" list="currentProvinceList"
@@ -3522,12 +3545,6 @@
                                     <input id="currentCommune" name="currentCommune" type="text" list="currentCommuneList"
                                            placeholder="ជ្រើស ឬវាយឃុំ/សង្កាត់" autocomplete="off" disabled>
                                     <datalist id="currentCommuneList"></datalist>
-                                </div>
-                                <div class="field">
-                                    <label for="currentVillage">ភូមិ</label>
-                                    <input id="currentVillage" name="currentVillage" type="text" list="currentVillageList"
-                                           placeholder="ជ្រើស ឬវាយភូមិ" autocomplete="off" disabled>
-                                    <datalist id="currentVillageList"></datalist>
                                 </div>
                             </div>
                         </div>
@@ -4362,158 +4379,24 @@
     }
 
     // ===================== CAMBODIA ADDRESS DATA =====================
-    const cambodiaData = {
-        "ខេត្តបន្ទាយមានជ័យ": {
-            "ស្រុកឧនណ": { "ប្លុកក្រវ៉ាន់": ["ស្ទឹងជ្រៃ","ក្រវ៉ាន់","សសរ"], "ប្លុកថ្មី": ["ថ្មី","ស្ទឹងអត"] },
-            "ស្រុកភ្នំស្រក់": { "ភ្នំស្រក់": ["ភ្នំស្រក់","បន្ទាយ"], "ត្រាំ": ["ត្រាំ","ករខ"] },
-            "ក្រុងសៀមរាប": { "ស្វាយដង្គំ": ["ស្វាយ","ដង្គំ"], "ស្លក្រាម": ["ស្លក្រាម","អន្លង់"] }
-        },
-        "ខេត្តបាត់ដំបង": {
-            "ក្រុងបាត់ដំបង": {
-                "ព្រៃធំ": ["ព្រៃធំ","ត្រពាំង","ព្រៃ"],
-                "ស្វាយប៉ោ": ["ស្វាយប៉ោ","ទួល"],
-                "វាល": ["វាល","ទីក្រុង"]
-            },
-            "ស្រុកអេករ": { "អេករ": ["អេករ","ត្រពាំង","ហ៊ីង"] },
-            "ស្រុកថ្មគោល": { "ថ្មគោល": ["ថ្មគោល","ព្រៃ","ទួល"] }
-        },
-        "ខេត្តកំពង់ចាម": {
-            "ក្រុងកំពង់ចាម": {
-                "វត្តភ្នំ": ["វត្តភ្នំ","ក្រលា","ក្ដីស"],
-                "ធំ": ["ធំ","ការសៀ","ដែល"],
-                "ពោ": ["ពោ","ស្ទឹង"]
-            },
-            "ស្រុកស្ទឹងត្រង": { "ស្ទឹងត្រង": ["ស្ទឹងត្រង","ត្រពាំង"] },
-            "ស្រុកចេងព្រៃ": { "ចេងព្រៃ": ["ចេងព្រៃ","បូករ","ចំប"] }
-        },
-        "ខេត្តកណ្ដាល": {
-            "ស្រុកខសាច់": {
-                "ខសាច់": ["ខសាច់","អ្នកលូ","ព្រែក"],
-                "ព្រែកហ្ស": ["ព្រែកហ្ស","ដូង","ព្រៃ"]
-            },
-            "ស្រុកស្អាង": { "ស្អាង": ["ស្អាង","ចេងគ","ក្រោម"] },
-            "ស្រុកទ្បានខ្ញី": { "ទ្បានខ្ញី": ["ទ្បានខ្ញី","អូរ"] }
-        },
-        "ខេត្តកំពង់ស្ពឺ": {
-            "ក្រុងកំពង់ស្ពឺ": { "ស្ពឺ": ["ស្ពឺ","ទួល","ច"] },
-            "ស្រុកចៅខ្លុង": { "ចៅខ្លុង": ["ចៅខ្លុង","ក្រ","ដំ"] },
-            "ស្រុកថ្នាល": { "ថ្នាល": ["ថ្នាល","ព្រៃ","ឃ"] }
-        },
-        "ខេត្តកំពង់ធំ": {
-            "ក្រុងស្ទឹងសែន": { "ស្ទឹងសែន": ["ស្ទឹងសែន","ពោ","ដូង"] },
-            "ស្រុកប្រាសាទបាលាយ": { "ប្រាសាទ": ["ប្រាសាទ","ស","ប"] }
-        },
-        "ខេត្តកំពត": {
-            "ក្រុងកំពត": { "ស្ទឹង": ["ស្ទឹង","ព្រ","ខ"] },
-            "ស្រុកចំការ": { "ចំការ": ["ចំការ","ដូ","ព"] }
-        },
-        "ខេត្តព្រះសីហនុ": {
-            "ក្រុងព្រះសីហនុ": { "ក្រោមអក": ["ក្រោមអក","ខាងជើង","ខាងត្បូង"] },
-            "ស្រុកព្រៃនប់": { "ព្រៃនប់": ["ព្រៃនប់","ព"] }
-        },
-        "ខេត្តក្រចេះ": {
-            "ក្រុងក្រចេះ": { "ស": ["ស","ព","ក"] },
-            "ស្រុកស្នួល": { "ស្នួល": ["ស្នួល","ព","ស"] }
-        },
-        "ខេត្តមណ្ឌលគិរី": {
-            "ក្រុងសែនមនោរម្យ": { "ស": ["ស","ព","ម"] },
-            "ស្រុកបូ": { "បូ": ["បូ","ម"] }
-        },
-        "ខេត្តព្រះវិហារ": {
-            "ស្រុកចេងគ": { "ចេងគ": ["ចេងគ","ព","ក"] },
-            "ស្រុករំទឹក": { "រំទឹក": ["រំទឹក","ស"] }
-        },
-        "ខេត្តព្រៃវែង": {
-            "ក្រុងព្រៃវែង": { "ព្រៃ": ["ព្រៃ","ឈើ","ដ"] },
-            "ស្រុកព្រៃ": { "ព្រៃ": ["ព្រៃ","ស"] }
-        },
-        "ខេត្តរតនគិរី": {
-            "ក្រុងបានលុង": { "បា": ["បា","ន","ល"] },
-            "ស្រុកលំផាត់": { "លំ": ["លំ","ផ"] }
-        },
-        "ខេត្តសៀមរាប": {
-            "ក្រុងសៀមរាប": {
-                "ស្វាយដង្គំ": ["ស្វាយ","ដង្គំ","ប"],
-                "ស្លក្រាម": ["ស្លក្រាម","ព","ស"],
-                "ការ": ["ការ","ស","ព"]
-            },
-            "ស្រុកសូទ្រានិគម": { "សូ": ["សូ","ត","ន"] },
-            "ស្រុកអង្គរធំ": { "អ": ["អ","ង"] }
-        },
-        "ខេត្តស្ទឹងត្រែង": {
-            "ក្រុងស្ទឹងត្រែង": { "ស": ["ស","ទ","ត"] },
-            "ស្រុកសំបូ": { "ស": ["ស","ំ"] }
-        },
-        "ខេត្តស្វាយរៀង": {
-            "ក្រុងស្វាយរៀង": { "ស": ["ស","វ","រ"] },
-            "ស្រុកចន្ទ្រា": { "ចន": ["ចន","ទ"] }
-        },
-        "ខេត្តតាកែវ": {
-            "ក្រុងដូនកែវ": {
-                "បារាយណ៍": ["បារាយណ៍","ដើមផ្ដៀក","ព្រៃព្រិច","ព្រៃខ្លា","ត្រពាំងសាលា","ឡូរី","ជ្រោយ","ស្នោ"],
-                "រកាក្នុង": ["រកាក្នុងទី១","រកាក្នុងទី២","អូរុន","ចំការសំរោង","ធ្នង់","សុភី","ត្រពាំងសាប"],
-                "រកាក្រៅ": ["រកាក្រៅ","ថ្មី","តាឌុក","តាដោ","ត្រាំ","ប្រហូត"]
-            },
-            "ស្រុកបាទី": {
-                "ចំបក់": ["រលួស","ត្រពាំងលើក","ព្រៃរំពាក់","ត្រពាំងក្រឡាញ់","ត្រពាំងឈូក","ត្រពាំងកក់","ព្រៃជន្លួញ","ត្រពាំងធំ","ត្រពាំងព្រិច","ថ្មី","ក្រាំងអំពិល"],
-                "ចំប៉ី": ["ចំប៉ី","ព្រៃផ្គាំ","កក់","ស្រែឫស្សី","ត្រពាំងឈូក","ថ្មី","ត្រពាំងរាំង","ត្រពាំងរនៀម","ត្រពាំងទា","ព្រៃមូល"]
-            },
-            "ស្រុកកោះអណ្តែត": {
-                "ក្រពុំឈូក": ["ដើមដូង","បេង","ក្រពុំឈូក","ព្រៃម្លូ","ពាន្នី","តាពរ","ត្រពាំងតាអ៊ុយ","កោះមាន់","វត្តស្លា","ជ្រោយពោន","ខ្លាគ្រហឹម ក","ខ្លាគ្រហឹម ខ","ត្រពាំងទន្លេ"],
-                "ពេជសារ": ["តាបួរ","ជន្ទល់មេឃ","ព្រៃធំ","ដំណាក់","ព្រៃបាយ","គោកដូង","ត្រពាំងក្រសាំង","តាមោក","ពោធិ","ពោន","ពេជសារ","ស្លែង","ស្ដៅ","ចុងអង្ករ","អង្គុញ","តាបស","គោកខ្ពស់"],
-                "ព្រៃខ្លា": ["ស្រម៉","ស្រែបឹង","ព្រៃមេលងខាងត្បូង","ព្រៃមេលងខាងជើង","កន្សោមអក","ចំបក់","សំភ្លី","គរ","តាំងរាសី","ព្រៃខ្លាខាងជើង","ព្រៃខ្លាខាងត្បូង","បន្ទាយធ្លាយ","កែវកាំភ្លើង","ទួលកណ្ដាល","ជំរំ"],
-                "ព្រៃយុថ្កា": ["តាញឹម","ព្រៃបាយ","តាភិន","តាផាន់","តាហៀន","ពងអណ្ដើក"],
-                "រមេញ": ["រមេញខាងត្បូង","រមេញខាងជើង","ដើមចាន់","មានាគ","ដើមក្រូច","ប្រឡាយមាស","ចំបក់ឯម","សំរោង","ប្រាសាទ","ដើមពោធិ"],
-                "ធ្លាប្រជុំ": ["រលួស","លៀប","ត្រពាំងកក់","អណ្ដូងសំរិត","រូង","ព្នៅ","ស៊ីស្លា"]
-            },
-            "ស្រុកព្រៃកប្បាស": {
-                "អង្កាញ់": ["អង្កាញ់","ត្រពាំងធ្នង់","ព្រៃបាយ","តាអាំ","ត្រពាំងខ្ទុំ","ត្រពាំងក្ដុល","ត្រពាំងរំដេញ","តាអ៊ុយ"],
-                "បានៀវ": ["បានៀវ","ព្រៃកប្បាស","គោកទ្រា","ព្រៃវិហារ","ព្រៃចំបក់","ត្រពាំងស្មៅ"],
-                "ចំប៉ា": ["ចំប៉ា","ព្រៃផ្អាវ","ត្រពាំងអង្គ","ក្រាំងឈើនៀង","ត្រពាំងធំ","តានប់"],
-                "ចារ": ["ចារ","សេរីវង្ស","ព្រៃក្ដី","ត្រពាំងសង្កែ","ព្រៃរំពាក់"],
-                "កំពែង": ["កំពែង","ទួលស្បូវ","ត្រពាំងឈូក","ត្រពាំងក្រសាំង","ព្រៃរនាម","ព្រៃរោង"],
-                "កំពង់រាប": ["កំពង់រាប","ព្រែកហាប","ព្រែកអាំ","ព្រែកយួន"],
-                "ព្រៃផ្តៅ": ["តាឌឹម","ត្រពោន","តាជិន","តាចាន់","តារៀន","ពងអណ្ដើក"],
-                "ព្រៃល្វា": ["ព្រៃល្វា","ត្រពាំងក្ដី","ត្រពាំងខ្យង","ត្រពាំងឈូក","ត្រពាំងស្មៅ"],
-                "ស្នោ": ["ស្នោ","ព្រៃមាស","ត្រពាំងខ្នារ","ត្រពាំងជ្រៃ","ត្រពាំងទា"],
-                "តាំងយ៉ាប": ["តាំងយ៉ាប","ត្រពាំងខ្ទុំ","ព្រៃធំ","ត្រពាំងក្រូច","ព្រៃទទឹង"]
-            }
-        },
-        "ខេត្តឧត្តរមានជ័យ": {
-            "ស្រុកអន្លង់វែង": { "អន្លង់": ["អន្លង់","ព","ស"] },
-            "ស្រុកសំបូប្រាំ": { "ស": ["ស","ំ","ប"] }
-        },
-        "ខេត្តជ្រៃ": {
-            "ក្រុងជ្រៃ": { "ជ": ["ជ","្រ"] },
-            "ស្រុកស្ទឹងជ្រៃ": { "ស": ["ស","ទ"] }
-        },
-        "ខេត្តកែប": {
-            "ក្រុងកែប": { "ក": ["ក","ែ"] }
-        },
-        "ខេត្តប៉ៃលិន": {
-            "ក្រុងប៉ៃលិន": { "ប": ["ប","ៃ"] }
-        },
-        "រាជធានីភ្នំពេញ": {
-            "ខណ្ឌចំការមន": {
-                "ទួលទំពូង១": ["ចំការ","ទំពូង","ស"],
-                "ទួលទំពូង២": ["ទំពូង","ក","ម"],
-                "ផ្ការ": ["ផ្ការ","ស"]
-            },
-            "ខណ្ឌដូនពេញ": {
-                "ជ្រោយចង្វារ": ["ជ្រោយ","ចង្វារ"],
-                "ប្ដុំ": ["ប្ដុំ","ព"]
-            },
-            "ខណ្ឌបឹងកេងកង": { "បឹងកេងកង": ["បឹង","ស"] },
-            "ខណ្ឌបឹងក្យូ": { "ក": ["ក","យ"] },
-            "ខណ្ឌ៧មករា": { "ស": ["ស","ម"] },
-            "ខណ្ឌឫស្សីកែវ": { "ឫ": ["ឫ","ស"] },
-            "ខណ្ឌសែនសុខ": { "ស": ["ស","ន"] },
-            "ខណ្ឌព្រែកព្នៅ": { "ព": ["ព","្រ"] },
-            "ខណ្ឌបោរ": { "ស": ["ស","ប"] },
-            "ខណ្ឌព្រះស្ទីង": { "ព": ["ព","្រ"] }
-        }
-    };
     const ADDRESS_PROVINCE_CHOICES = ["ខេត្តតាកែវ"];
+    const takeoVillageRecords = (window.TAKEO_VILLAGES_2025 || []).map(([code, districtCode, districtName, commune, village]) => ({
+        code,
+        province:"ខេត្តតាកែវ",
+        district:(districtCode === "2108" ? "ក្រុង" : "ស្រុក") + districtName,
+        commune,
+        village
+    }));
+    const cambodiaData = { "ខេត្តតាកែវ":{} };
+    const takeoVillagesByName = new Map();
+    for (const record of takeoVillageRecords) {
+        const districts = cambodiaData["ខេត្តតាកែវ"];
+        (districts[record.district] ||= {});
+        (districts[record.district][record.commune] ||= []).push(record.village);
+        const name = record.village.trim().replace(/\s+/g, " ");
+        if (!takeoVillagesByName.has(name)) takeoVillagesByName.set(name, []);
+        takeoVillagesByName.get(name).push(record);
+    }
 
     // ===================== ELEMENT REFS =====================
     const els = {
@@ -6054,18 +5937,32 @@
         populateSelect(g.district, [], "ជ្រើសរើសស្រុក/ខណ្ឌ");
         populateSelect(g.commune, [], "ជ្រើសរើសឃុំ/សង្កាត់");
         populateSelect(g.village, [], "ជ្រើសរើសភូមិ");
-        g.district.disabled = true; g.commune.disabled = true; g.village.disabled = true;
+        g.village.dataset.villageCode = "";
+        g.village.setCustomValidity("");
+        Object.values(g).forEach(field => { field.disabled = false; });
     }
 
     function setAddressGroup(g, a) {
         const prov = a.province||"", dist = a.district||"", comm = a.commune||"", vill = a.village||"";
         populateSelect(g.province, ADDRESS_PROVINCE_CHOICES, "ជ្រើសរើសខេត្ត/រាជធានី", prov);
         populateSelect(g.district, prov ? Object.keys(cambodiaData[prov]||{}) : [], "ជ្រើសរើសស្រុក/ខណ្ឌ", dist);
-        g.district.disabled = !prov;
         populateSelect(g.commune, prov&&dist ? Object.keys(cambodiaData[prov]?.[dist]||{}) : [], "ជ្រើសរើសឃុំ/សង្កាត់", comm);
-        g.commune.disabled = !(prov&&dist);
-        populateSelect(g.village, prov&&dist&&comm ? (cambodiaData[prov]?.[dist]?.[comm]||[]) : [], "ជ្រើសរើសភូមិ", vill);
-        g.village.disabled = !(prov&&dist&&comm);
+        populateSelect(g.village, [], "ជ្រើសរើសភូមិ", vill);
+        const matches = takeoVillagesByName.get(normalizeVillageName(vill)) || [];
+        const matched = matches.filter(record => record.province === prov && record.district === dist && record.commune === comm);
+        g.village.dataset.villageCode = matched.length === 1 ? matched[0].code : "";
+        g.village.setCustomValidity("");
+        Object.values(g).forEach(field => { field.disabled = false; });
+    }
+
+    function normalizeVillageName(value) {
+        return String(value || "").trim().replace(/\s+/g, " ");
+    }
+
+    function applyVillageRecord(g, record) {
+        setAddressGroup(g, record);
+        g.village.dataset.villageCode = record.code;
+        g.village.setCustomValidity("");
     }
 
     function readAddressGroup(g) {
@@ -6074,11 +5971,7 @@
 
     function lockCurrentAddress(locked) {
         if (locked) { Object.values(currentGroup).forEach(s => s.disabled = true); return; }
-        const prov=currentGroup.province.value, dist=currentGroup.district.value, comm=currentGroup.commune.value;
-        currentGroup.province.disabled = false;
-        currentGroup.district.disabled = !prov;
-        currentGroup.commune.disabled = !(prov&&dist);
-        currentGroup.village.disabled = !(prov&&dist&&comm);
+        Object.values(currentGroup).forEach(field => { field.disabled = false; });
     }
 
     function syncCurrentFromBirth() { setAddressGroup(currentGroup, readAddressGroup(pobGroup)); lockCurrentAddress(els.sameAddress.checked); }
@@ -6093,23 +5986,50 @@
             populateSelect(g.district, p ? Object.keys(cambodiaData[p]||{}) : [], "ជ្រើសរើសស្រុក/ខណ្ឌ");
             populateSelect(g.commune, [], "ជ្រើសរើសឃុំ/សង្កាត់");
             populateSelect(g.village, [], "ជ្រើសរើសភូមិ");
-            g.district.disabled = !p; g.commune.disabled = true; g.village.disabled = true;
+            g.village.dataset.villageCode = "";
+            g.village.setCustomValidity("");
             onChange?.();
         });
         listen(g.district, () => {
             const p=g.province.value, d=g.district.value;
             populateSelect(g.commune, p&&d ? Object.keys(cambodiaData[p]?.[d]||{}) : [], "ជ្រើសរើសឃុំ/សង្កាត់");
             populateSelect(g.village, [], "ជ្រើសរើសភូមិ");
-            g.commune.disabled = !(p&&d); g.village.disabled = true;
+            g.village.dataset.villageCode = "";
+            g.village.setCustomValidity("");
             onChange?.();
         });
         listen(g.commune, () => {
-            const p=g.province.value, d=g.district.value, c=g.commune.value;
-            populateSelect(g.village, p&&d&&c ? (cambodiaData[p]?.[d]?.[c]||[]) : [], "ជ្រើសរើសភូមិ");
-            g.village.disabled = !(p&&d&&c);
+            const p=g.province.value;
+            populateSelect(g.village, [], "ជ្រើសរើសភូមិ");
+            g.village.dataset.villageCode = "";
+            g.village.setCustomValidity("");
             onChange?.();
         });
-        listen(g.village, () => onChange?.());
+        listen(g.village, event => {
+            const name = normalizeVillageName(g.village.value);
+            const previous = takeoVillageRecords.find(record => record.code === g.village.dataset.villageCode);
+            if (previous && name !== previous.village) {
+                g.village.dataset.villageCode = "";
+                populateSelect(g.province, ADDRESS_PROVINCE_CHOICES, "ជ្រើសរើសខេត្ត/រាជធានី");
+                populateSelect(g.district, [], "ជ្រើសរើសស្រុក/ខណ្ឌ");
+                populateSelect(g.commune, [], "ជ្រើសរើសឃុំ/សង្កាត់");
+            }
+            const matches = takeoVillagesByName.get(name) || [];
+            const selected = matches.find(record => record.code === g.village.dataset.villageCode);
+            const contextual = matches.filter(record =>
+                (!g.province.value || g.province.value === record.province) &&
+                (!g.district.value || g.district.value === record.district) &&
+                (!g.commune.value || g.commune.value === record.commune));
+            if (selected || matches.length === 1 || contextual.length === 1) {
+                applyVillageRecord(g, selected || (matches.length === 1 ? matches[0] : contextual[0]));
+            } else if (matches.length > 1) {
+                g.village.setCustomValidity("សូមជ្រើសភូមិដែលមានឃុំ និងស្រុកត្រឹមត្រូវក្នុងបញ្ជី");
+                if (event.type === "change") openChoicePicker(g.village);
+            } else {
+                g.village.setCustomValidity("");
+            }
+            onChange?.();
+        });
     }
 
     // ===================== DUPLICATE CHECK =====================
@@ -7052,18 +6972,20 @@
         if (hasTransparentSubject) {
             const bounds = getAlphaBounds(img);
             const source = bounds || { x:0, y:0, w:img.naturalWidth || img.width, h:img.naturalHeight || img.height };
-            const scale = Math.min(
-                (canvas.width * 0.94) / source.w,
-                (canvas.height * 0.99) / source.h
-            );
+            // Frame an ID-style head-and-shoulders portrait, leaving consistent headroom.
+            // Long/full-body camera images are cropped below the shoulders, not shrunk
+            // until the face is tiny or squeezed into the card's short photo slot.
+            const widthScale = (canvas.width * 0.94) / source.w;
+            const cropHeight = Math.min(source.h, (canvas.height * 0.90) / widthScale);
+            const scale = Math.min(widthScale, (canvas.height * 0.90) / cropHeight);
             const w = source.w * scale;
-            const h = source.h * scale;
+            const h = cropHeight * scale;
             const x = (canvas.width - w) / 2;
             // Bottom-align the cut-out so spare blue space appears above the head.
             const y = canvas.height - h;
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = "high";
-            ctx.drawImage(img, source.x, source.y, source.w, source.h, x, y, w, h);
+            ctx.drawImage(img, source.x, source.y, source.w, cropHeight, x, y, w, h);
         } else {
             const sourceWidth = img.naturalWidth || img.width;
             const sourceHeight = img.naturalHeight || img.height;
@@ -8507,6 +8429,7 @@
                 <h3 class="choice-picker-title" id="choice-picker-title">ជ្រើសរើស</h3>
                 <button class="choice-picker-close" type="button" aria-label="បិទ">×</button>
             </div>
+            <input class="choice-picker-search" type="search" placeholder="ស្វែងរកភូមិ ឃុំ ឬស្រុក" aria-label="ស្វែងរកភូមិ" hidden>
             <div class="choice-picker-options" id="choice-picker-options"></div>
             <div class="choice-picker-custom">
                 <button class="btn btn-ghost" type="button" data-choice-custom>
@@ -8540,9 +8463,10 @@
 
     function openChoicePicker(input) {
         if (!input || input.disabled) return;
+        const addressGroup = input.id === "pobVillage" ? pobGroup : input.id === "currentVillage" ? currentGroup : null;
         const list = input.list;
         const values = [...new Set(Array.from(list?.options || [], option => option.value || option.textContent).filter(Boolean))];
-        if (!values.length) {
+        if (!values.length && !addressGroup) {
             input.focus({ preventScroll:true });
             return;
         }
@@ -8551,27 +8475,64 @@
         const label = input.id ? document.querySelector(`label[for="${input.id}"]`) : null;
         picker.querySelector(".choice-picker-title").textContent = label?.textContent?.trim() || "ជ្រើសរើស";
         const options = picker.querySelector(".choice-picker-options");
+        const search = picker.querySelector(".choice-picker-search");
+        search.hidden = !addressGroup;
+        search.value = addressGroup ? input.value : "";
         options.replaceChildren();
-        values.forEach(value => {
-            const button = document.createElement("button");
-            button.type = "button";
-            button.className = "choice-picker-option";
-            button.textContent = value;
-            button.dataset.value = value;
-            if (value === input.value) button.classList.add("is-selected");
-            button.addEventListener("click", () => {
-                input.value = value;
-                input.dispatchEvent(new Event("input", { bubbles:true }));
-                closeChoicePicker();
+        const renderOptions = () => {
+            options.replaceChildren();
+            if (addressGroup) {
+                const query = normalizeVillageName(search.value);
+                const matches = takeoVillageRecords.filter(record =>
+                    !query || [record.village, record.commune, record.district].some(part => part.includes(query)));
+                matches.slice(0, 80).forEach(record => {
+                    const button = document.createElement("button");
+                    button.type = "button";
+                    button.className = "choice-picker-option";
+                    button.dataset.code = record.code;
+                    button.append(document.createTextNode(record.village));
+                    const context = document.createElement("small");
+                    context.textContent = `${record.commune} · ${record.district} · ${record.province}`;
+                    button.append(context);
+                    if (record.code === input.dataset.villageCode) button.classList.add("is-selected");
+                    button.addEventListener("click", () => {
+                        applyVillageRecord(addressGroup, record);
+                        input.dispatchEvent(new Event("change", { bubbles:true }));
+                        closeChoicePicker();
+                    });
+                    options.append(button);
+                });
+                if (!matches.length || matches.length > 80) {
+                    const hint = document.createElement("small");
+                    hint.className = "field-help";
+                    hint.textContent = matches.length ? `មាន ${matches.length} ភូមិ · សូមវាយឈ្មោះដើម្បីស្វែងរកបន្ថែម` : "រកមិនឃើញភូមិក្នុងបញ្ជីខេត្តតាកែវ";
+                    options.append(hint);
+                }
+                return;
+            }
+            values.forEach(value => {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "choice-picker-option";
+                button.textContent = value;
+                button.dataset.value = value;
+                if (value === input.value) button.classList.add("is-selected");
+                button.addEventListener("click", () => {
+                    input.value = value;
+                    input.dispatchEvent(new Event("input", { bubbles:true }));
+                    closeChoicePicker();
+                });
+                options.append(button);
             });
-            options.append(button);
-        });
+        };
+        search.oninput = addressGroup ? renderOptions : null;
+        renderOptions();
 
         activeChoiceInput = input;
         document.body.classList.add("choice-picker-open");
         backdrop.classList.add("is-open");
         picker.classList.add("is-open");
-        requestAnimationFrame(() => options.querySelector(".is-selected, .choice-picker-option")?.focus({ preventScroll:true }));
+        requestAnimationFrame(() => addressGroup ? search.focus({ preventScroll:true }) : options.querySelector(".is-selected, .choice-picker-option")?.focus({ preventScroll:true }));
     }
 
     function enhanceChoiceInputs() {

@@ -43,6 +43,8 @@ The **សិស្សតាមថ្នាក់** screen groups the students cu
 
 The **យកពីឪពុក / យកពីម្តាយ** buttons in the guardian section copy the selected parent's name to the guardian field and their phone number to the contact field. They do not add or change Sheet columns. The card photo frame is sized to its photo rather than extending to the bottom edge of the card.
 
+For either address, select the village first. The form fills the Takeo commune, district, and province from the [official Cambodia Geographical List 2025](https://data.mef.gov.kh/datasets/pd_68e370856a965e00074a5e7b). Villages with the same name show their commune and district so the correct location can be selected. Other provinces remain available for manual entry. This changes form entry only; no Google Sheet columns are added. Newly processed ID photos keep headroom above the student, and card printing fits the full photo inside the shortened frame without cropping it.
+
 Camera access in a browser requires the Web App to be served over **HTTPS** (or localhost during development).
 
 To send photos from a phone directly into the form open on a computer:

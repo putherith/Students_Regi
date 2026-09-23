@@ -72,8 +72,8 @@
           .latin-value { font-family:Arial,sans-serif; font-size:16px !important; font-weight:700 !important; }
           .reference-photo-box { position:absolute; left:17px; top:388px; width:142px; height:180px; border:2px solid #5585ff; display:grid; grid-template-rows:33px minmax(0,1fr); }
           .card-id-code { border-bottom:2px solid #5585ff; color:#152932; text-align:center; font:bold 16px/31px "Times New Roman",serif; white-space:nowrap; }
-          .card-photo-slot { position:relative; min-height:0; display:grid; place-items:center; overflow:hidden; color:#111; font:16px Arial,sans-serif; }
-          .card-photo-slot img { position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:cover; object-position:center; }
+          .card-photo-slot { position:relative; min-height:0; display:grid; place-items:center; overflow:hidden; background:#3b86ee; color:#111; font:16px Arial,sans-serif; }
+          .card-photo-slot img { position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:contain; object-position:center bottom; }
           .family-line { position:absolute; left:163px; width:410px; display:grid; grid-template-columns:138px 126px 130px; column-gap:8px; align-items:center; min-height:32px; }
           .father-line { top:393px; }
           .mother-line { top:428px; }
@@ -138,7 +138,9 @@
         for (let y = height - 1; y >= 0; y--) if (rowHits[y] >= rowMinimum) { maxY = y; break; }
         if (minX < 0 || minY < 0 || maxX <= minX || maxY <= minY) return;
 
-        // New photos already occupy the frame. This path mainly upgrades older stored photos.
+        // Reframe only older photos with an empty strip below the subject. Newly
+        // composed portraits already have deliberate headroom and a filled bottom.
+        if (maxY >= height * 0.985 && minY >= height * 0.04 && minY <= height * 0.20) return;
         if (minY <= height * 0.035 && maxY >= height * 0.95) return;
         const subjectWidth = maxX - minX + 1;
         const subjectHeight = maxY - minY + 1;
