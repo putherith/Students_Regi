@@ -54,6 +54,11 @@ app.whenReady().then(async () => {
         };
 
         const occupation = await clickChoice('fatherOccupation', 'កសិករ');
+        const addressOrder = ['pob', 'current'].map(prefix => [...document.getElementById(prefix + 'Village').closest('.field-grid').querySelectorAll('input[name^="' + prefix + '"]')].map(input => input.name));
+        const addressVisuallyOrdered = ['pob', 'current'].every(prefix => {
+            const positions = ['Village', 'Commune', 'District', 'Province'].map(part => document.getElementById(prefix + part).getBoundingClientRect().top);
+            return positions.every((top, index) => index === 0 || top >= positions[index - 1]);
+        });
         const birthVillageInput = document.getElementById('pobVillage');
         birthVillageInput.value = 'ព្រៃមេលងខាងត្បូង';
         birthVillageInput.dispatchEvent(new Event('input', { bubbles:true }));
@@ -144,7 +149,7 @@ app.whenReady().then(async () => {
         return {
             choiceButtons:document.querySelectorAll('.choice-open-btn').length,
             officialKaohAndaetVillages:window.KAOH_ANDAET_VILLAGES_2025?.length,
-            occupation, province, district, commune, village, uniqueVillageAutofilled, ambiguousRequiresChoice, duplicateVillageDisambiguated, otherDistrictManual, otherProvinceManual,
+            occupation, addressOrder, addressVisuallyOrdered, province, district, commune, village, uniqueVillageAutofilled, ambiguousRequiresChoice, duplicateVillageDisambiguated, otherDistrictManual, otherProvinceManual,
             pickerClosed:!document.getElementById('choice-picker').classList.contains('is-open'),
             viewport:innerWidth,
             pickerWidth:picker.width,
@@ -154,7 +159,9 @@ app.whenReady().then(async () => {
         };
     })()`);
     console.log(JSON.stringify(result));
+    const expectedAddressOrder = ['pob', 'current'].map(prefix => ['Village', 'Commune', 'District', 'Province'].map(part => prefix + part));
     const valid = result.choiceButtons === 10 && result.officialKaohAndaetVillages === 68 && result.occupation === 'កសិករ' &&
+        JSON.stringify(result.addressOrder) === JSON.stringify(expectedAddressOrder) && result.addressVisuallyOrdered &&
         result.province === 'ខេត្តតាកែវ' && result.district === 'ស្រុកកោះអណ្ដែត' &&
         result.commune === 'ក្រពុំឈូក' && result.village === 'ដើមដូង' && result.uniqueVillageAutofilled && result.ambiguousRequiresChoice && result.duplicateVillageDisambiguated && result.otherDistrictManual && result.otherProvinceManual && result.pickerClosed && result.duplicateBlocked && result.guardianFromFather && result.guardianFromMother && result.guardianButtonsFit &&
         result.sheetUrlReadOnly && result.canonicalSheetUrl === 'https://script.google.com/macros/s/AKfycbyc_1v8DBczUTac1CprLsj2Ae5uKt8In-XGpB6lXXmCZj7Mm-4OL1DPSJjNXsD-G2GK/exec';
