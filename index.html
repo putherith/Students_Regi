@@ -7034,7 +7034,7 @@
         const subjectHeight = maxY - minY + 1;
         const padX = Math.round(subjectWidth * 0.05);
         const padTop = Math.round(subjectHeight * 0.008);
-        const padBottom = Math.round(subjectHeight * 0.025);
+        const padBottom = 0;
         minX = Math.max(0, minX - padX);
         minY = Math.max(0, minY - padTop);
         maxX = Math.min(width - 1, maxX + padX);
@@ -7059,7 +7059,8 @@
             const w = source.w * scale;
             const h = source.h * scale;
             const x = (canvas.width - w) / 2;
-            const y = Math.round(canvas.height * 0.005);
+            // Bottom-align the cut-out so spare blue space appears above the head.
+            const y = canvas.height - h;
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = "high";
             ctx.drawImage(img, source.x, source.y, source.w, source.h, x, y, w, h);

@@ -144,7 +144,7 @@
         const subjectHeight = maxY - minY + 1;
         const padX = Math.round(subjectWidth * 0.05);
         const padTop = Math.round(subjectHeight * 0.008);
-        const padBottom = Math.round(subjectHeight * 0.025);
+        const padBottom = 0;
         const sx = Math.max(0, minX - padX);
         const sy = Math.max(0, minY - padTop);
         const sw = Math.min(width - sx, subjectWidth + (padX * 2));
@@ -160,7 +160,8 @@
         const drawHeight = sh * scale;
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(sourceCanvas, sx, sy, sw, sh, (output.width - drawWidth) / 2, output.height * 0.005, drawWidth, drawHeight);
+        // Keep the shoulders at the lower edge; any unused blue background belongs above the head.
+        ctx.drawImage(sourceCanvas, sx, sy, sw, sh, (output.width - drawWidth) / 2, output.height - drawHeight, drawWidth, drawHeight);
         img.src = output.toDataURL("image/jpeg", .88);
         try { await img.decode(); } catch {}
     }
