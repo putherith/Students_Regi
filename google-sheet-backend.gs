@@ -127,6 +127,35 @@ function doGet(e) {
         settingsRevision: getRevision_(SETTINGS_REVISION_PROPERTY)
       }, e);
     }
+    if (action === "photostatus") {
+      const sheet = getStudentsSheet_();
+      const total = Math.max(0, sheet.getLastRow() - 1);
+      const photos = total ? sheet.getRange(2, HEADERS.indexOf("photo") + 1, total, 1).getValues() : [];
+      const codes = total ? sheet.getRange(2, HEADERS.indexOf("studentCode") + 1, total, 1).getDisplayValues() : [];
+      const missingCodes = photos.map(function(row, index) {
+        return !String(row[0] || "").trim() ? String(codes[index][0] || "").trim() : "";
+      }).filter(Boolean);
+      return output_({
+        ok: true,
+        total: total,
+        missing: photos.filter(function(row) { return !String(row[0] || "").trim(); }).length,
+        missingCodes: missingCodes,
+        revision: getRevision_(DATA_REVISION_PROPERTY)
+      }, e);
+    }
+    if (action === "studentstatus") {
+      const key = String((e && e.parameter && e.parameter.studentId) || "").trim();
+      const sheet = getStudentsSheet_();
+      const lastRow = sheet.getLastRow();
+      let rowNumber = 0;
+      if (key && lastRow >= 2) {
+        const ids = sheet.getRange(2, 1, lastRow - 1, 2).getDisplayValues();
+        const index = ids.findIndex(function(row) { return row[0] === key || row[1] === key; });
+        if (index >= 0) rowNumber = index + 2;
+      }
+      const photo = rowNumber ? String(sheet.getRange(rowNumber, HEADERS.indexOf("photo") + 1).getValue() || "") : "";
+      return output_({ ok: true, found: !!rowNumber, hasPhoto: !!photo.trim(), photoLength: photo.length }, e);
+    }
     if (action === "list") {
       return output_({
         ok: true,
@@ -188,6 +217,15 @@ function doPost(e) {
         return mergedCount;
       });
       return output_({ ok: true, action: action, mode: "merge", count: count }, e);
+    }
+    if (action === "recoverphotos") {
+      const candidates = Array.isArray(body.students) ? body.students : [];
+      const result = withWriteLock_(function() {
+        const restored = restoreMissingPhotos_(candidates);
+        if (restored) touchRevision_(DATA_REVISION_PROPERTY);
+        return restored;
+      });
+      return output_({ ok: true, action: action, restored: result }, e);
     }
     if (action === "delete") {
       const key = String(body.studentId || (body.student && (body.student.studentCode || body.student.id)) || "").trim();
@@ -362,7 +400,16 @@ function rowToStudent_(row) {
 }
 
 function replaceStudents_(students) {
-  writeStudents_(students);
+  // A nonempty replacement is an import, not a request to erase existing photos.
+  if (!students.length) return writeStudents_([]);
+  const oldByKey = {};
+  readStudents_().forEach(function(student) {
+    [student.id, student.studentCode].filter(Boolean).forEach(function(key) { oldByKey[String(key).trim()] = student; });
+  });
+  writeStudents_(students.map(function(student) {
+    const previous = oldByKey[String(student.id || "").trim()] || oldByKey[String(student.studentCode || "").trim()];
+    return previous ? mergeStudentRecord_(previous, student) : student;
+  }));
 }
 
 function mergeStudents_(incomingStudents) {
@@ -423,6 +470,61 @@ function mergeStudentRecord_(existing, incoming) {
     merged.studentName = [merged.studentSurname, merged.studentGivenName].filter(Boolean).join(" ");
   }
   return merged;
+}
+
+function restoreMissingPhotos_(incomingStudents) {
+  const sheet = getStudentsSheet_();
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return 0;
+  const rows = sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
+  const missing = rows.map(function(row, index) {
+    return { student: rowToStudent_(row), rowNumber: index + 2 };
+  }).filter(function(item) {
+    return !String(item.student.photo || "").trim() && String(item.student.studentCode || "").trim();
+  });
+  if (!missing.length) return 0;
+
+  const candidates = {};
+  function addCandidate(student) {
+    const code = String(student.studentCode || "").trim();
+    const photo = String(student.photo || "").trim();
+    if (!code || !/^(data:image\/(png|jpe?g|webp);base64,|https:\/\/)/i.test(photo)) return;
+    if (!candidates[code]) candidates[code] = [];
+    candidates[code].push({ name: studentNameKey_(student), photo: photo });
+  }
+  (incomingStudents || []).forEach(function(item) {
+    addCandidate(item && item.student ? item.student : item || {});
+  });
+
+  // Class views may still contain a photo from before the Students row went blank.
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  (incomingStudents.length ? [] : ss.getSheets()).filter(function(view) {
+    return view.getName() === BY_CLASS_SHEET_NAME || view.getName().indexOf(CLASS_SHEET_PREFIX) === 0;
+  }).forEach(function(view) {
+    if (view.getLastRow() < 2) return;
+    const values = view.getRange(2, 1, view.getLastRow() - 1, VIEW_FIELDS.length).getValues();
+    values.forEach(function(row) {
+      const student = {};
+      VIEW_FIELDS.forEach(function(field, index) { student[field] = row[index]; });
+      addCandidate(student);
+    });
+  });
+
+  let restored = 0;
+  missing.forEach(function(item) {
+    const code = String(item.student.studentCode || "").trim();
+    const name = studentNameKey_(item.student);
+    const matches = (candidates[code] || []).filter(function(candidate) {
+      return !name || !candidate.name || candidate.name === name;
+    });
+    if (!matches.length) return;
+    const uniquePhotos = Array.from(new Set(matches.map(function(candidate) { return candidate.photo; })));
+    // Conflicting photos require human review; never guess which student photo is right.
+    if (uniquePhotos.length !== 1) return;
+    sheet.getRange(item.rowNumber, HEADERS.indexOf("photo") + 1).setValue(uniquePhotos[0]);
+    restored++;
+  });
+  return restored;
 }
 
 function deleteStudent_(key) {

@@ -70,6 +70,21 @@ app.whenReady().then(async () => {
     })()`);
     result.syncedAfterOnline = await win.webContents.executeJavaScript(`(async () => {
         window.fetch = async () => ({});
+        const originalAppend = document.head.append.bind(document.head);
+        document.head.append = function(element) {
+            if (element.tagName === 'SCRIPT' && element.src.includes('action=studentstatus')) {
+                const callback = new URL(element.src).searchParams.get('callback');
+                const operation = JSON.parse(localStorage.getItem('studentRegistrationPendingCloudMutationsV1') || '[]')[0];
+                queueMicrotask(() => window[callback]({
+                    ok:true,
+                    found:true,
+                    hasPhoto:true,
+                    photoLength:operation.student.photo.length
+                }));
+                return element;
+            }
+            return originalAppend(element);
+        };
         window.dispatchEvent(new Event('online'));
         const started = Date.now();
         while (JSON.parse(localStorage.getItem('studentRegistrationPendingCloudMutationsV1') || '[]').length) {

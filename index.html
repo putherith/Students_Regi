@@ -3077,6 +3077,10 @@
                     <ion-icon name="cloud-done-outline" aria-hidden="true"></ion-icon>
                     <span>បម្រុងទុក</span>
                 </button>
+                <button id="recover-photos-btn" class="btn btn-ghost" type="button" title="Restore missing photos from this device and class sheets">
+                    <ion-icon name="images-outline" aria-hidden="true"></ion-icon>
+                    <span>ស្ដាររូបថត</span>
+                </button>
             </div>
 
             <!-- Import/Export group -->
@@ -3665,7 +3669,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.11</span>
+        <span class="footer-version">កំណែ 2.1.12</span>
     </footer>
 
 </main><!-- end .app -->
@@ -3934,6 +3938,10 @@
             <ion-icon name="cloud-done-outline" aria-hidden="true"></ion-icon>
             <span>បម្រុងទុក</span>
         </button>
+        <button id="m-recover-photos-btn" class="sheet-menu-item" type="button">
+            <ion-icon name="images-outline" aria-hidden="true"></ion-icon>
+            <span>ស្ដាររូបថត</span>
+        </button>
         <button id="m-download-template-btn" class="sheet-menu-item" type="button">
             <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
             <span>គំរូ</span>
@@ -4070,19 +4078,19 @@
         }
     }
 
-    function saveToLocalStorage(students) {
-        rememberStudentPhotos(students);
+    async function saveToLocalStorage(students) {
+        const photosCached = await rememberStudentPhotos(students);
         const withoutCloudPhotos = () => students.map(student => ({ ...student, photo:"" }));
         try {
             // Serializing every base64 photo repeatedly freezes low-memory phones.
-            // Shared-storage mode reloads photos from the cloud when the app opens.
-            const localStudents = hasCloudStorageConfig() ? withoutCloudPhotos() : students;
+            // Do not discard the only local copy until IndexedDB has confirmed it.
+            const localStudents = hasCloudStorageConfig() && photosCached ? withoutCloudPhotos() : students;
             localStorage.setItem(LOCAL_STUDENTS_KEY, JSON.stringify(localStudents));
         } catch (e) {
             console.error("Error saving students to localStorage:", e);
             try {
                 localStorage.setItem(LOCAL_STUDENTS_KEY, JSON.stringify(withoutCloudPhotos()));
-                showToast("ឧបករណ៍ជិតពេញ៖ បានរក្សាទុកព័ត៌មានសិស្សដោយមិនរក្សារូបក្នុង cache", "warning");
+                showToast("ឧបករណ៍ជិតពេញ៖ រូបថតមួយចំនួនមិនបានរក្សាក្នុងឧបករណ៍។ សូមពិនិត្យ Sheet មុនបិទ App", "warning");
             } catch (fallbackError) {
                 console.error("Local text-only save failed:", fallbackError);
                 showToast("រក្សាទុកក្នុង Local Storage បរាជ័យ", "error");
@@ -4116,17 +4124,30 @@
         return photoCacheDbPromise;
     }
 
+    const cachedPhotoSignatures = new Map();
+
+    function studentPhotoCacheKeys(student={}, fallback="") {
+        return [...new Set([studentPhotoCacheKey(student, fallback), String(student.studentCode || student.studentId || "").trim()].filter(Boolean))];
+    }
+
     async function cacheStudentPhoto(student={}, fallback="") {
         const id = studentPhotoCacheKey(student, fallback);
         const photo = safePhotoSrc(student.photo);
         if (!id || !photo) return false;
+        const keys = studentPhotoCacheKeys(student, fallback);
+        const signature = `${photo.length}:${photo.slice(0, 64)}:${photo.slice(-64)}`;
+        if (keys.every(key => cachedPhotoSignatures.get(key) === signature)) return true;
         const db = await openPhotoCache();
         if (!db) return false;
         return new Promise(resolve => {
             try {
                 const transaction = db.transaction(PHOTO_CACHE_STORE_NAME, "readwrite");
-                transaction.objectStore(PHOTO_CACHE_STORE_NAME).put({ id, photo, updatedAt:new Date().toISOString() });
-                transaction.oncomplete = () => resolve(true);
+                const store = transaction.objectStore(PHOTO_CACHE_STORE_NAME);
+                keys.forEach(key => store.put({ id:key, photo, updatedAt:new Date().toISOString() }));
+                transaction.oncomplete = () => {
+                    keys.forEach(key => cachedPhotoSignatures.set(key, signature));
+                    resolve(true);
+                };
                 transaction.onerror = transaction.onabort = () => resolve(false);
             } catch (error) {
                 console.debug("Cannot cache student photo:", error);
@@ -4135,18 +4156,23 @@
         });
     }
 
-    function rememberStudentPhotos(students=[]) {
-        (students || []).forEach(student => {
-            if (safePhotoSrc(student?.photo)) cacheStudentPhoto(student);
-        });
+    async function rememberStudentPhotos(students=[]) {
+        const withPhotos = (students || []).filter(student => safePhotoSrc(student?.photo));
+        let allCached = true;
+        for (let i = 0; i < withPhotos.length; i += 12) {
+            const results = await Promise.all(withPhotos.slice(i, i + 12).map(student => cacheStudentPhoto(student)));
+            if (results.includes(false)) allCached = false;
+        }
+        return allCached;
     }
 
     async function cachedStudentPhoto(student={}, fallback="") {
-        const id = studentPhotoCacheKey(student, fallback);
-        if (!id) return "";
+        const keys = studentPhotoCacheKeys(student, fallback);
+        if (!keys.length) return "";
         const db = await openPhotoCache();
         if (!db) return "";
-        return new Promise(resolve => {
+        for (const id of keys) {
+          const photo = await new Promise(resolve => {
             try {
                 const transaction = db.transaction(PHOTO_CACHE_STORE_NAME, "readonly");
                 const request = transaction.objectStore(PHOTO_CACHE_STORE_NAME).get(id);
@@ -4156,19 +4182,20 @@
                 console.debug("Cannot read cached student photo:", error);
                 resolve("");
             }
-        });
+          });
+          if (photo) return photo;
+        }
+        return "";
     }
 
     function historicalStudentPhoto(student={}) {
         const id = studentPhotoCacheKey(student);
         const code = String(student.studentCode || student.studentId || "").trim();
-        const name = normText(studentFullName(student));
         for (const log of loadHistoryFromLocalStorage()) {
             try {
                 const details = JSON.parse(log.details || "{}");
                 const matches = (id && String(details.recordId || "") === id)
-                    || (code && String(details.studentId || "") === code)
-                    || (name && normText(details.studentName || log.studentName) === name);
+                    || (code && String(details.studentId || "") === code);
                 const photo = safePhotoSrc(details.photo);
                 if (matches && photo) return photo;
             } catch {}
@@ -4178,13 +4205,13 @@
 
     async function restoreStudentPhoto(student={}) {
         if (safePhotoSrc(student.photo)) {
-            cacheStudentPhoto(student);
+            await cacheStudentPhoto(student);
             return student;
         }
         const restored = await cachedStudentPhoto(student) || historicalStudentPhoto(student);
         if (restored) {
             student.photo = restored;
-            cacheStudentPhoto(student);
+            await cacheStudentPhoto(student);
         }
         return student;
     }
@@ -4478,6 +4505,7 @@
         importFileInput: document.getElementById("import-file-input"),
         printListBtn: document.getElementById("print-list-btn"),
         printPhotoListBtn: document.getElementById("print-photo-list-btn"),
+        recoverPhotosBtn: document.getElementById("recover-photos-btn"),
         printNameListBtn: document.getElementById("print-name-list-btn"),
         printCardListBtn: document.getElementById("print-card-list-btn"),
         downloadCsvBtn: document.getElementById("download-csv-btn"),
@@ -5547,12 +5575,26 @@
         if (Array.isArray(students)) {
             body.students = students.map(i => ({ studentId: studentDisplayId(i, i.id), student: {...i, studentId: studentDisplayId(i,i.id)} }));
         }
+        if (body.student.photo) body.student.photo = await preparePhotoForSheet(body.student.photo);
+        if (body.students) {
+            for (const item of body.students) {
+                if (item.student.photo) item.student.photo = await preparePhotoForSheet(item.student.photo);
+            }
+        }
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 12000);
         try {
             await fetch(url, { method:"POST", mode:"no-cors", cache:"no-cache", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(body), redirect:"follow", signal:controller.signal });
         } finally {
             clearTimeout(timeout);
+        }
+        if (action === "upsert" && safePhotoSrc(student.photo)) {
+            // no-cors POST is opaque: a resolved fetch does not prove Apps Script saved the image.
+            const key = String(student.studentCode || studentId || student.id || "").trim();
+            const checked = await readGoogleSheetJsonp({ action:"studentstatus", studentId:key }, 12000);
+            if (checked.ok !== true || !checked.found || !checked.hasPhoto || Number(checked.photoLength) !== body.student.photo.length) {
+                throw new Error("រូបថតមិនទាន់បានបញ្ជាក់ថារក្សាក្នុង Google Sheet");
+            }
         }
         if (["upsert","upsertmany","delete","backup","replace"].includes(action)) {
             localStorage.setItem(BACKUP_TIME_STORAGE_KEY, new Date().toISOString());
@@ -5633,6 +5675,8 @@
 
         while (operations.length) {
             const operation = operations[0];
+            if (operation.student) await restoreStudentPhoto(operation.student);
+            if (Array.isArray(operation.students)) await restoreStudentPhotos(operation.students);
             let ok = false;
             for (let attempt = 0; attempt < 2 && !ok; attempt++) {
                 ok = await syncCloudStorage(operation.action, operation.student || {}, operation.studentId || "", operation.students);
@@ -5833,7 +5877,7 @@
                 return false;
             }
             allStudents = cloudStudents;
-            saveToLocalStorage(allStudents);
+            await saveToLocalStorage(allStudents);
             localStorage.setItem(BACKUP_TIME_STORAGE_KEY, new Date().toISOString());
             await refreshStudents({ reset:true, source:"memory" });
             setStatus(queuedOperations.length ? `រក្សា Offline · រង់ចាំ Sync ${queuedOperations.length}` : "Supabase", queuedOperations.length ? "error" : "connected");
@@ -5880,7 +5924,7 @@
                 return true;
             }
             allStudents = cloudStudents;
-            saveToLocalStorage(allStudents);
+            await saveToLocalStorage(allStudents);
             localStorage.setItem(BACKUP_TIME_STORAGE_KEY, new Date().toISOString());
             await refreshStudents({ reset:true, source:"memory" });
             if (!background) setStatus(queuedOperations.length ? `រក្សា Offline · រង់ចាំ Sync ${queuedOperations.length}` : "Google Sheet", queuedOperations.length ? "error" : "connected");
@@ -6700,6 +6744,24 @@
         return /^data:image\/(png|jpe?g|webp);base64,/i.test(v) || /^https:\/\/.+/i.test(v) ? v : "";
     }
 
+    async function preparePhotoForSheet(src) {
+        const photo = safePhotoSrc(src);
+        if (!photo || photo.length <= 49000) return photo;
+        if (!photo.startsWith("data:image/")) throw new Error("រូបថត URL ធំពេកសម្រាប់ Google Sheet");
+        const image = new Image();
+        image.src = photo;
+        await image.decode();
+        const canvas = document.createElement("canvas");
+        canvas.width = 315;
+        canvas.height = 400;
+        canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+        for (const quality of [0.75, 0.6, 0.45, 0.3]) {
+            const compressed = canvas.toDataURL("image/jpeg", quality);
+            if (compressed.length <= 49000) return compressed;
+        }
+        throw new Error("រូបថតធំពេកសម្រាប់ Google Sheet");
+    }
+
     function setPhotoPreview(src = "") {
         if (!els.photoPreviewBox) return;
         const safeSrc = safePhotoSrc(src);
@@ -6932,7 +6994,21 @@
             ctx.drawImage(img, x, y, w, h);
         }
 
-        return canvas.toDataURL("image/jpeg", 0.82);
+        // Google Sheets rejects text cells above 50,000 characters. Leave room for the data URL.
+        let photo = "";
+        for (const quality of [0.82, 0.72, 0.62, 0.52, 0.42]) {
+            photo = canvas.toDataURL("image/jpeg", quality);
+            if (photo.length <= 45000) break;
+        }
+        if (photo.length > 45000) {
+            const smaller = document.createElement("canvas");
+            smaller.width = 260;
+            smaller.height = 330;
+            smaller.getContext("2d").drawImage(canvas, 0, 0, smaller.width, smaller.height);
+            photo = smaller.toDataURL("image/jpeg", 0.45);
+        }
+        if (photo.length > 49000) throw new Error("រូបថតធំពេកសម្រាប់ Google Sheet");
+        return photo;
     }
 
     async function processPhoto(imageSource) {
@@ -7209,7 +7285,7 @@
                         updatedAt: nowIso
                     };
                 }
-                saveToLocalStorage(allStudents);
+                await saveToLocalStorage(allStudents);
                 await logHistory("edited", payload.studentName, { studentId: payload.studentCode, recordId: editingId });
                 enqueueCloudMutation("upsert", {...payload, recordId: editingId}, payload.studentCode||editingId);
                 showToast("បានកែសម្រួលព័ត៌មានសិស្ស");
@@ -7225,7 +7301,7 @@
                 };
                 await cacheStudentPhoto(newStudent);
                 allStudents.unshift(newStudent);
-                saveToLocalStorage(allStudents);
+                await saveToLocalStorage(allStudents);
                 await logHistory("added", payload.studentName, { studentId: payload.studentCode, recordId: newId, ...payload });
                 enqueueCloudMutation("upsert", {...payload, recordId: newId}, payload.studentCode);
                 showToast(`បានបន្ថែម ${payload.studentName} (${payload.studentCode})`);
@@ -7260,7 +7336,7 @@
         els.confirmDeleteBtn.disabled = true;
         try {
             allStudents = allStudents.filter(i => i.id !== deletingId);
-            saveToLocalStorage(allStudents);
+            await saveToLocalStorage(allStudents);
             await logHistory("deleted", name, { studentId: studentDisplayId(s, deletingId), recordId: deletingId });
             enqueueCloudMutation("delete", s||{studentName:name}, s?.id || deletingId);
             closeDeleteModal();
@@ -7299,7 +7375,7 @@
         els.cancelDeleteAllBtn.disabled = true;
         try {
             allStudents = [];
-            saveToLocalStorage(allStudents);
+            await saveToLocalStorage(allStudents);
             await logHistory("cleared", "ទិន្នន័យសិស្សទាំងអស់", { total: count });
             enqueueCloudMutation("clearall");
             closeDeleteAllModal();
@@ -7940,6 +8016,50 @@
         ));
     }
 
+    async function recoverMissingPhotos() {
+        if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl()) {
+            showToast("សូមភ្ជាប់ Google Sheet ជាមុន", "warning");
+            return;
+        }
+        els.recoverPhotosBtn.disabled = true;
+        try {
+            const before = await readGoogleSheetJsonp({ action:"photostatus" });
+            if (before.ok !== true || !Number.isFinite(Number(before.missing))) {
+                throw new Error("Apps Script មិនទាន់បាន Deploy កំណែស្ដាររូបថត");
+            }
+            await restoreStudentPhotos(allStudents);
+            const missingCodes = new Set(Array.isArray(before.missingCodes) ? before.missingCodes : []);
+            const candidates = allStudents.filter(student => missingCodes.has(student.studentCode) && safePhotoSrc(student.photo));
+            if (!before.missing) {
+                showToast("រូបថតក្នុង Sheet មានគ្រប់ហើយ");
+                return;
+            }
+            // Small requests are safer for Apps Script and slow phone connections.
+            for (let i = 0; i < candidates.length; i += 5) {
+                const batch = candidates.slice(i, i + 5).map(student => ({
+                    studentCode:student.studentCode,
+                    studentName:studentFullName(student),
+                    photo:student.photo
+                }));
+                if (!await syncGoogleSheet("recoverphotos", {}, "", batch)) throw new Error("ផ្ញើរូបថតទៅ Sheet មិនបាន");
+            }
+            // Also search old By Class / Class tabs, even if this device has no photo cache.
+            if (!await syncGoogleSheet("recoverphotos", {}, "", [])) throw new Error("ស្វែងរករូបក្នុងផ្ទាំងថ្នាក់មិនបាន");
+            const after = await readGoogleSheetJsonp({ action:"photostatus" });
+            if (after.ok !== true) throw new Error(after.error || "ពិនិត្យលទ្ធផលស្ដារមិនបាន");
+            if (!await loadStudentsFromGoogleSheet({ silent:true })) await refreshStudents({ source:"memory" });
+            const restored = Math.max(0, Number(before.missing) - Number(after.missing));
+            showToast(restored
+                ? `បានស្ដាររូបថត ${restored} សន្លឹក · នៅខ្វះ ${after.missing}`
+                : `មិនទាន់រកឃើញរូបចាស់ · នៅខ្វះ ${after.missing} សន្លឹក`, restored ? "success" : "warning");
+        } catch (error) {
+            console.error("Photo recovery error:", error);
+            showToast(String(error.message || error), "error");
+        } finally {
+            els.recoverPhotosBtn.disabled = false;
+        }
+    }
+
     // ===================== IMPORT =====================
     const importAliases = {
         studentCode:["អត្តលេខ","លេខសម្គាល់សិស្ស","លេខសិស្ស","studentCode","student id","id"],
@@ -8149,7 +8269,7 @@
         });
         if(saved.length){
             allStudents=[...saved,...allStudents];
-            saveToLocalStorage(allStudents);
+            await saveToLocalStorage(allStudents);
             await logHistory("imported",label,{total:saved.length,skipped:skipped.length});
             enqueueCloudMutation("upsertmany",{},"",saved);
         }
@@ -8400,6 +8520,7 @@
         // Backup
         els.loadSheetBtn.addEventListener("click",()=>loadStudentsFromCloudStorage({ silent:false, keepLocalWhenCloudEmpty:false }));
         els.backupNowBtn.addEventListener("click",backupAllStudents);
+        els.recoverPhotosBtn?.addEventListener("click",recoverMissingPhotos);
 
         // App settings modal
         els.appSettingsBtn.addEventListener("click",openAppSettings);
@@ -8466,6 +8587,7 @@
             "m-sheet-settings-btn": els.sheetSettingsBtn,
             "m-load-sheet-btn": els.loadSheetBtn,
             "m-backup-now-btn": els.backupNowBtn,
+            "m-recover-photos-btn": els.recoverPhotosBtn,
             "m-download-template-btn": els.downloadTemplateBtn,
             "m-import-file-btn": els.importFileBtn,
             "m-print-list-btn": els.printListBtn,

@@ -31,6 +31,12 @@ The Web App checks the shared Google Sheet revision every 20 seconds and downloa
 
 After updating `google-sheet-backend.gs`, use `Deploy -> Manage deployments -> Edit -> New version -> Deploy`; editing the script without deploying a new version does not update the web app.
 
+### Restore missing photos
+
+Before clicking **Backup** or rebuilding the Sheet, deploy the latest `google-sheet-backend.gs` as a new version of the **existing** Web App deployment. Then open the updated app on a computer or phone that previously displayed the missing photos and click **ស្ដាររូបថត**. The recovery fills only blank photo cells in `Students`, using that device's photo cache and any surviving photos in `By Class` or `Class - ...` tabs. It never replaces an existing photo. Check the reported remaining count afterward, and repeat on other previously used devices if needed. Do not clear browser site data or rebuild the class tabs before recovery.
+
+If a photo is absent from all these sources, this recovery cannot recreate it. In that case inspect the master Sheet's version history or a prior backup, or retake the photo. Apps Script is deployed separately from the web frontend; publishing the frontend alone will not activate a new recovery endpoint. Keep Google credentials out of this repository.
+
 ## Camera on phones and computers
 
 Camera access in a browser requires the Web App to be served over **HTTPS** (or localhost during development).
