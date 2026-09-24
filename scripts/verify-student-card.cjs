@@ -29,7 +29,11 @@ app.whenReady().then(async () => {
         const oldPhotoContext = oldPhoto.getContext('2d');
         oldPhotoContext.fillStyle = '#3b86ee'; oldPhotoContext.fillRect(0, 0, 315, 400);
         oldPhotoContext.fillStyle = '#33251f'; oldPhotoContext.beginPath(); oldPhotoContext.arc(157, 155, 52, 0, Math.PI * 2); oldPhotoContext.fill();
-        oldPhotoContext.fillStyle = '#f0f3f7'; oldPhotoContext.fillRect(58, 205, 198, 135);
+        oldPhotoContext.fillStyle = '#f0f3f7';
+        oldPhotoContext.beginPath();
+        oldPhotoContext.moveTo(50, 205); oldPhotoContext.lineTo(265, 205);
+        oldPhotoContext.lineTo(235, 340); oldPhotoContext.lineTo(80, 340);
+        oldPhotoContext.closePath(); oldPhotoContext.fill();
         const studentWithPhoto = { ...${JSON.stringify(student)}, photo:${suppliedPhoto ? JSON.stringify(suppliedPhoto) : "oldPhoto.toDataURL('image/png')"} };
         document.body.innerHTML = StudentCardTemplate.render([studentWithPhoto], ${JSON.stringify(settings)}, ${JSON.stringify(logo)}, '២០២៥-២០២៦');
         document.body.style.margin='0';
@@ -53,10 +57,13 @@ app.whenReady().then(async () => {
         photoPixelsContext.drawImage(photo, 0, 0, 300, 400);
         const topPixel = photoPixelsContext.getImageData(150, 12, 1, 1).data;
         const bottomPixel = photoPixelsContext.getImageData(150, 392, 1, 1).data;
+        const bottomLeftPixel = photoPixelsContext.getImageData(4, 392, 1, 1).data;
+        const bottomRightPixel = photoPixelsContext.getImageData(295, 392, 1, 1).data;
         const blueAboveNotBelow = topPixel[2] > topPixel[1] + 35 && bottomPixel[0] > 185 && bottomPixel[1] > 185 && bottomPixel[2] > 185;
+        const shirtAtBottomEdges = [bottomLeftPixel, bottomRightPixel].every(pixel => pixel[0] > 185 && pixel[1] > 185 && pixel[2] > 185);
         const blueMatchesReference = Math.abs(topPixel[0]-25)<12 && Math.abs(topPixel[1]-153)<12 && Math.abs(topPixel[2]-254)<12;
         const portraitFill = getComputedStyle(photo).objectFit==='fill' && slot.width / slot.height > .72 && slot.width / slot.height < .78;
-        return { width:card.width, height:card.height, overflow, teacherVisible:document.body.innerText.includes('គ្រូបន្ទុកថ្នាក់'), fonts:document.fonts.check('18px "Khmer OS Siemreap"'), photoReframed:photo?.src.startsWith('data:image/jpeg'), photoFillsSlot:Math.abs(photoBounds.height-slot.height)<1 && Math.abs(photoBounds.width-slot.width)<1, portraitFill, photoAspect:slot.width/slot.height, objectFit:getComputedStyle(photo).objectFit, blueAboveNotBelow, blueMatchesReference, frameHeight:frame.height };
+        return { width:card.width, height:card.height, overflow, teacherVisible:document.body.innerText.includes('គ្រូបន្ទុកថ្នាក់'), fonts:document.fonts.check('18px "Khmer OS Siemreap"'), photoReframed:photo?.src.startsWith('data:image/jpeg'), photoFillsSlot:Math.abs(photoBounds.height-slot.height)<1 && Math.abs(photoBounds.width-slot.width)<1, portraitFill, photoAspect:slot.width/slot.height, objectFit:getComputedStyle(photo).objectFit, blueAboveNotBelow, shirtAtBottomEdges, blueMatchesReference, frameHeight:frame.height };
     })()`);
     const shot = await win.webContents.capturePage({ x:0,y:0,width:Math.ceil(metrics.width),height:Math.ceil(metrics.height) });
     fs.writeFileSync(path.join(out, 'student-card-75x100.png'), shot.toPNG());
@@ -73,9 +80,25 @@ app.whenReady().then(async () => {
     });
     fs.writeFileSync(path.join(out, 'student-card-reference-review.png'), Buffer.from(referenceShot.data, 'base64'));
     win.webContents.debugger.detach();
+    metrics.alreadyFramedBlueSidesFixed = await win.webContents.executeJavaScript(`(async () => {
+        const stale = document.createElement('canvas'); stale.width = 315; stale.height = 400;
+        const ctx = stale.getContext('2d');
+        ctx.fillStyle = '#1999fe'; ctx.fillRect(0, 0, 315, 400);
+        ctx.fillStyle = '#33251f'; ctx.beginPath(); ctx.arc(157, 135, 52, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#f0f3f7'; ctx.fillRect(70, 190, 175, 210);
+        const img = document.querySelector('[data-card-photo]');
+        img.src = stale.toDataURL('image/png'); await img.decode();
+        await StudentCardTemplate.fitText(document);
+        const output = document.createElement('canvas'); output.width = 300; output.height = 400;
+        const outputCtx = output.getContext('2d'); outputCtx.drawImage(img, 0, 0, 300, 400);
+        return [4, 150, 295].every(x => {
+            const pixel = outputCtx.getImageData(x, 392, 1, 1).data;
+            return pixel[0] > 185 && pixel[1] > 185 && pixel[2] > 185;
+        });
+    })()`);
     fs.writeFileSync(path.join(out, 'metrics.json'), JSON.stringify(metrics, null, 2));
     console.log(JSON.stringify(metrics));
     win.destroy();
-    if (Math.abs(metrics.width - 75*96/25.4) > .1 || Math.abs(metrics.height - 100*96/25.4) > .1 || metrics.overflow.length || metrics.teacherVisible || (!suppliedPhoto && !metrics.photoReframed) || !metrics.photoFillsSlot || !metrics.portraitFill || !metrics.blueAboveNotBelow || !metrics.blueMatchesReference || metrics.frameHeight < 108 || metrics.frameHeight > 115) throw new Error('Card layout validation failed');
+    if (Math.abs(metrics.width - 75*96/25.4) > .1 || Math.abs(metrics.height - 100*96/25.4) > .1 || metrics.overflow.length || metrics.teacherVisible || (!suppliedPhoto && !metrics.photoReframed) || !metrics.photoFillsSlot || !metrics.portraitFill || !metrics.blueAboveNotBelow || !metrics.shirtAtBottomEdges || !metrics.alreadyFramedBlueSidesFixed || !metrics.blueMatchesReference || metrics.frameHeight < 108 || metrics.frameHeight > 115) throw new Error('Card layout validation failed');
     app.quit();
 }).catch(error => { console.error(error); app.exit(1); });
