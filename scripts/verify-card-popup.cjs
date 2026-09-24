@@ -52,7 +52,7 @@ app.whenReady().then(async () => {
         } else {
             ctx.fillStyle = '#1999fe'; ctx.fillRect(0, 0, 300, 400);
             ctx.fillStyle = '#33251f'; ctx.beginPath(); ctx.arc(150, 140, 50, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#f0f3f7'; ctx.fillRect(65, 185, 170, 200);
+            ctx.fillStyle = '#f0f3f7'; ctx.fillRect(35, 185, 245, 200);
         }
         const source = photo.toDataURL('image/png');
         const student = { studentName:'Test Student', studentCode:'STU-0125', photo:source, gender:'ប្រុស', className:'7C' };

@@ -47,14 +47,43 @@
         </article>`);
         const pages = [];
         for (let start = 0; start < cardMarkup.length; start += 4) {
-            pages.push(`<div class="cards-grid">${cardMarkup.slice(start, start + 4).join("")}</div>`);
+            const front = cardMarkup.slice(start, start + 4);
+            const backs = students.slice(start, start + 4).map((student, offset) => {
+                const physicalIndex = start + offset;
+                const mirroredColumn = physicalIndex % 2 === 0 ? 2 : 1;
+                const row = Math.floor((physicalIndex % 4) / 2) + 1;
+                return `<article class="certificate-student-card certificate-student-card-back" style="grid-column:${mirroredColumn};grid-row:${row}" aria-label="បទបញ្ជាផ្ទៃក្នុងសម្រាប់កាត ${escape(student.studentName)}">
+                  <header class="regulations-heading">បទបញ្ជាផ្ទៃក្នុងសាលា</header>
+                  <div class="regulations-school-name">វិទ្យាល័យសុខអានព្រៃមេលង</div>
+                  <ol class="regulations-list">
+                    <li>មកសាលាឱ្យទាន់ម៉ោង និងស្លៀកពាក់ឯកសណ្ឋានឱ្យបានត្រឹមត្រូវ។</li>
+                    <li>គោរពគ្រូបង្រៀន បុគ្គលិក និងមិត្តរួមសាលា។</li>
+                    <li>ចូលរៀនទៀងទាត់ ខិតខំសិក្សា និងបំពេញកិច្ចការដែលគ្រូដាក់។</li>
+                    <li>រក្សាអនាម័យ និងថែរក្សាសម្ភារៈនិងទ្រព្យសម្បត្តិសាលា។</li>
+                    <li>ហាមប្រើអំពើហិង្សា គំរាមកំហែង ឬនាំអាវុធនិងវត្ថុគ្រោះថ្នាក់មកសាលា។</li>
+                    <li>ហាមនាំឬប្រើបារី គ្រឿងស្រវឹង គ្រឿងញៀន និងល្បែងស៊ីសងក្នុងសាលា។</li>
+                    <li>បិទទូរសព្ទក្នុងម៉ោងសិក្សា លើកលែងគ្រូអនុញ្ញាតសម្រាប់ការសិក្សា។</li>
+                    <li>គោរពបទបញ្ជា និងសេចក្តីណែនាំរបស់សាលា។</li>
+                  </ol>
+                  <footer class="regulations-reminder">សូមចូលរួមអនុវត្ត ដើម្បីសាលារៀនមានសុវត្ថិភាព និងសណ្តាប់ធ្នាប់ល្អ</footer>
+                </article>`;
+            });
+            pages.push(`<section class="cards-grid card-front-page" aria-label="កាតសិស្ស ខាងមុខ">${front.join("")}</section>`);
+            pages.push(`<section class="cards-grid card-back-page" aria-label="កាតសិស្ស ខាងក្រោយ">${backs.join("")}</section>`);
         }
         return `<style>
           @page { size:A4 portrait; margin:8mm; }
           body { background:#fff; }
-          .cards-grid { box-sizing:border-box; width:194mm; min-height:281mm; display:grid; grid-template-columns:repeat(2,75mm); grid-template-rows:repeat(2,100mm); gap:4mm; justify-content:center; align-content:center; }
-          .cards-grid:not(:last-child) { break-after:page; page-break-after:always; }
+          .cards-grid { box-sizing:border-box; width:194mm; height:281mm; display:grid; grid-template-columns:repeat(2,75mm); grid-template-rows:repeat(2,100mm); gap:4mm; justify-content:center; align-content:center; break-after:page; page-break-after:always; }
+          .cards-grid.card-back-page { direction:ltr; }
+          .cards-grid:last-child { break-after:auto; page-break-after:auto; }
           .certificate-student-card { position:relative; width:75mm; height:100mm; border:.38mm solid #1717ff; background:#fff; box-sizing:border-box; overflow:hidden; break-inside:avoid; page-break-inside:avoid; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+          .certificate-student-card-back { padding:4mm 4mm 3mm; color:#17324d; font:7.1px/1.42 "Khmer OS Siemreap","Siemreap",sans-serif; display:flex; flex-direction:column; }
+          .regulations-heading { margin:0 -4mm 1mm; padding:1.5mm 2mm; background:#1999fe; color:#fff; text-align:center; font:10px/1.45 "Khmer OS Muol Light","Khmer OS Moul","Moul",serif; }
+          .regulations-school-name { text-align:center; color:#18426b; font:7.6px/1.4 "Khmer OS Siemreap","Siemreap",sans-serif; font-weight:bold; }
+          .regulations-list { margin:1mm 0 0; padding-left:4.5mm; display:grid; gap:.45mm; }
+          .regulations-list li { padding-left:.4mm; }
+          .regulations-reminder { margin-top:auto; padding-top:1mm; border-top:.25mm solid #9ab8d1; text-align:center; color:#18426b; font-size:6.6px; line-height:1.35; }
           .reference-artwork { --card-body:"Khmer OS Siemreap","KhmerOSSiemreap","Siemreap",sans-serif; --card-heading:"Khmer OS Muol Light","Khmer OS Moul","Moul",serif; position:relative; width:584px; height:608px; transform-origin:top left; transform:scale(${artworkScaleX.toFixed(9)},${artworkScaleY.toFixed(9)}); color:#102932; font:18px/1.65 var(--card-body); }
           .reference-artwork * { box-sizing:border-box; }
           .reference-artwork strong { color:#1111ff; font-weight:400; }
@@ -186,8 +215,11 @@
             output.height = 400;
             const baseWidth = Math.min(width, height * .75);
             const baseHeight = baseWidth / .75;
-        const sideZoom = needsSideCrop ? Math.min(1.26, Math.max(1.04, width * .99 / lowerWidth)) : 1;
-        const bottomZoom = needsBottomFill ? Math.min(1.26, height * .99 / Math.max(1, maxY)) : 1;
+        const sideZoom = needsSideCrop ? Math.min(1.35, Math.max(1.04, width * .99 / lowerWidth)) : 1;
+        const verticalContentHeight = Math.max(1, maxY - minY + 1);
+        const bottomZoom = needsBottomFill
+            ? Math.min(1.35, height * .98 / verticalContentHeight)
+            : 1;
         const zoom = Math.max(sideZoom, bottomZoom);
             const cropWidth = baseWidth / zoom;
             const cropHeight = baseHeight / zoom;
