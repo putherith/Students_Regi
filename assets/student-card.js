@@ -12,7 +12,7 @@
         return ["Village","Commune","District","Province"].map(part => student[prefix + part]).filter(Boolean).join(" ");
     }
     const blank = "........................";
-    function render(students, settings, logoUrl, academicYear) {
+    function render(students, settings, logoUrl, academicYear, schoolEmblemUrl = logoUrl) {
         const date = /^(\d{4})-(\d{2})-(\d{2})$/.exec(settings.issueDate || "");
         const artworkScaleX = 74.24 * 96 / 25.4 / 584;
         const artworkScaleY = 99.24 * 96 / 25.4 / 608;
@@ -53,15 +53,18 @@
                 const mirroredColumn = physicalIndex % 2 === 0 ? 2 : 1;
                 const row = Math.floor((physicalIndex % 4) / 2) + 1;
                 return `<article class="certificate-student-card certificate-student-card-back" style="grid-column:${mirroredColumn};grid-row:${row}" aria-label="បទបញ្ជាផ្ទៃក្នុងសម្រាប់កាត ${escape(student.studentName)}">
-                  <header class="regulations-heading">បទបញ្ជាផ្ទៃក្នុងសាលា</header>
-                  <div class="regulations-school-name">វិទ្យាល័យសុខអានព្រៃមេលង</div>
-                  <div class="regulations-sections">
+                  <img class="regulations-watermark" src="${escape(schoolEmblemUrl)}" alt="">
+                  <div class="regulations-content">
+                    <header class="regulations-heading">បទបញ្ជាផ្ទៃក្នុងសាលា</header>
+                    <div class="regulations-school-name">វិទ្យាល័យសុខអានព្រៃមេលង</div>
+                    <div class="regulations-sections">
                     <section><h2>ផ្នែកទី១ · វត្តមាន និងម៉ោងសិក្សា</h2><p>មកមុនម៉ោងយ៉ាងតិច ១៥ នាទី ដើម្បីគោរពទង់ជាតិ និងធ្វើអនាម័យ។ ម៉ោងរៀន៖ ព្រឹក ៧:០០–១១:០០ · រសៀល ១៣:០០–១៧:០០; ចូលនិងចេញឱ្យទាន់ម៉ោង។ អវត្តមានត្រូវមានលិខិតសុំច្បាប់ដែលមាតាបិតា/អាណាព្យាបាលបានដឹងឮ និងចុះហត្ថលេខា។ ហាមចេញក្រៅសាលាក្នុងម៉ោងរៀន ឬសម្រាក លើកលែងមានការអនុញ្ញាតពីគ្រូបន្ទុកថ្នាក់ ឬគណៈគ្រប់គ្រង។</p></section>
                     <section><h2>ផ្នែកទី២ · សីលធម៌ និងសណ្តាប់ធ្នាប់</h2><p>ប្រុស៖ ខោវែងខៀវ អាវសដៃខ្លី/វែង និងដាក់អាវក្នុងខោ។ ស្រី៖ សំពត់ខៀវ អាវស។ ប្រុសកាត់សក់ខ្លីសមរម្យ; ស្រីចងសក់មានរបៀប។ ហាមលាបពណ៌សក់ លាបក្រចក ពាក់គ្រឿងអលង្ការមានតម្លៃ ឬតុបតែងហួសហេតុ។ គោរពទង់ជាតិ គ្រូ បុគ្គលិកអប់រំ និងជួយមិត្តរួមថ្នាក់។</p></section>
                     <section><h2>ផ្នែកទី៣ · វិន័យ និងការហាមឃាត់</h2><p>ហាមប្រើទូរសព្ទ គ្រឿងអេឡិចត្រូនិក ឬកាសក្នុងម៉ោងរៀន លើកលែងគ្រូអនុញ្ញាតសម្រាប់សិក្សា។ ហាមចោលសំរាម និងសរសេរលើតុ/ជញ្ជាំង; ថែរក្សាអនាម័យ បរិស្ថាន និងសម្ភារៈសាលា។ ហាមនាំបារី/Vape គ្រឿងស្រវឹង គ្រឿងញៀន អាវុធ ឬគ្រឿងផ្ទុះ និងហាមល្បែងស៊ីសង។ ហាមបង្កជម្លោះ អំពើហិង្សា ឬបក្ខពួកក្មេងទំនើង ទាំងក្នុងនិងក្រៅសាលា។</p></section>
                     <section><h2>ផ្នែកទី៤ · វិធានការវិន័យ</h2><p>១) អប់រំណែនាំ និងព្រមានមាត់។ ២) ធ្វើកិច្ចសន្យាជាលាយលក្ខណ៍អក្សរ និងកោះហៅមាតាបិតា។ ៣) ដកពិន្ទុស្វ័យសិក្សា (ពិន្ទុវិន័យ) ឬព្យួរការសិក្សាបណ្តោះអាសន្ន តាមទម្ងន់ទោស។</p></section>
+                    </div>
+                    <footer class="regulations-reminder">សូមគោរព និងអនុវត្តបទបញ្ជាសាលា</footer>
                   </div>
-                  <footer class="regulations-reminder">សូមគោរព និងអនុវត្តបទបញ្ជាសាលា</footer>
                 </article>`;
             });
             pages.push(`<section class="cards-grid card-front-page" aria-label="កាតសិស្ស ខាងមុខ">${front.join("")}</section>`);
@@ -74,14 +77,16 @@
           .cards-grid.card-back-page { direction:ltr; }
           .cards-grid:last-child { break-after:auto; page-break-after:auto; }
           .certificate-student-card { position:relative; width:75mm; height:100mm; border:.38mm solid #1717ff; background:#fff; box-sizing:border-box; overflow:hidden; break-inside:avoid; page-break-inside:avoid; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
-          .certificate-student-card-back { padding:3mm 3.5mm 2mm; color:#17324d; font:6.15px/1.2 "Khmer OS Siemreap","Siemreap",sans-serif; display:flex; flex-direction:column; }
-          .regulations-heading { margin:0 -3.5mm .6mm; padding:1mm 1.5mm; background:#1999fe; color:#fff; text-align:center; font:9px/1.3 "Khmer OS Muol Light","Khmer OS Moul","Moul",serif; }
-          .regulations-school-name { text-align:center; color:#18426b; font:6.4px/1.2 "Khmer OS Siemreap","Siemreap",sans-serif; font-weight:bold; }
-          .regulations-sections { margin-top:.4mm; display:grid; gap:.4mm; }
+          .certificate-student-card-back { isolation:isolate; padding:3mm; display:flex; color:#17324d; font:7.8px/1.38 "Khmer OS Siemreap","Siemreap",sans-serif; }
+          .regulations-watermark { position:absolute; z-index:-1; width:62mm; height:62mm; left:50%; top:51%; transform:translate(-50%,-50%); object-fit:contain; opacity:.075; filter:blur(.45px); mix-blend-mode:multiply; pointer-events:none; }
+          .regulations-content { position:relative; z-index:1; flex:1; min-height:0; display:flex; flex-direction:column; }
+          .regulations-heading { margin:-3mm -3mm .8mm; padding:1.2mm 1.5mm; background:#1999fe; color:#fff; text-align:center; font:10px/1.35 "Khmer OS Muol Light","Khmer OS Moul","Moul",serif; }
+          .regulations-school-name { text-align:center; color:#18426b; font:7.4px/1.35 "Khmer OS Siemreap","Siemreap",sans-serif; font-weight:bold; }
+          .regulations-sections { flex:1; margin-top:.8mm; display:flex; flex-direction:column; justify-content:space-between; gap:1mm; }
           .regulations-sections section { margin:0; }
-          .regulations-sections h2 { margin:0; color:#124e82; font:700 6.35px/1.2 "Khmer OS Siemreap","Siemreap",sans-serif; }
-          .regulations-sections p { margin:0; font:6.15px/1.2 "Khmer OS Siemreap","Siemreap",sans-serif; }
-          .regulations-reminder { margin-top:auto; padding-top:.5mm; border-top:.2mm solid #9ab8d1; text-align:center; color:#18426b; font-size:5.9px; line-height:1.15; }
+          .regulations-sections h2 { margin:0; color:#124e82; font:700 8px/1.35 "Khmer OS Siemreap","Siemreap",sans-serif; }
+          .regulations-sections p { margin:0; font:7.8px/1.38 "Khmer OS Siemreap","Siemreap",sans-serif; }
+          .regulations-reminder { margin-top:1mm; padding-top:.8mm; border-top:.2mm solid #9ab8d1; text-align:center; color:#18426b; font-size:7px; line-height:1.3; }
           .reference-artwork { --card-body:"Khmer OS Siemreap","KhmerOSSiemreap","Siemreap",sans-serif; --card-heading:"Khmer OS Muol Light","Khmer OS Moul","Moul",serif; position:relative; width:584px; height:608px; transform-origin:top left; transform:scale(${artworkScaleX.toFixed(9)},${artworkScaleY.toFixed(9)}); color:#102932; font:18px/1.65 var(--card-body); }
           .reference-artwork * { box-sizing:border-box; }
           .reference-artwork strong { color:#1111ff; font-weight:400; }

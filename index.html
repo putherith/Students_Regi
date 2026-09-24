@@ -8199,6 +8199,14 @@
         }
     }
 
+    function studentCardSchoolEmblemSrc() {
+        try {
+            return new URL("assets/school-emblem.png", window.location.href).href;
+        } catch {
+            return "assets/school-emblem.png";
+        }
+    }
+
     function printStudentCards(students = null) {
         const rows = students || printableRows();
         if (!rows.length) { showToast("មិនមានទិន្នន័យសម្រាប់បោះពុម្ពកាត","warning"); return; }
@@ -8208,7 +8216,7 @@
             photo: safePhotoSrc(s.photo)
         }));
         printWindow("កាតសិស្ស", window.StudentCardTemplate.render(
-            cards, appSettings, studentCardLogoSrc(), studentCardAcademicYear()
+            cards, appSettings, studentCardLogoSrc(), studentCardAcademicYear(), studentCardSchoolEmblemSrc()
         ));
     }
 

@@ -47,7 +47,7 @@ For either address, select a village in Kaoh Andaet District first. The form fil
 
 Portrait framing crops proportionally around the shoulders to avoid blue gaps without stretching or copying pixels at the edges. The card popup waits for photo repair and painting before enabling Print, including on iPhone Safari.
 
-Student card printing uses A4 portrait pages with four 75 × 100 mm cards per sheet. Each front sheet is paired with a back sheet containing four compact sections of the school's rules—attendance and study hours, conduct and uniform, prohibited behavior, and disciplinary measures—in matching positions for duplex printing; flip on the long edge.
+Student card printing uses A4 portrait pages with four 75 × 100 mm cards per sheet. Each front sheet is paired with a back sheet containing four compact sections of the school's rules—attendance and study hours, conduct and uniform, prohibited behavior, and disciplinary measures—set across the full card with the supplied school emblem as a faint watermark. The backs align with their fronts for duplex printing; flip on the long edge.
 
 Camera access in a browser requires the Web App to be served over **HTTPS** (or localhost during development).
 

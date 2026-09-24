@@ -1,9 +1,10 @@
-const CACHE_NAME = "students-registration-web-v2.1.25";
+const CACHE_NAME = "students-registration-web-v2.1.26";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./assets/moeys-logo.png",
+  "./assets/school-emblem.png",
   "./assets/kaoh-andaet-addresses.js",
   "./assets/student-card.js"
 ];
