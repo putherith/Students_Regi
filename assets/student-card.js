@@ -102,60 +102,6 @@
         return { red:red / count, green:green / count, blue:blue / count };
     }
 
-    function fillCardPhotoLowerEdges(ctx, width, height) {
-        const image = ctx.getImageData(0, 0, width, height);
-        const data = image.data;
-        const startY = Math.floor(height * .55);
-        const isBlue = offset => {
-            const dr = data[offset] - 25;
-            const dg = data[offset + 1] - 153;
-            const db = data[offset + 2] - 254;
-            return dr * dr + dg * dg + db * db < 55 * 55;
-        };
-        if (!isBlue((height - 1) * width * 4) && !isBlue((height * width - 1) * 4)) return;
-        let lastShirtRow = -1, lastLeft = -1, lastRight = -1;
-        let changed = false;
-        for (let y = startY; y < height; y++) {
-            const row = y * width * 4;
-            let left = -1, right = -1;
-            for (let x = 0; x < width; x++) {
-                if (isBlue(row + x * 4)) continue;
-                if (left < 0) left = x;
-                right = x;
-            }
-            if (left < 0 || right - left < width * .45 || isBlue(row + Math.floor(width / 2) * 4)) {
-                if (lastShirtRow >= 0 && y - lastShirtRow < height * .22) {
-                    data.copyWithin(row, lastShirtRow * width * 4, (lastShirtRow + 1) * width * 4);
-                    left = lastLeft;
-                    right = lastRight;
-                    changed = true;
-                } else continue;
-            } else {
-                lastShirtRow = y;
-                lastLeft = left;
-                lastRight = right;
-            }
-            const progress = Math.min(1, (y - startY) / Math.max(1, height * .76 - startY));
-            const leftStop = Math.floor(left * (1 - progress));
-            const rightStop = Math.ceil(right + (width - 1 - right) * progress);
-            const leftColor = row + Math.min(right, left + 3) * 4;
-            const rightColor = row + Math.max(left, right - 3) * 4;
-            for (let x = leftStop; x < left; x++) {
-                const offset = row + x * 4;
-                data[offset] = data[leftColor]; data[offset + 1] = data[leftColor + 1];
-                data[offset + 2] = data[leftColor + 2]; data[offset + 3] = 255;
-                changed = true;
-            }
-            for (let x = right + 1; x <= rightStop; x++) {
-                const offset = row + x * 4;
-                data[offset] = data[rightColor]; data[offset + 1] = data[rightColor + 1];
-                data[offset + 2] = data[rightColor + 2]; data[offset + 3] = 255;
-                changed = true;
-            }
-        }
-        if (changed) ctx.putImageData(image, 0, 0);
-    }
-
     async function reframeBluePhoto(img, doc) {
         const width = img.naturalWidth || img.width;
         const height = img.naturalHeight || img.height;
@@ -235,15 +181,16 @@
             output.height = 400;
             const baseWidth = Math.min(width, height * .75);
             const baseHeight = baseWidth / .75;
-            const zoom = needsSideCrop ? Math.min(1.18, Math.max(1.04, width * .98 / lowerWidth)) : 1;
+        const sideZoom = needsSideCrop ? Math.min(1.26, Math.max(1.04, width * .99 / lowerWidth)) : 1;
+        const bottomZoom = needsBottomFill ? Math.min(1.26, height * .99 / Math.max(1, maxY)) : 1;
+        const zoom = Math.max(sideZoom, bottomZoom);
             const cropWidth = baseWidth / zoom;
             const cropHeight = baseHeight / zoom;
             const subjectCenter = needsSideCrop ? (lowerLeft + lowerRight) / 2 : width / 2;
             const cropX = Math.max(0, Math.min(width - cropWidth, subjectCenter - cropWidth / 2));
-            const cropY = Math.max(0, Math.min(height - cropHeight, minY - cropHeight * .10));
+        const cropY = Math.max(0, Math.min(height - cropHeight, minY - cropHeight * .11));
             const outputCtx = output.getContext("2d");
             outputCtx.drawImage(sourceCanvas, cropX, cropY, cropWidth, cropHeight, 0, 0, 300, 400);
-            fillCardPhotoLowerEdges(outputCtx, 300, 400);
             img.src = output.toDataURL("image/jpeg", .88);
             try { await img.decode(); } catch {}
             return;
@@ -270,7 +217,6 @@
         ctx.imageSmoothingQuality = "high";
         // Keep the shoulders at the lower edge; any unused blue background belongs above the head.
         ctx.drawImage(sourceCanvas, sx, sy, sw, sh, (output.width - drawWidth) / 2, output.height - drawHeight, drawWidth, drawHeight);
-        fillCardPhotoLowerEdges(ctx, output.width, output.height);
         img.src = output.toDataURL("image/jpeg", .88);
         try { await img.decode(); } catch {}
     }

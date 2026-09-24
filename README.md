@@ -45,7 +45,7 @@ The **យកពីឪពុក / យកពីម្តាយ** buttons in the gu
 
 For either address, select a village in Kaoh Andaet District first. The form fills its commune, district, and Takeo province from the [official Cambodia Geographical List 2025](https://data.mef.gov.kh/datasets/pd_68e370856a965e00074a5e7b). Only the 68 villages in this district appear in the picker. Villages with the same name show their commune so the correct location can be selected. For another district or province, choose **វាយបញ្ចូលដោយផ្ទាល់** in the village picker and type the address fields manually. This changes form entry only; no Google Sheet columns are added. Newly processed ID photos use a 3:4 portrait with the reference sky-blue background and headroom above the student. The card photo slot compensates for the card's non-uniform print scaling so faces are not stretched; old blue-background photos are reframed and recolored only for printing, without changing stored student records.
 
-The lower school-uniform area now fills blue gaps at the shoulder sides and bottom of both new portraits and card-only renderings of older blue photos. The card popup waits for photo repair and painting before enabling Print, including on iPhone Safari. Stored student records are unchanged.
+Portrait framing crops proportionally around the shoulders to avoid blue gaps without stretching or copying pixels at the edges. The card popup waits for photo repair and painting before enabling Print, including on iPhone Safari.
 
 Camera access in a browser requires the Web App to be served over **HTTPS** (or localhost during development).
 
