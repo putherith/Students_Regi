@@ -19,7 +19,7 @@
         const dateDay = date ? khmer(Number(date[3])) : "................";
         const dateMonth = date ? khmer(Number(date[2])) : "................";
         const dateYear = date ? khmer(date[1]) : "................";
-        const cards = students.map(s => `<article class="certificate-student-card" aria-label="កាតសិស្ស ${escape(s.studentName)}">
+        const cardMarkup = students.map(s => `<article class="certificate-student-card" aria-label="កាតសិស្ស ${escape(s.studentName)}">
           <div class="reference-artwork">
             <img class="card-watermark" src="${escape(logoUrl)}" alt="">
             <img class="card-logo" src="${escape(logoUrl)}" alt="ក្រសួងអប់រំ យុវជន និងកីឡា">
@@ -44,11 +44,16 @@
             <div class="reference-solar-date">ថ្ងៃទី<span>${dateDay}</span>ខែ<span>${dateMonth}</span>ឆ្នាំ${dateYear}<span>............</span></div>
             <div class="reference-principal"><div>នាយក</div>${settings.principalName ? `<strong data-card-fit>${escape(settings.principalName)}</strong>` : ""}</div>
           </div>
-        </article>`).join("");
+        </article>`);
+        const pages = [];
+        for (let start = 0; start < cardMarkup.length; start += 4) {
+            pages.push(`<div class="cards-grid">${cardMarkup.slice(start, start + 4).join("")}</div>`);
+        }
         return `<style>
-          @page { size:A4 landscape; margin:4mm; }
+          @page { size:A4 portrait; margin:8mm; }
           body { background:#fff; }
-          .cards-grid { display:grid; grid-template-columns:repeat(3,75mm); gap:2mm; justify-content:center; align-items:start; }
+          .cards-grid { box-sizing:border-box; width:194mm; min-height:281mm; display:grid; grid-template-columns:repeat(2,75mm); grid-template-rows:repeat(2,100mm); gap:4mm; justify-content:center; align-content:center; }
+          .cards-grid:not(:last-child) { break-after:page; page-break-after:always; }
           .certificate-student-card { position:relative; width:75mm; height:100mm; border:.38mm solid #1717ff; background:#fff; box-sizing:border-box; overflow:hidden; break-inside:avoid; page-break-inside:avoid; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
           .reference-artwork { --card-body:"Khmer OS Siemreap","KhmerOSSiemreap","Siemreap",sans-serif; --card-heading:"Khmer OS Muol Light","Khmer OS Moul","Moul",serif; position:relative; width:584px; height:608px; transform-origin:top left; transform:scale(${artworkScaleX.toFixed(9)},${artworkScaleY.toFixed(9)}); color:#102932; font:18px/1.65 var(--card-body); }
           .reference-artwork * { box-sizing:border-box; }
@@ -84,8 +89,8 @@
           .reference-solar-date span { flex:1; text-align:center; border-bottom:1px dotted #263238; }
           .reference-principal { position:absolute; top:537px; left:274px; width:188px; text-align:center; font:18px/1.7 var(--card-heading); }
           .reference-principal strong { display:block; font:18px/1.7 var(--card-body); white-space:nowrap; }
-          @media print { .cards-grid { gap:2mm; } }
-        </style><div class="cards-grid">${cards}</div>`;
+          @media print { .cards-grid { gap:4mm; } }
+        </style>${pages.join("")}`;
     }
     function photoBackgroundSample(ctx, width, height) {
         const size = Math.max(3, Math.round(Math.min(width, height) * 0.025));
