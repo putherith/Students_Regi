@@ -72,8 +72,10 @@
           .latin-value { font-family:Arial,sans-serif; font-size:16px !important; font-weight:700 !important; }
           .reference-photo-box { position:absolute; left:17px; top:388px; width:142px; height:180px; border:2px solid #5585ff; display:grid; grid-template-rows:33px minmax(0,1fr); }
           .card-id-code { border-bottom:2px solid #5585ff; color:#152932; text-align:center; font:bold 16px/31px "Times New Roman",serif; white-space:nowrap; }
-          .card-photo-slot { position:relative; min-height:0; display:grid; place-items:center; overflow:hidden; background:#3b86ee; color:#111; font:16px Arial,sans-serif; }
-          .card-photo-slot img { position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:contain; object-position:center bottom; }
+          .card-photo-slot { position:relative; min-height:0; display:grid; place-items:center; overflow:hidden; background:#1999fe; color:#111; font:16px Arial,sans-serif; }
+          /* The card artwork is scaled non-uniformly for print. Filling this near-square
+             slot compensates for that scale, so the final photo stays 3:4 and uncropped. */
+          .card-photo-slot img { position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:fill; }
           .family-line { position:absolute; left:163px; width:410px; display:grid; grid-template-columns:138px 126px 130px; column-gap:8px; align-items:center; min-height:32px; }
           .father-line { top:393px; }
           .mother-line { top:428px; }
@@ -113,19 +115,32 @@
         // Only touch photos that were already composed on the app's blue ID background.
         if (!(background.blue > 175 && background.blue > background.green + 45 && background.green > background.red + 35)) return;
 
-        const pixels = sourceCtx.getImageData(0, 0, width, height).data;
+        const sourceImage = sourceCtx.getImageData(0, 0, width, height);
+        const pixels = sourceImage.data;
         const rowHits = new Uint32Array(height);
         const columnHits = new Uint32Array(width);
         const threshold = 48 * 48;
+        const targetBlue = { red:25, green:153, blue:254 };
+        const recolor = Math.abs(background.red - targetBlue.red) > 8 ||
+            Math.abs(background.green - targetBlue.green) > 8 ||
+            Math.abs(background.blue - targetBlue.blue) > 8;
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
                 const offset = ((y * width + x) * 4);
                 const dr = pixels[offset] - background.red;
                 const dg = pixels[offset + 1] - background.green;
                 const db = pixels[offset + 2] - background.blue;
-                if ((dr * dr) + (dg * dg) + (db * db) > threshold) {
+                const distanceSquared = (dr * dr) + (dg * dg) + (db * db);
+                if (distanceSquared > threshold) {
                     rowHits[y]++;
                     columnHits[x]++;
+                }
+                if (recolor && distanceSquared < 80 * 80) {
+                    const distance = Math.sqrt(distanceSquared);
+                    const strength = distance <= 48 ? 1 : (80 - distance) / 32;
+                    pixels[offset] += (targetBlue.red - background.red) * strength;
+                    pixels[offset + 1] += (targetBlue.green - background.green) * strength;
+                    pixels[offset + 2] += (targetBlue.blue - background.blue) * strength;
                 }
             }
         }
@@ -138,10 +153,23 @@
         for (let y = height - 1; y >= 0; y--) if (rowHits[y] >= rowMinimum) { maxY = y; break; }
         if (minX < 0 || minY < 0 || maxX <= minX || maxY <= minY) return;
 
-        // Reframe only older photos with an empty strip below the subject. Newly
-        // composed portraits already have deliberate headroom and a filled bottom.
-        if (maxY >= height * 0.985 && minY >= height * 0.04 && minY <= height * 0.20) return;
-        if (minY <= height * 0.035 && maxY >= height * 0.95) return;
+        // Leave well-framed portraits at their original size; recolor only their
+        // blue background when they came from an older version of the app.
+        const alreadyFramed = (maxY >= height * 0.985 && minY >= height * 0.04 && minY <= height * 0.20) ||
+            (minY <= height * 0.035 && maxY >= height * 0.95);
+        if (alreadyFramed && !recolor) return;
+        if (recolor) sourceCtx.putImageData(sourceImage, 0, 0);
+        if (alreadyFramed) {
+            const output = doc.createElement("canvas");
+            output.width = 300;
+            output.height = 400;
+            const cropWidth = Math.min(width, height * .75);
+            const cropHeight = Math.min(height, width / .75);
+            output.getContext("2d").drawImage(sourceCanvas, (width - cropWidth) / 2, (height - cropHeight) / 2, cropWidth, cropHeight, 0, 0, 300, 400);
+            img.src = output.toDataURL("image/jpeg", .88);
+            try { await img.decode(); } catch {}
+            return;
+        }
         const subjectWidth = maxX - minX + 1;
         const subjectHeight = maxY - minY + 1;
         const padX = Math.round(subjectWidth * 0.05);
@@ -152,10 +180,10 @@
         const sw = Math.min(width - sx, subjectWidth + (padX * 2));
         const sh = Math.min(height - sy, subjectHeight + padTop + padBottom);
         const output = doc.createElement("canvas");
-        output.width = 315;
+        output.width = 300;
         output.height = 400;
         const ctx = output.getContext("2d");
-        ctx.fillStyle = `rgb(${Math.round(background.red)},${Math.round(background.green)},${Math.round(background.blue)})`;
+        ctx.fillStyle = "#1999fe";
         ctx.fillRect(0, 0, output.width, output.height);
         const scale = Math.min((output.width * 0.94) / sw, (output.height * 0.99) / sh);
         const drawWidth = sw * scale;

@@ -1929,7 +1929,7 @@
         }
         .photo-preview {
             width: 105px;
-            height: 133px;
+            height: 140px;
             border-radius: var(--radius-sm);
             border: 2px dashed var(--border-strong);
             background: var(--surface-3);
@@ -1970,7 +1970,7 @@
         .web-phone-camera-card { width:min(100%,480px); margin:0 auto; padding:22px; border:1px solid var(--border); border-radius:18px; background:var(--surface); box-shadow:var(--shadow-lg); }
         .web-phone-camera-card h1 { color:var(--primary); font-size:1.5rem; }
         .web-phone-camera-card > p { margin:6px 0 18px; color:var(--muted); }
-        .web-phone-preview { width:min(100%,315px); aspect-ratio:315/400; display:grid; place-items:center; margin:0 auto 16px; overflow:hidden; border:2px dashed var(--border-strong); border-radius:14px; background:var(--surface-2); color:var(--muted); text-align:center; }
+        .web-phone-preview { width:min(100%,300px); aspect-ratio:3/4; display:grid; place-items:center; margin:0 auto 16px; overflow:hidden; border:2px dashed var(--border-strong); border-radius:14px; background:var(--surface-2); color:var(--muted); text-align:center; }
         .web-phone-preview img, .web-phone-preview video { width:100%; height:100%; object-fit:cover; }
         .web-phone-camera-actions { display:grid; gap:10px; }
         .web-phone-camera-actions label { min-height:52px; display:flex; align-items:center; justify-content:center; border-radius:10px; color:#fff; background:var(--primary); font-weight:800; cursor:pointer; }
@@ -2028,7 +2028,7 @@
         }
         .cam-preview-box {
             width: min(100%, 390px);
-            aspect-ratio: 315/400;
+            aspect-ratio: 3/4;
             background: #000;
             border-radius: var(--radius-sm);
             overflow: hidden;
@@ -2283,7 +2283,7 @@
 
         .form-panel .photo-preview {
             width: 112px;
-            height: 144px;
+            height: 149px;
             border: 2px dashed #60a5fa;
             border-radius: 12px;
             background: rgba(239, 246, 255, .72);
@@ -3060,7 +3060,7 @@
             }
             .form-panel .photo-preview {
                 width: 96px;
-                height: 124px;
+                height: 128px;
                 flex: 0 0 96px;
             }
             .form-panel .photo-actions { min-width: 0; gap: 6px; }
@@ -6480,7 +6480,7 @@
                     facingMode: { ideal:"environment" },
                     width: { ideal:720, max:960 },
                     height: { ideal:960, max:1280 },
-                    aspectRatio: { ideal:315/400 }
+                    aspectRatio: { ideal:3/4 }
                 },
                 audio:false
             });
@@ -6609,9 +6609,9 @@
     const PHOTO_BG_REMOVAL_URL = "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.3/+esm";
     const SELFIE_SEGMENTATION_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js";
     const SELFIE_SEGMENTATION_ASSET_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/";
-    const STUDENT_PHOTO_WIDTH = 315;
+    const STUDENT_PHOTO_WIDTH = 300;
     const STUDENT_PHOTO_HEIGHT = 400;
-    const STUDENT_PHOTO_BLUE = "#3b86ee";
+    const STUDENT_PHOTO_BLUE = "#1999fe";
 
     function cameraConstraints() {
         const portrait = window.innerHeight >= window.innerWidth || window.matchMedia("(max-width: 768px)").matches;
@@ -6766,9 +6766,14 @@
         image.src = photo;
         await image.decode();
         const canvas = document.createElement("canvas");
-        canvas.width = 315;
+        canvas.width = 300;
         canvas.height = 400;
-        canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+        const scale = Math.max(canvas.width / image.naturalWidth, canvas.height / image.naturalHeight);
+        const drawWidth = image.naturalWidth * scale;
+        const drawHeight = image.naturalHeight * scale;
+        // Compress oversized photos without stretching faces; keep the top of a
+        // tall portrait visible if some of its lower body must be cropped.
+        canvas.getContext("2d").drawImage(image, (canvas.width - drawWidth) / 2, 0, drawWidth, drawHeight);
         for (const quality of [0.75, 0.6, 0.45, 0.3]) {
             const compressed = canvas.toDataURL("image/jpeg", quality);
             if (compressed.length <= 49000) return compressed;
@@ -6929,6 +6934,24 @@
         ctx.fillRect(0, 0, width, height);
     }
 
+    function isReferenceBluePortrait(img) {
+        const width = img.naturalWidth || img.width;
+        const height = img.naturalHeight || img.height;
+        if (!width || !height || width / height < .70 || width / height > .82) return false;
+        const sample = document.createElement("canvas");
+        sample.width = 48;
+        sample.height = 64;
+        const ctx = sample.getContext("2d", { willReadFrequently:true });
+        ctx.drawImage(img, 0, 0, sample.width, sample.height);
+        const isBlue = (x, y) => {
+            const pixel = ctx.getImageData(x, y, 1, 1).data;
+            return Math.abs(pixel[0] - 25) < 22 && Math.abs(pixel[1] - 153) < 22 && Math.abs(pixel[2] - 254) < 22;
+        };
+        // A ready-to-use school portrait has the requested blue above the head
+        // and a student reaching the bottom; preserve fine hair and shirt detail.
+        return isBlue(2, 2) && isBlue(24, 2) && isBlue(45, 2) && !isBlue(24, 61);
+    }
+
     function getAlphaBounds(img) {
         const width = img.naturalWidth || img.width;
         const height = img.naturalHeight || img.height;
@@ -7019,8 +7042,8 @@
         }
         if (photo.length > 45000) {
             const smaller = document.createElement("canvas");
-            smaller.width = 260;
-            smaller.height = 330;
+            smaller.width = 240;
+            smaller.height = 320;
             smaller.getContext("2d").drawImage(canvas, 0, 0, smaller.width, smaller.height);
             photo = smaller.toDataURL("image/jpeg", 0.45);
         }
@@ -7036,6 +7059,12 @@
         let subjectImg = null;
         try {
             originalImg = await loadImageFromBlob(imageSource);
+            if (isReferenceBluePortrait(originalImg)) {
+                setPhotoPreview(composeStudentPhoto(originalImg, false));
+                showToast("រូបថតមានផ្ទៃខៀវតាមគំរូរួចហើយ · បានរក្សាគុណភាពរូប");
+                closeCameraModal();
+                return;
+            }
             const aiInput = resizeImageForAi(
                 originalImg,
                 lowMemoryDevice ? 480 : 640,
