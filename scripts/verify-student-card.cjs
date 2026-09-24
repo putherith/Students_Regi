@@ -88,14 +88,22 @@ app.whenReady().then(async () => {
         const watermark = regulationCard.querySelector('.regulations-watermark');
         const watermarkVisible = watermark.complete && watermark.naturalWidth > 0 && Number(getComputedStyle(watermark).opacity) > 0;
         const regulationsFillPanel = regulationContent.height >= regulationCardRect.height * .92;
+        const ruleSections = [...regulationCard.querySelectorAll('.regulations-sections section')];
+        const rulesDoNotOverlap = ruleSections.every((section, index) => index === ruleSections.length - 1 || section.getBoundingClientRect().bottom + 1 < ruleSections[index + 1].getBoundingClientRect().top) &&
+            ruleSections.at(-1).getBoundingClientRect().bottom + 1 < regulationCard.querySelector('.regulations-reminder').getBoundingClientRect().top;
         const a4PageSize = Math.abs(frontRect.width - 194*96/25.4)<1 && Math.abs(frontRect.height - 281*96/25.4)<1;
         const fourPerSheet = frontPages.length===2 && backPages.length===2 &&
             [...frontPages,...backPages].every(page => page.querySelectorAll('.certificate-student-card').length<=4);
         const frontCard = document.querySelector('.certificate-student-card:not(.certificate-student-card-back)');
-        return { width:card.width, height:card.height, overflow, teacherVisible:frontCard?.innerText.includes('គ្រូបន្ទុកថ្នាក់'), fonts:document.fonts.check('18px "Khmer OS Siemreap"'), photoReframed:photo?.src.startsWith('data:image/jpeg'), photoFillsSlot:Math.abs(photoBounds.height-slot.height)<1 && Math.abs(photoBounds.width-slot.width)<1, portraitFill, photoAspect:slot.width/slot.height, objectFit:getComputedStyle(photo).objectFit, blueAboveNotBelow, shirtAtBottomEdges, bottomEdgePixels:[...bottomLeftPixel.slice(0,3),...bottomRightPixel.slice(0,3)], blueMatchesReference, frameHeight:frame.height, fourPerSheet, a4PageSize, duplexPositionsMirror, regulationsFit, regulationsFillPanel, regulationContentHeight:regulationContent.height, regulationCardHeight:regulationCardRect.height, watermarkVisible };
+        return { width:card.width, height:card.height, overflow, teacherVisible:frontCard?.innerText.includes('គ្រូបន្ទុកថ្នាក់'), fonts:document.fonts.check('18px "Khmer OS Siemreap"'), photoReframed:photo?.src.startsWith('data:image/jpeg'), photoFillsSlot:Math.abs(photoBounds.height-slot.height)<1 && Math.abs(photoBounds.width-slot.width)<1, portraitFill, photoAspect:slot.width/slot.height, objectFit:getComputedStyle(photo).objectFit, blueAboveNotBelow, shirtAtBottomEdges, bottomEdgePixels:[...bottomLeftPixel.slice(0,3),...bottomRightPixel.slice(0,3)], blueMatchesReference, frameHeight:frame.height, fourPerSheet, a4PageSize, duplexPositionsMirror, regulationsFit, regulationsFillPanel, rulesDoNotOverlap, regulationContentHeight:regulationContent.height, regulationCardHeight:regulationCardRect.height, watermarkVisible };
     })()`);
     const shot = await win.webContents.capturePage({ x:0,y:0,width:Math.ceil(metrics.width),height:Math.ceil(metrics.height) });
     fs.writeFileSync(path.join(out, 'student-card-75x100.png'), shot.toPNG());
+    const actualBackRect = await win.webContents.executeJavaScript(`(() => {const r=document.querySelector('.certificate-student-card-back').getBoundingClientRect();return {x:Math.floor(r.x),y:Math.floor(r.y),width:Math.ceil(r.width),height:Math.ceil(r.height)}})()`);
+    win.webContents.debugger.attach('1.3');
+    const actualBackShot = await win.webContents.debugger.sendCommand('Page.captureScreenshot', { format:'png', captureBeyondViewport:true, clip:{...actualBackRect,scale:2} });
+    fs.writeFileSync(path.join(out, 'student-card-back-75x100.png'), Buffer.from(actualBackShot.data, 'base64'));
+    win.webContents.debugger.detach();
     // Reference-sized review makes placement comparison with the user's screenshot easy.
     await win.webContents.executeJavaScript(`
         const style=document.createElement('style');
@@ -151,6 +159,6 @@ app.whenReady().then(async () => {
     fs.writeFileSync(path.join(out, 'metrics.json'), JSON.stringify(metrics, null, 2));
     console.log(JSON.stringify(metrics));
     win.destroy();
-    if (Math.abs(metrics.width - 75*96/25.4) > .1 || Math.abs(metrics.height - 100*96/25.4) > .1 || metrics.overflow.length || metrics.teacherVisible || (!suppliedPhoto && !metrics.photoReframed) || !metrics.photoFillsSlot || !metrics.portraitFill || !metrics.blueAboveNotBelow || !metrics.shirtAtBottomEdges || !metrics.alreadyFramedBlueSidesFixed || (exampleCardScreenshot && (!metrics.suppliedScreenshot.beforeBlue || metrics.suppliedScreenshot.afterBlue || !metrics.suppliedScreenshot.reframed)) || !metrics.blueMatchesReference || !metrics.fourPerSheet || !metrics.a4PageSize || !metrics.duplexPositionsMirror || !metrics.regulationsFit || !metrics.regulationsFillPanel || !metrics.watermarkVisible || metrics.frameHeight < 108 || metrics.frameHeight > 115) throw new Error('Card layout validation failed');
+    if (Math.abs(metrics.width - 75*96/25.4) > .1 || Math.abs(metrics.height - 100*96/25.4) > .1 || metrics.overflow.length || metrics.teacherVisible || (!suppliedPhoto && !metrics.photoReframed) || !metrics.photoFillsSlot || !metrics.portraitFill || !metrics.blueAboveNotBelow || !metrics.shirtAtBottomEdges || !metrics.alreadyFramedBlueSidesFixed || (exampleCardScreenshot && (!metrics.suppliedScreenshot.beforeBlue || metrics.suppliedScreenshot.afterBlue || !metrics.suppliedScreenshot.reframed)) || !metrics.blueMatchesReference || !metrics.fourPerSheet || !metrics.a4PageSize || !metrics.duplexPositionsMirror || !metrics.regulationsFit || !metrics.regulationsFillPanel || !metrics.rulesDoNotOverlap || !metrics.watermarkVisible || metrics.frameHeight < 108 || metrics.frameHeight > 115) throw new Error('Card layout validation failed');
     app.quit();
 }).catch(error => { console.error(error); app.exit(1); });
