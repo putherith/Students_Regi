@@ -7,6 +7,7 @@ const root = path.resolve(__dirname, '..');
 const out = path.resolve(process.argv[2] || path.join(root, 'dist', 'card-review'));
 const suppliedPhotoPath = process.argv[3];
 const suppliedPhoto = suppliedPhotoPath ? 'data:image/' + (/\.jpe?g$/i.test(suppliedPhotoPath) ? 'jpeg' : 'png') + ';base64,' + fs.readFileSync(path.resolve(suppliedPhotoPath)).toString('base64') : null;
+const exampleCardScreenshot = process.argv[4] ? 'data:image/png;base64,' + fs.readFileSync(path.resolve(process.argv[4])).toString('base64') : null;
 app.setPath('userData', path.join(out, 'chromium-profile'));
 app.disableHardwareAcceleration();
 app.commandLine.appendSwitch('force-device-scale-factor', '2');
@@ -96,9 +97,29 @@ app.whenReady().then(async () => {
             return pixel[0] > 185 && pixel[1] > 185 && pixel[2] > 185;
         });
     })()`);
+    if (exampleCardScreenshot) {
+        metrics.suppliedScreenshot = await win.webContents.executeJavaScript(`(async () => {
+            const screenshot = new Image();
+            screenshot.src = ${JSON.stringify(exampleCardScreenshot)};
+            await screenshot.decode();
+            const photoCanvas = document.createElement('canvas'); photoCanvas.width = 300; photoCanvas.height = 400;
+            const ctx = photoCanvas.getContext('2d');
+            ctx.drawImage(screenshot, 30, 390, 456, 610, 0, 0, 300, 400);
+            const blueAtCorner = () => {
+                const pixel = ctx.getImageData(5, 392, 1, 1).data;
+                return pixel[2] > pixel[0] + 120;
+            };
+            const beforeBlue = blueAtCorner();
+            const img = document.querySelector('[data-card-photo]');
+            img.src = photoCanvas.toDataURL('image/png'); await img.decode();
+            await StudentCardTemplate.fitText(document);
+            ctx.clearRect(0, 0, 300, 400); ctx.drawImage(img, 0, 0, 300, 400);
+            return { beforeBlue, afterBlue:blueAtCorner(), reframed:img.src.startsWith('data:image/jpeg') };
+        })()`);
+    }
     fs.writeFileSync(path.join(out, 'metrics.json'), JSON.stringify(metrics, null, 2));
     console.log(JSON.stringify(metrics));
     win.destroy();
-    if (Math.abs(metrics.width - 75*96/25.4) > .1 || Math.abs(metrics.height - 100*96/25.4) > .1 || metrics.overflow.length || metrics.teacherVisible || (!suppliedPhoto && !metrics.photoReframed) || !metrics.photoFillsSlot || !metrics.portraitFill || !metrics.blueAboveNotBelow || !metrics.shirtAtBottomEdges || !metrics.alreadyFramedBlueSidesFixed || !metrics.blueMatchesReference || metrics.frameHeight < 108 || metrics.frameHeight > 115) throw new Error('Card layout validation failed');
+    if (Math.abs(metrics.width - 75*96/25.4) > .1 || Math.abs(metrics.height - 100*96/25.4) > .1 || metrics.overflow.length || metrics.teacherVisible || (!suppliedPhoto && !metrics.photoReframed) || !metrics.photoFillsSlot || !metrics.portraitFill || !metrics.blueAboveNotBelow || !metrics.shirtAtBottomEdges || !metrics.alreadyFramedBlueSidesFixed || (exampleCardScreenshot && (!metrics.suppliedScreenshot.beforeBlue || metrics.suppliedScreenshot.afterBlue || !metrics.suppliedScreenshot.reframed)) || !metrics.blueMatchesReference || metrics.frameHeight < 108 || metrics.frameHeight > 115) throw new Error('Card layout validation failed');
     app.quit();
 }).catch(error => { console.error(error); app.exit(1); });

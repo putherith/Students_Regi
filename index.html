@@ -7970,17 +7970,21 @@
                 .sig-line { margin-top:56px; border-top:1px solid #111; padding-top:8px; font-size:12px; }
                 .print-bar { position:sticky; top:0; z-index:5; display:flex; justify-content:flex-end; gap:8px; margin:0 0 14px; padding:6px 0; background:#fff; }
                 .print-bar button { height:36px; border:0; border-radius:6px; padding:0 14px; color:#fff; background:#0d9488; font:inherit; font-weight:700; cursor:pointer; }
+                .print-bar button:disabled { opacity:.6; cursor:wait; }
                 .print-bar .return-btn { background:#e8eef7; color:#17345c; }
                 @media print { .print-bar { display:none; } }
             </style></head><body>
             <div class="print-bar">
                 <button id="return-app-btn" class="return-btn" type="button">← ត្រឡប់ទៅ App</button>
-                <button id="print-now-btn" type="button">🖨️ Print / Save PDF</button>
+                <button id="print-now-btn" type="button" disabled>កំពុងរៀបចំ...</button>
             </div>
             ${content}
             </body></html>`);
         win.document.close();
-        win.document.getElementById("print-now-btn")?.addEventListener("click", () => win.print());
+        const printButton = win.document.getElementById("print-now-btn");
+        printButton?.addEventListener("click", () => {
+            if (!printButton.disabled) win.print();
+        });
         win.document.getElementById("return-app-btn")?.addEventListener("click", () => {
             win.close();
             setTimeout(() => {
@@ -7990,19 +7994,43 @@
         });
         // The print document has its own font/image lifecycle.
         const ready = async () => {
+            await Promise.all(Array.from(win.document.images, async img => {
+                if (typeof img.decode === "function") {
+                    try { await img.decode(); } catch {}
+                } else if (!img.complete) {
+                    await new Promise(resolve => {
+                        img.addEventListener("load", resolve, { once:true });
+                        img.addEventListener("error", resolve, { once:true });
+                    });
+                }
+            }));
+            if (win.closed) return;
+            // Repair the portrait immediately; remote font loading on Safari
+            // must not leave the old blue shoulder gaps visible in the popup.
+            await window.StudentCardTemplate.preparePhotos(win.document);
             await win.document.fonts.ready;
-            await Promise.all(Array.from(win.document.images, img =>
-                img.complete ? Promise.resolve() : new Promise(resolve => {
-                    img.addEventListener("load", resolve, { once:true });
-                    img.addEventListener("error", resolve, { once:true });
-                })
+            if (win.closed) return;
+            await window.StudentCardTemplate.fitText(win.document, { skipPhotos:true });
+            // Safari may paint the popup before its load listener is registered;
+            // wait for the repaired photo source to reach the visible frame.
+            await new Promise(resolve => win.requestAnimationFrame(() =>
+                win.requestAnimationFrame(resolve)
             ));
             if (win.closed) return;
-            await window.StudentCardTemplate.fitText(win.document);
+            printButton.disabled = false;
+            printButton.textContent = "🖨️ Print / Save PDF";
             win.focus();
             win.print();
         };
-        win.addEventListener("load", () => ready().catch(console.error), { once:true });
+        // Call directly after document.close(): an about:blank popup can finish
+        // loading before a late load handler is attached on iPhone Safari.
+        ready().catch(error => {
+            console.error(error);
+            if (!win.closed && printButton) {
+                printButton.disabled = false;
+                printButton.textContent = "🖨️ Print / Save PDF";
+            }
+        });
     }
 
     function printStudent(id) {

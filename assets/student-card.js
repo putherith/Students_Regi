@@ -275,7 +275,11 @@
         try { await img.decode(); } catch {}
     }
 
-    async function fitText(doc) {
+    async function preparePhotos(doc) {
+        await Promise.all(Array.from(doc.querySelectorAll("img[data-card-photo]"), img => reframeBluePhoto(img, doc)));
+    }
+
+    async function fitText(doc, { skipPhotos=false }={}) {
         doc.querySelectorAll("[data-card-fit], .card-line > span, .family-line > span").forEach(el => {
             // Fit long real student data without ellipses or truncating the record.
             const size = parseFloat(doc.defaultView.getComputedStyle(el).fontSize);
@@ -285,7 +289,7 @@
                 el.style.setProperty("font-size", `${current}px`, "important");
             }
         });
-        await Promise.all(Array.from(doc.querySelectorAll("img[data-card-photo]"), img => reframeBluePhoto(img, doc)));
+        if (!skipPhotos) await preparePhotos(doc);
     }
-    globalThis.StudentCardTemplate = Object.freeze({ render, fitText });
+    globalThis.StudentCardTemplate = Object.freeze({ render, fitText, preparePhotos });
 })();
