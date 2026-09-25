@@ -3090,6 +3090,55 @@
             .form-panel .photo-upload-wrap { flex-direction: column; align-items: center; }
             .form-panel .photo-actions { width: 100%; }
         }
+
+        /* Keep the school identity and tool groups in one compact desktop header. */
+        @media (min-width: 861px) {
+            .topbar {
+                display: grid;
+                grid-template-columns: minmax(280px, 330px) minmax(0, 1fr);
+                align-items: center;
+                column-gap: 20px;
+                padding: 12px 20px;
+            }
+
+            .topbar .brand {
+                min-width: 0;
+                width: 100%;
+            }
+
+            .topbar-actions {
+                min-width: 0;
+                width: 100%;
+                padding: 0;
+                border: 0;
+                justify-content: flex-end;
+                align-content: center;
+                gap: 7px 8px;
+            }
+
+            .topbar .action-group {
+                position: relative;
+                flex: 0 0 auto;
+                min-height: 56px;
+                padding: 17px 4px 4px;
+                align-self: center;
+            }
+
+            .topbar .action-group::before {
+                content: attr(data-group-label);
+                position: absolute;
+                top: 4px;
+                left: 10px;
+                color: #d9e7fb;
+                font-size: .65rem;
+                line-height: 1;
+                white-space: nowrap;
+            }
+
+            .topbar .action-group .btn { height: 34px; }
+            .topbar .status-pill,
+            .topbar .theme-btn { align-self: center; }
+        }
     </style>
 </head>
 <body>
@@ -3116,7 +3165,7 @@
             </div>
 
             <!-- Sync group -->
-            <div class="action-group">
+            <div class="action-group" data-group-label="កំណត់ និងទិន្នន័យ" aria-label="កំណត់ និងទិន្នន័យ">
                 <button id="app-settings-btn" class="btn btn-ghost" type="button" title="Card and school settings">
                     <ion-icon name="settings-outline" aria-hidden="true"></ion-icon>
                     <span>កំណត់សាលា</span>
@@ -3140,7 +3189,7 @@
             </div>
 
             <!-- Import/Export group -->
-            <div class="action-group">
+            <div class="action-group" data-group-label="នាំចូលឯកសារ" aria-label="នាំចូលឯកសារ">
                 <button id="download-template-btn" class="btn btn-ghost" type="button" title="Download Excel Template">
                     <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
                     <span>គំរូ</span>
@@ -3154,7 +3203,7 @@
             </div>
 
             <!-- Output group -->
-            <div class="action-group">
+            <div class="action-group" data-group-label="បោះពុម្ព និងនាំចេញ" aria-label="បោះពុម្ព និងនាំចេញ">
                 <button id="print-list-btn" class="btn btn-ghost" type="button" title="Print Student List">
                     <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
                     <span>បោះពុម្ព</span>
@@ -3757,7 +3806,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.12</span>
+        <span class="footer-version">កំណែ 2.1.28</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4102,9 +4151,11 @@
     const PHOTO_CACHE_STORE_NAME = "studentPhotos";
     const DEFAULT_STUDENT_CODE_PREFIX = "STU";
     const SUPABASE_READ_PAGE_SIZE    = 1000;
+    const GOOGLE_SHEET_PAGE_SIZE     = 32;
     const SHARED_DATA_REFRESH_MS     = 20000;
     let sharedDataRefreshTimer = null;
     let sharedDataRefreshInFlight = false;
+    let googleSheetLoadsInFlight = 0;
     let pendingCloudMutations = 0;
     let cloudMutationQueue = Promise.resolve();
     let cloudFlushInFlight = null;
@@ -5088,7 +5139,7 @@
     }
 
     async function refreshSharedDataInBackground() {
-        if (sharedDataRefreshInFlight || pendingCloudMutations > 0 || document.visibilityState === "hidden") return;
+        if (sharedDataRefreshInFlight || googleSheetLoadsInFlight > 0 || pendingCloudMutations > 0 || document.visibilityState === "hidden") return;
         if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl()) return;
         sharedDataRefreshInFlight = true;
         try {
@@ -5315,7 +5366,7 @@
         return new Promise((resolve) => {
             const callback = `studentStorageTest_${Date.now()}_${Math.random().toString(36).slice(2)}`;
             const script = document.createElement("script");
-            const timer = setTimeout(() => cleanup({ ok:false, message:"Google Sheet timeout" }), 15000);
+            const timer = setTimeout(() => cleanup({ ok:false, message:"Google Sheet timeout" }), 20000);
             function cleanup(result) {
                 clearTimeout(timer);
                 delete window[callback];
@@ -5329,7 +5380,7 @@
             };
             try {
                 const u = new URL(url);
-                u.searchParams.set("action", "list");
+                u.searchParams.set("action", "status");
                 u.searchParams.set("callback", callback);
                 if (accessKey) u.searchParams.set("key", accessKey);
                 script.src = u.toString();
@@ -5681,19 +5732,23 @@
         return queuePendingCloudFlush({ notify:true });
     }
 
-    function readGoogleSheetJsonp(params={}, timeoutMs=15000) {
+    function readGoogleSheetJsonp(params={}, timeoutMs=60000) {
         const url = getGoogleScriptUrl();
         if (!url) return Promise.reject(new Error("Missing Google Script URL"));
         return new Promise((resolve, reject) => {
             const callback = `studentSheetCb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
             const script = document.createElement("script");
             const timer = setTimeout(() => {
-                cleanup();
+                // A response already in flight may still execute after the element is removed.
+                // Keep a no-op callback briefly so late JSONP never throws in the app.
+                window[callback] = () => {};
+                setTimeout(() => delete window[callback], 90000);
+                cleanup({ preserveCallback:true });
                 reject(new Error("Google Sheet response timeout"));
             }, timeoutMs);
-            function cleanup() {
+            function cleanup({ preserveCallback=false }={}) {
                 clearTimeout(timer);
-                delete window[callback];
+                if (!preserveCallback) delete window[callback];
                 script.remove();
             }
             window[callback] = (payload) => {
@@ -5718,6 +5773,57 @@
                 reject(e);
             }
         });
+    }
+
+    async function readGoogleSheetPage(offset) {
+        for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+                return await readGoogleSheetJsonp({ action:"listpage", offset, limit:GOOGLE_SHEET_PAGE_SIZE }, 30000);
+            } catch (error) {
+                if (attempt === 1) throw error;
+                await new Promise(resolve => setTimeout(resolve, 700));
+            }
+        }
+    }
+
+    async function readGoogleSheetStudents() {
+        for (let attempt = 0; attempt < 2; attempt++) {
+            const first = await readGoogleSheetPage(0);
+            if (first?.ok === false && /unknown action/i.test(String(first.error || ""))) {
+                return readGoogleSheetJsonp({}, 60000);
+            }
+            if (first?.ok !== true || !Array.isArray(first.students) || !Number.isFinite(Number(first.total))) {
+                throw new Error(first?.error || "Google Sheet page response is invalid");
+            }
+            const total = Math.max(0, Math.floor(Number(first.total)));
+            const offsets = [];
+            for (let offset = GOOGLE_SHEET_PAGE_SIZE; offset < total; offset += GOOGLE_SHEET_PAGE_SIZE) offsets.push(offset);
+            const pages = [first];
+            for (let start = 0; start < offsets.length; start += 2) {
+                const batch = await Promise.all(offsets.slice(start, start + 2).map(readGoogleSheetPage));
+                pages.push(...batch);
+            }
+            if (pages.some(page => page?.ok !== true || !Array.isArray(page.students))) {
+                throw new Error(pages.find(page => page?.ok === false)?.error || "Google Sheet page response is invalid");
+            }
+            const revision = String(first.revision ?? "");
+            const settingsRevision = String(first.settingsRevision ?? "");
+            const pagesMatch = pages.every(page => Number(page.total) === total &&
+                String(page.revision ?? "") === revision && String(page.settingsRevision ?? "") === settingsRevision);
+            let current = null;
+            try {
+                current = await readGoogleSheetJsonp({ action:"status" }, 15000);
+            } catch (error) {
+                // Every page carries its revision. The next scheduled refresh can
+                // resolve a transient failure in this final status check.
+                console.debug("Sheet final revision check skipped:", error);
+            }
+            const stillCurrent = current === null || (current.ok === true &&
+                String(current.revision ?? "") === revision &&
+                String(current.settingsRevision ?? "") === settingsRevision);
+            if (pagesMatch && stillCurrent) return { ...first, students:pages.flatMap(page => page.students) };
+            if (attempt === 1) throw new Error("Google Sheet changed while loading; please try again");
+        }
     }
 
     function rememberGoogleSheetRevisions(payload={}) {
@@ -5858,6 +5964,7 @@
     }
 
     async function loadStudentsFromGoogleSheet({ silent=false, keepLocalWhenCloudEmpty=false, background=false }={}) {
+        if (background && googleSheetLoadsInFlight > 0) return false;
         if (!hasGoogleScriptUrl()) {
             setStatus("ឡូកាល់ (Offline)", "connected");
             setCloudControlsLoading(false);
@@ -5868,8 +5975,9 @@
             setCloudControlsLoading(true);
             setStatus("កំពុង Load ពី Sheet...", "");
         }
+        googleSheetLoadsInFlight++;
         try {
-            const payload = await readGoogleSheetJsonp();
+            const payload = await readGoogleSheetStudents();
             if (payload.ok === false) throw new Error(payload.error || "Google Sheet error");
             applySharedAppSettings(payload.settings);
             const cloudRows = Array.isArray(payload.students) ? payload.students : [];
@@ -5900,6 +6008,7 @@
             if (!silent) showToast(`Load ពី Google Sheet មិនបាន${lastCloudError ? ": " + lastCloudError.slice(0, 90) : ""}`,"error");
             return false;
         } finally {
+            googleSheetLoadsInFlight--;
             if (!background) setCloudControlsLoading(false);
         }
     }
@@ -6081,7 +6190,7 @@
         try {
             // A short live check closes the gap between multiple phones saving at once.
             // Failure never blocks offline work; the persistent outbox will keep the record.
-            const payload = await readGoogleSheetJsonp({}, 2500);
+            const payload = await readGoogleSheetJsonp({ action:"identities" }, 12000);
             if (payload?.ok === false || !Array.isArray(payload?.students)) return null;
             const cloudStudents = payload.students.map(normalizeCloudStudent);
             return findDuplicate(student, ignoreId, cloudStudents);
@@ -8912,7 +9021,7 @@
         }
         rememberSheetUrlFromQuery();
         setCloudControlsLoading(false);
-        setStatus(hasCloudStorageConfig() ? currentStorageName() : "ឡូកាល់ (Offline)", "connected");
+        setStatus(hasCloudStorageConfig() ? "កំពុងភ្ជាប់..." : "ឡូកាល់ (Offline)", hasCloudStorageConfig() ? "" : "connected");
         restartSharedDataRefresh();
         document.addEventListener("visibilitychange",()=>{
             if (document.visibilityState !== "visible") return;

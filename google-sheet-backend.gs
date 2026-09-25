@@ -165,6 +165,43 @@ function doGet(e) {
         settingsRevision: getRevision_(SETTINGS_REVISION_PROPERTY)
       }, e);
     }
+    if (action === "listpage") {
+      const sheet = getStudentsSheet_();
+      const total = Math.max(0, sheet.getLastRow() - 1);
+      const requestedOffset = Number((e && e.parameter && e.parameter.offset) || 0);
+      const offset = Number.isFinite(requestedOffset) ? Math.min(total, Math.max(0, Math.floor(requestedOffset))) : 0;
+      const requestedLimit = Number((e && e.parameter && e.parameter.limit) || 32);
+      const limit = Number.isFinite(requestedLimit) ? Math.min(32, Math.max(1, Math.floor(requestedLimit))) : 32;
+      const rowCount = Math.min(limit, total - offset);
+      const students = rowCount
+        ? sheet.getRange(offset + 2, 1, rowCount, HEADERS.length).getValues()
+          .filter(function(row) { return row.some(function(cell) { return String(cell || "").trim() !== ""; }); })
+          .map(rowToStudent_)
+        : [];
+      return output_({
+        ok: true,
+        students: students,
+        offset: offset,
+        limit: limit,
+        total: total,
+        settings: offset === 0 ? readAppSettings_() : undefined,
+        revision: getRevision_(DATA_REVISION_PROPERTY),
+        settingsRevision: getRevision_(SETTINGS_REVISION_PROPERTY)
+      }, e);
+    }
+    if (action === "identities") {
+      const sheet = getStudentsSheet_();
+      const count = Math.max(0, sheet.getLastRow() - 1);
+      const left = count ? sheet.getRange(2, 1, count, 3).getDisplayValues() : [];
+      const names = count ? sheet.getRange(2, HEADERS.indexOf("studentSurname") + 1, count, 2).getDisplayValues() : [];
+      const students = left.map(function(row, index) {
+        return {
+          id: row[0], studentCode: row[1], studentName: row[2],
+          studentSurname: names[index][0], studentGivenName: names[index][1]
+        };
+      }).filter(function(student) { return student.id || student.studentCode || student.studentName; });
+      return output_({ ok:true, students:students, revision:getRevision_(DATA_REVISION_PROPERTY) }, e);
+    }
     if (action === "setup" || action === "design" || action === "format") {
       const count = withWriteLock_(function() {
         const students = readStudents_();

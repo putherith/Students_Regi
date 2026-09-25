@@ -27,7 +27,7 @@ Use `google-sheet-backend.gs` as the Apps Script backend:
 10. Open the app, click `Storage`, choose `Google Sheet`, paste the URL and the same shared access key, then Save.
 11. Configure every authorized computer with the same URL and access key.
 
-The Web App checks the shared Google Sheet revision every 20 seconds and downloads the full data only when something changed. Individual saves and deletes are protected by an Apps Script lock, and `Backup` merges records instead of replacing the complete shared list. `Delete all` is disabled while shared Google Sheet mode is active.
+The Web App checks the shared Google Sheet revision every 20 seconds and downloads records in small pages only when something changed. A lightweight identity request checks for duplicate students without downloading every photo. Individual saves and deletes are protected by an Apps Script lock, and `Backup` merges records instead of replacing the complete shared list. `Delete all` is disabled while shared Google Sheet mode is active.
 
 After updating `google-sheet-backend.gs`, use `Deploy -> Manage deployments -> Edit -> New version -> Deploy`; editing the script without deploying a new version does not update the web app.
 
