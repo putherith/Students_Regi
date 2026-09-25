@@ -38,8 +38,9 @@ app.whenReady().then(async () => {
         document.body.append(iframe);
         const popup = iframe.contentWindow;
         let printCalled = false;
+        let popupOpenCount = 0;
         popup.print = () => { printCalled = true; };
-        window.open = () => popup;
+        window.open = () => { popupOpenCount++; return popup; };
 
         const photo = document.createElement('canvas');
         photo.width = 300; photo.height = 400;
@@ -55,8 +56,14 @@ app.whenReady().then(async () => {
             ctx.fillStyle = '#f0f3f7'; ctx.fillRect(35, 185, 245, 200);
         }
         const source = photo.toDataURL('image/png');
-        const student = { studentName:'Test Student', studentCode:'STU-0125', photo:source, gender:'ប្រុស', className:'7C' };
-        printWindow('Card test', StudentCardTemplate.render([student], {}, 'assets/moeys-logo.png', '២០២៥-២០២៦'));
+        const student = { studentName:'Test Student', studentCode:'STU-0125', photo:'', gender:'ប្រុស', className:'7C' };
+        const restoreStudentPhotos = async () => {};
+        const hydrateStudentPhotosFromSheet = async rows => {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            rows.forEach(row => { row.photo = source; });
+        };
+        printWindow('Card test', () => StudentCardTemplate.render([student], {}, 'assets/moeys-logo.png', '២០២៥-២០២៦'), [student]);
+        const openedBeforePhoto = !!iframe.contentDocument.getElementById('prepare-status') && !student.photo && !printCalled;
         const cardImage = await new Promise((resolve, reject) => {
             const until = Date.now() + 8000;
             const poll = () => {
@@ -77,11 +84,11 @@ app.whenReady().then(async () => {
         for (let i = 0; i < 30 && !printCalled; i++) {
             await new Promise(resolve => setTimeout(resolve, 20));
         }
-        return { photoRepairRan:true, leftBlue:cornerIsBlue(4), rightBlue:cornerIsBlue(295),
+        return { photoRepairRan:true, openedBeforePhoto, popupOpenCount, leftBlue:cornerIsBlue(4), rightBlue:cornerIsBlue(295),
             printCalled, printButtonEnabled:!iframe.contentDocument.getElementById('print-now-btn').disabled };
     })()`);
     console.log(JSON.stringify(result));
     win.destroy();
-    if (!result.photoRepairRan || result.leftBlue || result.rightBlue || !result.printCalled || !result.printButtonEnabled) throw new Error('Card popup framing validation failed');
+    if (!result.photoRepairRan || !result.openedBeforePhoto || result.popupOpenCount !== 1 || result.leftBlue || result.rightBlue || !result.printCalled || !result.printButtonEnabled) throw new Error('Card popup framing validation failed');
     app.quit();
 }).catch(error => { console.error(error); app.exit(1); });

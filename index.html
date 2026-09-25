@@ -3806,7 +3806,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.29</span>
+        <span class="footer-version">កំណែ 2.1.30</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4158,7 +4158,11 @@
     let sharedDataRefreshTimer = null;
     let sharedDataRefreshInFlight = false;
     let googleSheetLoadsInFlight = 0;
-    const pendingGooglePhotoKeys = new Set();
+    const pendingGooglePhotos = new Map();
+    const googlePhotoResults = new Map();
+    let googlePhotoQueue = Promise.resolve();
+    let visiblePhotoRefreshScheduled = false;
+    let localStudentWriteVersion = 0;
     let pendingCloudMutations = 0;
     let cloudMutationQueue = Promise.resolve();
     let cloudFlushInFlight = null;
@@ -4221,7 +4225,10 @@
     }
 
     async function saveToLocalStorage(students) {
+        const writeVersion = ++localStudentWriteVersion;
         const photosCached = await rememberStudentPhotos(students);
+        // A slower photo-cache write must not persist an obsolete student list.
+        if (writeVersion !== localStudentWriteVersion) return;
         const withoutCloudPhotos = () => students.map(student => ({ ...student, photo:"" }));
         try {
             // Serializing every base64 photo repeatedly freezes low-memory phones.
@@ -4370,18 +4377,33 @@
 
     // Photos are loaded only after the text list is ready. This means a large
     // or damaged photo can never prevent the phone from opening the Sheet.
-    async function hydrateStudentPhotosFromSheet(students=[], limit=8) {
+    function googlePhotoResultKey(student) {
+        return `${googlePhotoKey(student)}:${lastGoogleDataRevision}`;
+    }
+
+    function needsGooglePhoto(student) {
+        if (!googlePhotoKey(student) || safePhotoSrc(student.photo)) return false;
+        const result = googlePhotoResults.get(googlePhotoResultKey(student));
+        return !result || (result.retryAt && Date.now() >= result.retryAt);
+    }
+
+    async function hydrateStudentPhotosFromSheet(students=[], limit=8, { strict=false }={}) {
         if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl()) return false;
         const candidates = [];
+        const waiting = [];
         for (const student of students || []) {
             const key = googlePhotoKey(student);
-            if (!key || safePhotoSrc(student.photo) || pendingGooglePhotoKeys.has(key)) continue;
-            pendingGooglePhotoKeys.add(key);
+            if (!key || safePhotoSrc(student.photo)) continue;
+            if (pendingGooglePhotos.has(key)) {
+                waiting.push(pendingGooglePhotos.get(key));
+                continue;
+            }
+            if (!needsGooglePhoto(student) && !(strict && googlePhotoResults.get(googlePhotoResultKey(student))?.retryAt)) continue;
             candidates.push(student);
             if (candidates.length >= Math.min(12, Math.max(1, limit))) break;
         }
-        if (!candidates.length) return false;
-        try {
+        const resultKeys = new Map(candidates.map(student => [student, googlePhotoResultKey(student)]));
+        const run = async () => {
             const payload = await readGoogleSheetJsonp({
                 action:"photos",
                 studentIds:candidates.map(googlePhotoKey).join(",")
@@ -4390,34 +4412,67 @@
                 throw new Error(payload?.error || "Photo response is invalid");
             }
             let changed = false;
-            payload.students.forEach(remote => {
-                const photo = safePhotoSrc(remote?.photo);
-                if (!photo) return;
-                const target = (allStudents || []).find(student =>
-                    (remote.id && student.id === remote.id) ||
-                    (remote.studentCode && student.studentCode === remote.studentCode)
-                );
-                if (target && !safePhotoSrc(target.photo)) {
-                    target.photo = photo;
-                    cacheStudentPhoto(target);
-                    changed = true;
+            for (const student of candidates) {
+                const remote = payload.students.find(row =>
+                    student.id ? String(row.id) === String(student.id)
+                        : String(row.studentCode) === String(student.studentCode));
+                if (!remote) throw new Error("Student photo response is incomplete");
+                const photo = safePhotoSrc(remote.photo);
+                googlePhotoResults.set(resultKeys.get(student), { retryAt:0 });
+                if (photo) {
+                    // A form edit or a new upload may have happened while waiting.
+                    // Never overwrite that newer photo or reinsert a deleted row.
+                    const current = allStudents.find(row => googlePhotoKey(row) === googlePhotoKey(student));
+                    for (const target of new Set([student, current])) {
+                        if (target && !safePhotoSrc(target.photo) && target.updatedAt === student.updatedAt) {
+                            target.photo = photo;
+                            changed = true;
+                        }
+                    }
+                    await cacheStudentPhoto(current || student);
                 }
-            });
+            }
             return changed;
-        } catch (error) {
-            // A thumbnail failure is optional; the student data stays usable.
-            console.debug("Deferred Google Sheet photo load skipped:", error);
-            return false;
-        } finally {
-            candidates.forEach(student => pendingGooglePhotoKeys.delete(googlePhotoKey(student)));
+        };
+        if (candidates.length) {
+            // One batch at a time keeps scrolling/class changes from flooding Apps Script.
+            const task = googlePhotoQueue.then(run).catch(error => {
+                candidates.forEach(student => googlePhotoResults.set(resultKeys.get(student), { retryAt:Date.now() + 30000 }));
+                throw error;
+            }).finally(() => candidates.forEach(student => pendingGooglePhotos.delete(googlePhotoKey(student))));
+            googlePhotoQueue = task.catch(() => {});
+            candidates.forEach(student => pendingGooglePhotos.set(googlePhotoKey(student), task));
+            waiting.push(task);
         }
+        const results = await Promise.allSettled([...new Set(waiting)]);
+        if (strict && results.some(result => result.status === "rejected")) {
+            throw new Error("មិនទាន់ទាញរូបថតបានគ្រប់។ សូមសាកម្ដងទៀត។");
+        }
+        return results.some(result => result.status === "fulfilled" && result.value);
     }
 
     function hydrateVisibleStudentPhotos() {
-        const candidates = (visibleStudents || []).filter(student => !safePhotoSrc(student.photo));
-        if (!candidates.length) return;
+        if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl()) return;
+        if (visiblePhotoRefreshScheduled) return;
+        visiblePhotoRefreshScheduled = true;
         requestAnimationFrame(async () => {
-            if (await hydrateStudentPhotosFromSheet(candidates, 8)) renderStudentViews();
+            try {
+                const inClassView = document.body.classList.contains("class-browser-view");
+                const displayed = inClassView
+                    ? allStudents.filter(student => (String(student.className || "").trim() || "មិនទាន់បញ្ចូលថ្នាក់") === selectedClassName)
+                    : visibleStudents;
+                const candidates = displayed.filter(needsGooglePhoto);
+                if (!candidates.length) return;
+                const changed = await hydrateStudentPhotosFromSheet(candidates, 8);
+                if (changed) {
+                    renderStudentViews();
+                    if (inClassView) renderClassBrowser();
+                }
+            } finally {
+                visiblePhotoRefreshScheduled = false;
+            }
+            // Confirmed empty photos are skipped, so later students still load.
+            hydrateVisibleStudentPhotos();
         });
     }
 
@@ -5856,8 +5911,10 @@
                 throw new Error(first?.error || "Google Sheet page response is invalid");
             }
             const total = Math.max(0, Math.floor(Number(first.total)));
+            const serverLimit = Number(first.limit);
+            if (!Number.isInteger(serverLimit) || serverLimit < 1) throw new Error("Invalid Google Sheet page size");
             const offsets = [];
-            for (let offset = GOOGLE_SHEET_PAGE_SIZE; offset < total; offset += GOOGLE_SHEET_PAGE_SIZE) offsets.push(offset);
+            for (let offset = serverLimit; offset < total; offset += serverLimit) offsets.push(offset);
             const pages = [first];
             for (let start = 0; start < offsets.length; start += 2) {
                 const batch = await Promise.all(offsets.slice(start, start + 2).map(readGoogleSheetPage));
@@ -6024,7 +6081,8 @@
     }
 
     async function loadStudentsFromGoogleSheet({ silent=false, keepLocalWhenCloudEmpty=false, background=false }={}) {
-        if (background && googleSheetLoadsInFlight > 0) return false;
+        if (googleSheetLoadsInFlight > 0) return false;
+        const writeVersionAtStart = localStudentWriteVersion;
         if (!hasGoogleScriptUrl()) {
             setStatus("ឡូកាល់ (Offline)", "connected");
             setCloudControlsLoading(false);
@@ -6045,6 +6103,8 @@
             const queuedOperations = loadPendingCloudMutations();
             const cloudStudents = applyPendingMutationsToStudents(normalizedCloudStudents, queuedOperations);
             await restoreStudentPhotos(cloudStudents);
+            // Local edits during the request win over an older cloud snapshot.
+            if (writeVersionAtStart !== localStudentWriteVersion) return false;
             rememberGoogleSheetRevisions(payload);
             if (!normalizedCloudStudents.length && keepLocalWhenCloudEmpty && allStudents.length && !queuedOperations.length) {
                 if (!background) setStatus("Sheet ទទេ - រក្សាទុក Local", "connected");
@@ -6052,13 +6112,14 @@
                 return false;
             }
             if (background && studentCollectionSignature(cloudStudents) === studentCollectionSignature(allStudents)) {
+                setStatus(queuedOperations.length ? `រក្សា Offline · រង់ចាំ Sync ${queuedOperations.length}` : "Google Sheet", queuedOperations.length ? "error" : "connected");
                 return true;
             }
             allStudents = cloudStudents;
             await saveToLocalStorage(allStudents);
             localStorage.setItem(BACKUP_TIME_STORAGE_KEY, new Date().toISOString());
-            await refreshStudents({ reset:true, source:"memory" });
-            if (!background) setStatus(queuedOperations.length ? `រក្សា Offline · រង់ចាំ Sync ${queuedOperations.length}` : "Google Sheet", queuedOperations.length ? "error" : "connected");
+            await refreshStudents({ reset:!background, source:"memory" });
+            setStatus(queuedOperations.length ? `រក្សា Offline · រង់ចាំ Sync ${queuedOperations.length}` : "Google Sheet", queuedOperations.length ? "error" : "connected");
             if (!silent) showToast(`Load ពី Google Sheet ${allStudents.length} នាក់`);
             return true;
         } catch(e) {
@@ -7473,7 +7534,6 @@
 
     async function loadStudentIntoForm(id) {
         const found = allStudents.find(i => i.id === id);
-        if (found && !safePhotoSrc(found.photo)) await hydrateStudentPhotosFromSheet([found], 1);
         const s = found ? normalizeStudentIdentity(found) : null;
         if (!s) { showToast("រកមិនឃើញទិន្នន័យសិស្ស","error"); return; }
         fieldIds.forEach(fid => setValue(fid, s[fid]||""));
@@ -7495,6 +7555,13 @@
             openMobileEditPanel();
         } else {
             els.formPanel.scrollIntoView({ behavior:"smooth", block:"start" });
+        }
+        // Open immediately; a late photo must not replace another student's form.
+        if (!safePhotoSrc(found.photo)) {
+            await hydrateStudentPhotosFromSheet([found], 1);
+            if (els.editingId.value === id && !getValue("studentPhotoData")) {
+                setPhotoPreview(found.photo || "");
+            }
         }
     }
 
@@ -7680,7 +7747,7 @@
         els.femaleStudents.textContent = allStudents.filter(s => s.gender==="ស្រី").length;
         els.lastSync.textContent = formatTime();
         els.deleteAllBtn.disabled = totalStudentsCount === 0;
-        setCloudControlsLoading(false);
+        setCloudControlsLoading(googleSheetLoadsInFlight > 0);
     }
 
     // ===================== FILTERS =====================
@@ -7727,6 +7794,7 @@
             visibleStudents = filteredStudents;
             hasNextPage = false;
         } else {
+            currentPageIndex = Math.min(currentPageIndex, Math.max(0, Math.ceil(filteredStudents.length / pageSize) - 1));
             const start = currentPageIndex * pageSize;
             const end = start + pageSize;
             visibleStudents = filteredStudents.slice(start, end);
@@ -7811,6 +7879,7 @@
                 </div>
             </article>`;
         }).join("")}</div>`;
+        hydrateVisibleStudentPhotos();
     }
 
     // ===================== RENDER =====================
@@ -7998,7 +8067,6 @@
         try {
             currentPageIndex = pageIndex;
             applyFilters();
-            setStatus("ឡូកាល់ (Offline)", "connected");
         } catch(e) {
             console.error("Load page error:", e);
             setStatus("មានបញ្ហា","error");
@@ -8085,14 +8153,42 @@
     }
 
     // ===================== PRINT =====================
-    function printWindow(title, content) {
-        const win = window.open("","_blank","width=1100,height=800");
+    function printWindow(title, content, photoRows=[], preparedWindow=null) {
+        // Open during the user's tap, before any await, so Safari permits it.
+        const win = preparedWindow || window.open("","_blank","width=1100,height=800");
         if (!win) { showToast("Browser បានរារាំងផ្ទាំង Print","warning"); return; }
+        if (typeof content === "function") {
+            win.document.write('<!doctype html><html lang="km"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>រៀបចំបោះពុម្ព</title><body style="font-family:Siemreap,sans-serif;padding:24px;line-height:1.8"><p id="prepare-status" role="status">កំពុងទាញរូបថតសម្រាប់បោះពុម្ព...</p><button id="retry-prepare" hidden>សាកម្ដងទៀត</button> <button id="close-prepare">ត្រឡប់ទៅ App</button></body></html>');
+            win.document.close();
+            const retry = win.document.getElementById("retry-prepare");
+            win.document.getElementById("close-prepare").onclick = () => win.close();
+            const prepare = async () => {
+                retry.hidden = true;
+                try {
+                    await restoreStudentPhotos(photoRows);
+                    for (let offset = 0; offset < photoRows.length; offset += 8) {
+                        if (win.closed) return;
+                        win.document.getElementById("prepare-status").textContent = `កំពុងរៀបចំរូបថត ${Math.min(offset + 8, photoRows.length)} / ${photoRows.length}`;
+                        await hydrateStudentPhotosFromSheet(photoRows.slice(offset, offset + 8), 8, { strict:true });
+                    }
+                    if (!win.closed) printWindow(title, content(), [], win);
+                } catch (error) {
+                    if (!win.closed) {
+                        win.document.getElementById("prepare-status").textContent = "មិនទាន់ទាញរូបថតបានគ្រប់។ សូមពិនិត្យអ៊ីនធឺណិត ហើយសាកម្ដងទៀត។";
+                        retry.hidden = false;
+                    }
+                }
+            };
+            retry.onclick = prepare;
+            prepare();
+            return;
+        }
         const returnUrl = window.location.href;
         const isDark = document.documentElement.getAttribute("data-theme") === "dark";
         win.document.write(`
             <!DOCTYPE html><html lang="km"><head>
             <meta charset="UTF-8"><title>${esc(title)}</title>
+            <meta name="viewport" content="width=device-width,initial-scale=1">
             <link href="https://fonts.googleapis.com/css2?family=Moul&family=Siemreap&display=swap" rel="stylesheet">
             <style>
                 @page { size: A4; margin: 14mm; }
@@ -8178,6 +8274,7 @@
     function printStudent(id) {
         const s = allStudents.find(i => i.id === id);
         if (!s) { showToast("រកមិនឃើញទិន្នន័យសិស្ស","warning"); return; }
+        printWindow("ពាក្យចុះឈ្មោះ", () => {
         const photoSrc = safePhotoSrc(s.photo);
         const rows = [
             ["លេខសម្គាល់",studentVisibleId(s)],["គោត្តនាម",s.studentSurname],["នាមខ្លួន",s.studentGivenName],["ឈ្មោះពេញ",studentFullName(s)],["ភេទ",s.gender],
@@ -8188,7 +8285,7 @@
             ["ឈ្មោះអាណាព្យាបាល",s.guardianName],["ថ្ងៃខែឆ្នាំកំណើតអាណាព្យាបាល",formatDate(s.guardianDob)],
             ["អាសយដ្ឋានបច្ចុប្បន្ន",addressText(s,"current")],["លេខពាក្យ",s.applicationNumber]
         ].map(([l,v]) => `<tr><th>${esc(l)}</th><td>${esc(v||"–")}</td></tr>`).join("");
-        printWindow("ពាក្យចុះឈ្មោះ",`
+        return `
             <h1>ពាក្យចុះឈ្មោះសិស្ស</h1>
             <p class="meta">បោះពុម្ព ${esc(new Date().toLocaleString("km-KH"))}</p>
             ${photoSrc ? `<div style="display:flex;justify-content:center;margin:0 0 14px;"><img src="${esc(photoSrc)}" alt="រូបថតសិស្ស" style="width:90px;height:120px;object-fit:cover;border:1px solid #9ca3af;"></div>` : ""}
@@ -8196,12 +8293,14 @@
             <div class="sig-grid">
                 <div><div>ហត្ថលេខាមាតាបិតា/អាណាព្យាបាល</div><div class="sig-line">ឈ្មោះ និងហត្ថលេខា</div></div>
                 <div><div>អ្នកទទួលពាក្យ</div><div class="sig-line">ឈ្មោះ និងហត្ថលេខា</div></div>
-            </div>`);
+            </div>`;
+        }, [s]);
     }
 
     function printStudentList(withPhotos = false) {
-        const rows = hasActiveFilters() ? visibleStudents : allStudents;
+        const rows = printableRows();
         if (!rows.length) { showToast("មិនមានទិន្នន័យសម្រាប់បោះពុម្ព","warning"); return; }
+        printWindow(withPhotos ? "បញ្ជីសិស្សមានរូបថត" : "បញ្ជីសិស្ស", () => {
         const columnCount = withPhotos ? 23 : 22;
         let idx = 0;
         const body = groupedByClass(rows).map(([cls,students]) => {
@@ -8239,7 +8338,7 @@
             }).join("");
             return `<tr class="class-row"><td colspan="${columnCount}">ថ្នាក់ ${esc(cls)} – ${students.length} នាក់</td></tr>${studentRows}`;
         }).join("");
-        printWindow(withPhotos ? "បញ្ជីសិស្សមានរូបថត" : "បញ្ជីសិស្ស",`
+        return `
             <style>
                 @page { size: A4 landscape; margin: 10mm; }
                 table { width: 100%; border-collapse: collapse; margin-top: 15px; }
@@ -8265,7 +8364,7 @@
             <div style="clear: both;"></div>
             <h1 style="text-align: center; font-size: 20px; font-weight: 700; margin: 10px 0 5px;">បញ្ជីរាយនាមសិស្ស</h1>
             <p style="text-align: center; font-size: 12px; font-weight: bold; color: #374151; margin: 0 0 15px 0;">
-                ឆ្នាំសិក្សា ២០២៥ - ២០២៦ | សរុប ${rows.length} នាក់ | ថ្ងៃបោះពុម្ព៖ ${esc(new Date().toLocaleDateString("km-KH"))}
+                ឆ្នាំសិក្សា ${esc(studentCardAcademicYear())} | សរុប ${rows.length} នាក់ | ថ្ងៃបោះពុម្ព៖ ${esc(new Date().toLocaleDateString("km-KH"))}
             </p>
             <table>
                 <thead>
@@ -8300,11 +8399,12 @@
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
-            </table>`);
+            </table>`;
+        }, withPhotos ? rows : []);
     }
 
     function printableRows() {
-        return hasActiveFilters() ? visibleStudents : allStudents;
+        return [...(hasActiveFilters() ? filteredStudents : allStudents)];
     }
 
     function printStudentNameList() {
@@ -8381,14 +8481,16 @@
     function printStudentCards(students = null) {
         const rows = students || printableRows();
         if (!rows.length) { showToast("មិនមានទិន្នន័យសម្រាប់បោះពុម្ពកាត","warning"); return; }
+        printWindow("កាតសិស្ស", () => {
         const cards = rows.map(s => ({
             ...s,
             studentName: studentFullName(s),
             photo: safePhotoSrc(s.photo)
         }));
-        printWindow("កាតសិស្ស", window.StudentCardTemplate.render(
+        return window.StudentCardTemplate.render(
             cards, appSettings, studentCardLogoSrc(), studentCardAcademicYear(), studentCardSchoolEmblemSrc()
-        ));
+        );
+        }, rows);
     }
 
     async function recoverMissingPhotos() {

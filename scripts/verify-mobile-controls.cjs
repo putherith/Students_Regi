@@ -192,6 +192,17 @@ app.whenReady().then(async () => {
         const classDetailFits = document.documentElement.scrollWidth <= innerWidth + 1;
         let popupHtml = '';
         const buttons = {};
+        // Mock photo reads; real Google requests remain blocked for this test.
+        const originalAppend = document.head.append.bind(document.head);
+        document.head.append = function(element) {
+            if (element.tagName === 'SCRIPT' && element.src.includes('action=photos')) {
+                const params = new URL(element.src).searchParams;
+                queueMicrotask(() => window[params.get('callback')]({ok:true,
+                    students:params.get('studentIds').split(',').map(id => ({id, photo:''}))}));
+                return element;
+            }
+            return originalAppend(element);
+        };
         window.open = () => {
             const popup = {
                 closed:false,
@@ -208,6 +219,7 @@ app.whenReady().then(async () => {
             return popup;
         };
         document.querySelector('.class-student-item .print-student-btn').click();
+        await waitFor(() => typeof buttons['return-app-btn'] === 'function');
         const printHasReturn = popupHtml.includes('return-app-btn') && typeof buttons['return-app-btn'] === 'function';
         buttons['return-app-btn']();
         await new Promise(resolve => setTimeout(resolve, 100));

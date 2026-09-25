@@ -1,4 +1,4 @@
-const CACHE_NAME = "students-registration-web-v2.1.29";
+const CACHE_NAME = "students-registration-web-v2.1.30";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -20,7 +20,7 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
+      .then(keys => Promise.all(keys.filter(key => key.startsWith("students-registration-web-") && key !== CACHE_NAME).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
@@ -36,6 +36,7 @@ self.addEventListener("fetch", event => {
     event.respondWith(
       fetch(new Request(request, { cache:"no-cache" }))
         .then(response => {
+          if (!response.ok) throw new Error("Page is unavailable");
           const copy = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
           return response;
