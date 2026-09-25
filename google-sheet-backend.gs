@@ -170,13 +170,20 @@ function doGet(e) {
       const total = Math.max(0, sheet.getLastRow() - 1);
       const requestedOffset = Number((e && e.parameter && e.parameter.offset) || 0);
       const offset = Number.isFinite(requestedOffset) ? Math.min(total, Math.max(0, Math.floor(requestedOffset))) : 0;
-      const requestedLimit = Number((e && e.parameter && e.parameter.limit) || 32);
-      const limit = Number.isFinite(requestedLimit) ? Math.min(32, Math.max(1, Math.floor(requestedLimit))) : 32;
+      // Phone connections are much more reliable when the initial list contains
+      // text only. Photos are returned later for students visible on screen.
+      const includePhotos = String((e && e.parameter && e.parameter.includePhotos) || "1") !== "0";
+      const requestedLimit = Number((e && e.parameter && e.parameter.limit) || 64);
+      const limit = Number.isFinite(requestedLimit) ? Math.min(100, Math.max(1, Math.floor(requestedLimit))) : 64;
       const rowCount = Math.min(limit, total - offset);
       const students = rowCount
         ? sheet.getRange(offset + 2, 1, rowCount, HEADERS.length).getValues()
           .filter(function(row) { return row.some(function(cell) { return String(cell || "").trim() !== ""; }); })
-          .map(rowToStudent_)
+          .map(function(row) {
+            const student = rowToStudent_(row);
+            if (!includePhotos) student.photo = "";
+            return student;
+          })
         : [];
       return output_({
         ok: true,
@@ -188,6 +195,27 @@ function doGet(e) {
         revision: getRevision_(DATA_REVISION_PROPERTY),
         settingsRevision: getRevision_(SETTINGS_REVISION_PROPERTY)
       }, e);
+    }
+    if (action === "photos") {
+      // Fetch only explicitly requested photos. This prevents a few large Base64
+      // images from stopping the full student list on a phone connection.
+      const requestedKeys = String((e && e.parameter && (e.parameter.studentIds || e.parameter.ids)) || "")
+        .split(",").map(function(value) { return String(value || "").trim(); }).filter(Boolean).slice(0, 12);
+      if (!requestedKeys.length) return output_({ ok:true, students:[] }, e);
+      const requested = {};
+      requestedKeys.forEach(function(key) { requested[key] = true; });
+      const sheet = getStudentsSheet_();
+      const count = Math.max(0, sheet.getLastRow() - 1);
+      const idAndCodes = count ? sheet.getRange(2, 1, count, 2).getDisplayValues() : [];
+      const photoColumn = HEADERS.indexOf("photo") + 1;
+      const photos = count ? sheet.getRange(2, photoColumn, count, 1).getValues() : [];
+      const students = idAndCodes.map(function(row, index) {
+        const id = String(row[0] || "").trim();
+        const studentCode = String(row[1] || "").trim();
+        if (!requested[id] && !requested[studentCode]) return null;
+        return { id:id, studentCode:studentCode, photo:String(photos[index][0] || "") };
+      }).filter(Boolean);
+      return output_({ ok:true, students:students, revision:getRevision_(DATA_REVISION_PROPERTY) }, e);
     }
     if (action === "identities") {
       const sheet = getStudentsSheet_();
