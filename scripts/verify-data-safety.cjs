@@ -14,11 +14,13 @@ const photoCode = section('    function googlePhotoKey(', '    function loadPend
 function photoContext() {
     const context = vm.createContext({
         console, setTimeout, Date,
-        pendingGooglePhotos:new Map(), googlePhotoResults:new Map(), googlePhotoQueue:Promise.resolve(),
+        pendingGooglePhotos:new Map(), googlePhotoResults:new Map(), localPhotoLookups:new Set(), googlePhotoQueue:Promise.resolve(),
         visiblePhotoRefreshScheduled:false, lastGoogleDataRevision:'r1',
         GOOGLE_SHEET_PROVIDER:'google', getCloudProvider:() => 'google', hasGoogleScriptUrl:() => true,
         safePhotoSrc:value => value || '', cacheStudentPhoto:async () => true, allStudents:[],
-        document:{ body:{ classList:{ contains:() => false } } },
+        document:{ body:{ classList:{ contains:() => false } } }, window:{addEventListener:() => {}},
+        els:{studentList:{querySelectorAll:() => []}}, isMobileView:() => false, innerHeight:800,
+        restoreStudentPhoto:async student => student,
         requestAnimationFrame:fn => setTimeout(fn, 0), visibleStudents:[], renderStudentViews:() => {},
     });
     vm.runInContext(photoCode, context);
@@ -32,15 +34,23 @@ async function waitFor(predicate) {
     throw new Error('Deferred photo test timed out');
 }
 (async () => {
-    // Eight genuinely empty photos must not starve the ninth student's image.
+    // Loading a visible batch must not read photos below the viewport.
     const c = photoContext();
     c.allStudents = Array.from({length:9}, (_, n) => ({id:`student-${n}`, photo:''}));
     c.visibleStudents = c.allStudents;
+    let visibleIds = c.allStudents.slice(0, 8).map(student => student.id);
+    c.els.studentList.querySelectorAll = () => visibleIds.map(id => ({
+        dataset:{id}, getBoundingClientRect:() => ({width:40, height:40, top:0, bottom:40})
+    }));
     let calls = 0;
     c.readGoogleSheetJsonp = async params => {
         calls++;
         return {ok:true, students:params.studentIds.split(',').map(id => ({id, photo:id === 'student-8' ? 'photo-8' : ''}))};
     };
+    c.hydrateVisibleStudentPhotos();
+    await waitFor(() => calls === 1 && !c.visiblePhotoRefreshScheduled);
+    assert.equal(c.allStudents[8].photo, '');
+    visibleIds = [c.allStudents[8].id];
     c.hydrateVisibleStudentPhotos();
     await waitFor(() => c.allStudents[8].photo === 'photo-8' && !c.visiblePhotoRefreshScheduled);
     assert.equal(calls, 2);
@@ -93,10 +103,12 @@ async function waitFor(predicate) {
     const safety = vm.createContext({
         googleSheetLoadsInFlight:0, localStudentWriteVersion:0, hasGoogleScriptUrl:() => true,
         setCloudControlsLoading:() => {}, setStatus:() => {},
-        readGoogleSheetStudents:async () => ({ok:true, students:[{id:'old'}]}),
+        readGoogleSheetStudents:async () => {
+            safety.localStudentWriteVersion++;
+            return {ok:true, students:[{id:'old'}]};
+        },
         applySharedAppSettings:() => {}, normalizeCloudStudent:row => row,
         loadPendingCloudMutations:() => [], applyPendingMutationsToStudents:rows => rows,
-        restoreStudentPhotos:async () => { safety.localStudentWriteVersion++; },
         rememberGoogleSheetRevisions:() => { throw new Error('Stale response must not be committed'); },
         allStudents:[{id:'new-local'}], console
     });

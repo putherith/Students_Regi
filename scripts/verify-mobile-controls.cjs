@@ -190,6 +190,11 @@ app.whenReady().then(async () => {
         const classDetailHasOne = document.querySelectorAll('.class-student-item').length === 1 &&
             document.getElementById('class-browser-title').textContent.includes('7A');
         const classDetailFits = document.documentElement.scrollWidth <= innerWidth + 1;
+        document.querySelector('.class-student-item .view-photo-btn').click();
+        await waitFor(() => document.getElementById('student-photo-viewer').classList.contains('is-open'));
+        const photoViewerWorks = document.getElementById('student-photo-viewer-name').textContent.includes('សុខ ដារ៉ា') &&
+            document.getElementById('student-photo-viewer-placeholder').textContent.includes('កំពុងទាញរូបថត');
+        document.getElementById('student-photo-viewer-close-btn').click();
         let popupHtml = '';
         const buttons = {};
         // Mock photo reads; real Google requests remain blocked for this test.
@@ -244,7 +249,7 @@ app.whenReady().then(async () => {
         document.getElementById('class-browser-close-btn').click();
         const closeWorks = !document.body.classList.contains('class-browser-view') &&
             document.getElementById('tab-list-btn').classList.contains('active');
-        return { classGridHasBoth, classGridFits, classDetailHasOne, classDetailFits, classBackWorks, printHasReturn, printClosed, settingsFits, settingsSaved, closeWorks,
+        return { classGridHasBoth, classGridFits, classDetailHasOne, classDetailFits, photoViewerWorks, classBackWorks, printHasReturn, printClosed, settingsFits, settingsSaved, closeWorks,
             settingsGeometry:{ top:dialog.top, bottom:dialog.bottom, viewport:innerHeight, footerBottom:footer.bottom, scrollHeight, clientHeight } };
     })()`);
     console.log(JSON.stringify(navigation));

@@ -2075,6 +2075,20 @@
             border-radius: 4px;
             object-fit: cover;
             border: 1px solid var(--border);
+            cursor: zoom-in;
+        }
+        button.class-student-photo { border:1px solid var(--border); cursor:zoom-in; }
+        .photo-viewer-modal .modal-dialog { width:min(430px, calc(100% - 24px)); }
+        .photo-viewer-body { display:grid; gap:12px; text-align:center; }
+        .photo-viewer-image-wrap { position:relative; display:grid; place-items:center; min-height:360px; max-height:66dvh; overflow:hidden; border-radius:12px; background:#eef4fb; }
+        .photo-viewer-image { display:block; width:100%; height:100%; max-height:66dvh; object-fit:contain; background:#1999fe; }
+        .photo-viewer-placeholder { color:var(--muted); font-size:.92rem; line-height:1.7; padding:28px; }
+        .photo-viewer-meta { color:var(--muted); font-size:.86rem; }
+        .photo-viewer-meta strong { display:block; color:var(--text); font-size:1.02rem; }
+        @media (max-width:520px) {
+            .photo-viewer-modal { align-items:flex-start; padding-top:max(12px, env(safe-area-inset-top)); }
+            .photo-viewer-image-wrap { min-height:300px; max-height:58dvh; }
+            .photo-viewer-image { max-height:58dvh; }
         }
         @media (max-width: 520px) {
             .cam-modal {
@@ -3806,7 +3820,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.30</span>
+        <span class="footer-version">កំណែ 2.1.32</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4048,6 +4062,27 @@
     </div>
 </div>
 
+<!-- ======================== PHOTO VIEWER ======================== -->
+<div id="student-photo-viewer" class="modal photo-viewer-modal" role="dialog" aria-modal="true" aria-labelledby="student-photo-viewer-name">
+    <div class="modal-dialog">
+        <div class="modal-body photo-viewer-body">
+            <div class="photo-viewer-image-wrap">
+                <img id="student-photo-viewer-image" class="photo-viewer-image" alt="" hidden>
+                <p id="student-photo-viewer-placeholder" class="photo-viewer-placeholder">កំពុងទាញរូបថត...</p>
+            </div>
+            <div id="student-photo-viewer-meta" class="photo-viewer-meta">
+                <strong id="student-photo-viewer-name">រូបថតសិស្ស</strong>
+                <span id="student-photo-viewer-detail"></span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="student-photo-viewer-card-btn" class="btn btn-ghost" type="button"><ion-icon name="id-card-outline" aria-hidden="true"></ion-icon> កាតសិស្ស</button>
+            <button id="student-photo-viewer-print-btn" class="btn btn-primary" type="button"><ion-icon name="print-outline" aria-hidden="true"></ion-icon> បោះពុម្ព</button>
+            <button id="student-photo-viewer-close-btn" class="btn btn-ghost" type="button">បិទ</button>
+        </div>
+    </div>
+</div>
+
 <!-- ======================== TOAST CONTAINER ======================== -->
 <div id="toast-container" class="toast-container" aria-live="assertive" aria-atomic="true"></div>
 
@@ -4160,6 +4195,7 @@
     let googleSheetLoadsInFlight = 0;
     const pendingGooglePhotos = new Map();
     const googlePhotoResults = new Map();
+    const localPhotoLookups = new Set();
     let googlePhotoQueue = Promise.resolve();
     let visiblePhotoRefreshScheduled = false;
     let localStudentWriteVersion = 0;
@@ -4366,8 +4402,11 @@
     }
 
     async function restoreStudentPhotos(students=[]) {
-        // Process serially to keep low-memory phones smooth when a class has many photos.
-        for (const student of students || []) await restoreStudentPhoto(student);
+        // A few parallel IndexedDB reads make the text list appear promptly,
+        // while the small batch keeps low-memory phones smooth.
+        for (let offset = 0; offset < (students || []).length; offset += 8) {
+            await Promise.all((students || []).slice(offset, offset + 8).map(restoreStudentPhoto));
+        }
         return students;
     }
 
@@ -4387,7 +4426,7 @@
         return !result || (result.retryAt && Date.now() >= result.retryAt);
     }
 
-    async function hydrateStudentPhotosFromSheet(students=[], limit=8, { strict=false }={}) {
+    async function hydrateStudentPhotosFromSheet(students=[], limit=8, { strict=false, priority=false }={}) {
         if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl()) return false;
         const candidates = [];
         const waiting = [];
@@ -4435,12 +4474,14 @@
             return changed;
         };
         if (candidates.length) {
-            // One batch at a time keeps scrolling/class changes from flooding Apps Script.
-            const task = googlePhotoQueue.then(run).catch(error => {
+            // Browsing stays single-filed. Print preparation can use two small
+            // independent batches, which is much faster for a full class.
+            const scheduled = priority ? run() : googlePhotoQueue.then(run);
+            const task = scheduled.catch(error => {
                 candidates.forEach(student => googlePhotoResults.set(resultKeys.get(student), { retryAt:Date.now() + 30000 }));
                 throw error;
             }).finally(() => candidates.forEach(student => pendingGooglePhotos.delete(googlePhotoKey(student))));
-            googlePhotoQueue = task.catch(() => {});
+            if (!priority) googlePhotoQueue = task.catch(() => {});
             candidates.forEach(student => pendingGooglePhotos.set(googlePhotoKey(student), task));
             waiting.push(task);
         }
@@ -4456,25 +4497,44 @@
         if (visiblePhotoRefreshScheduled) return;
         visiblePhotoRefreshScheduled = true;
         requestAnimationFrame(async () => {
+            let processed = false;
             try {
                 const inClassView = document.body.classList.contains("class-browser-view");
-                const displayed = inClassView
-                    ? allStudents.filter(student => (String(student.className || "").trim() || "មិនទាន់បញ្ចូលថ្នាក់") === selectedClassName)
-                    : visibleStudents;
-                const candidates = displayed.filter(needsGooglePhoto);
+                const container = inClassView ? els.classBrowserContent : (isMobileView() ? els.studentCards : els.studentList);
+                const viewportIds = [...container.querySelectorAll(".view-photo-btn, .view-photo-img")]
+                    .filter(element => {
+                        const box = element.getBoundingClientRect();
+                        return box.width > 0 && box.height > 0 && box.top < innerHeight + 400 && box.bottom > -200;
+                    })
+                    .map(element => element.dataset.id).filter(Boolean);
+                const uniqueIds = [...new Set(viewportIds)];
+                const candidates = uniqueIds.map(id => allStudents.find(student => String(student.id) === id))
+                    .filter(student => student && !safePhotoSrc(student.photo) &&
+                        (!localPhotoLookups.has(`${student.id}:${student.updatedAt || ""}`) || needsGooglePhoto(student)))
+                    .slice(0, 8);
                 if (!candidates.length) return;
-                const changed = await hydrateStudentPhotosFromSheet(candidates, 8);
-                if (changed) {
+                processed = true;
+                await Promise.all(candidates.map(restoreStudentPhoto));
+                candidates.forEach(student => localPhotoLookups.add(`${student.id}:${student.updatedAt || ""}`));
+                const restored = candidates.some(student => safePhotoSrc(student.photo));
+                if (restored) {
+                    renderStudentViews();
+                    if (inClassView) renderClassBrowser();
+                }
+                const remoteCandidates = candidates.filter(needsGooglePhoto);
+                if (remoteCandidates.length && await hydrateStudentPhotosFromSheet(remoteCandidates, 8)) {
                     renderStudentViews();
                     if (inClassView) renderClassBrowser();
                 }
             } finally {
                 visiblePhotoRefreshScheduled = false;
             }
-            // Confirmed empty photos are skipped, so later students still load.
-            hydrateVisibleStudentPhotos();
+            if (processed) hydrateVisibleStudentPhotos();
         });
     }
+
+    window.addEventListener("scroll", hydrateVisibleStudentPhotos, { passive:true });
+    window.addEventListener("resize", hydrateVisibleStudentPhotos, { passive:true });
 
     function loadPendingCloudMutations() {
         try {
@@ -4659,6 +4719,14 @@
         photoPreviewBox: document.getElementById("photoPreviewBox"),
         studentPhotoData: document.getElementById("studentPhotoData"),
         photoUploadInput: document.getElementById("photoUploadInput"),
+        studentPhotoViewer: document.getElementById("student-photo-viewer"),
+        studentPhotoViewerImage: document.getElementById("student-photo-viewer-image"),
+        studentPhotoViewerPlaceholder: document.getElementById("student-photo-viewer-placeholder"),
+        studentPhotoViewerName: document.getElementById("student-photo-viewer-name"),
+        studentPhotoViewerDetail: document.getElementById("student-photo-viewer-detail"),
+        studentPhotoViewerCloseBtn: document.getElementById("student-photo-viewer-close-btn"),
+        studentPhotoViewerPrintBtn: document.getElementById("student-photo-viewer-print-btn"),
+        studentPhotoViewerCardBtn: document.getElementById("student-photo-viewer-card-btn"),
         openCameraBtn: document.getElementById("open-camera-btn"),
         phoneCameraBtn: document.getElementById("phone-camera-btn"),
         choosePhotoBtn: document.getElementById("choose-photo-btn"),
@@ -5916,6 +5984,10 @@
             const offsets = [];
             for (let offset = serverLimit; offset < total; offset += serverLimit) offsets.push(offset);
             const pages = [first];
+            const currentRevision = readGoogleSheetJsonp({ action:"status" }, 15000).catch(error => {
+                console.debug("Sheet final revision check skipped:", error);
+                return null;
+            });
             for (let start = 0; start < offsets.length; start += 2) {
                 const batch = await Promise.all(offsets.slice(start, start + 2).map(readGoogleSheetPage));
                 pages.push(...batch);
@@ -5927,14 +5999,7 @@
             const settingsRevision = String(first.settingsRevision ?? "");
             const pagesMatch = pages.every(page => Number(page.total) === total &&
                 String(page.revision ?? "") === revision && String(page.settingsRevision ?? "") === settingsRevision);
-            let current = null;
-            try {
-                current = await readGoogleSheetJsonp({ action:"status" }, 15000);
-            } catch (error) {
-                // Every page carries its revision. The next scheduled refresh can
-                // resolve a transient failure in this final status check.
-                console.debug("Sheet final revision check skipped:", error);
-            }
+            const current = await currentRevision;
             const stillCurrent = current === null || (current.ok === true &&
                 String(current.revision ?? "") === revision &&
                 String(current.settingsRevision ?? "") === settingsRevision);
@@ -6102,7 +6167,6 @@
             const normalizedCloudStudents = cloudRows.map(normalizeCloudStudent).filter(s => s.id || s.studentCode || s.studentName);
             const queuedOperations = loadPendingCloudMutations();
             const cloudStudents = applyPendingMutationsToStudents(normalizedCloudStudents, queuedOperations);
-            await restoreStudentPhotos(cloudStudents);
             // Local edits during the request win over an older cloud snapshot.
             if (writeVersionAtStart !== localStudentWriteVersion) return false;
             rememberGoogleSheetRevisions(payload);
@@ -7020,6 +7084,40 @@
             : '<ion-icon name="person-outline"></ion-icon>';
     }
 
+    function closeStudentPhotoViewer() {
+        els.studentPhotoViewer?.classList.remove("is-open");
+        if (els.studentPhotoViewer) els.studentPhotoViewer.dataset.studentId = "";
+    }
+
+    function renderStudentPhotoViewer(student, { loading=false }={}) {
+        const photo = safePhotoSrc(student?.photo);
+        const hasStudent = Boolean(student);
+        els.studentPhotoViewerName.textContent = hasStudent ? (studentFullName(student) || "មិនមានឈ្មោះ") : "រូបថតសិស្ស";
+        els.studentPhotoViewerDetail.textContent = hasStudent
+            ? [studentVisibleId(student), student.className ? `ថ្នាក់ ${student.className}` : ""].filter(Boolean).join(" · ")
+            : "";
+        els.studentPhotoViewerImage.hidden = !photo;
+        els.studentPhotoViewerImage.src = photo || "";
+        els.studentPhotoViewerImage.alt = hasStudent ? `រូបថត ${studentFullName(student)}` : "";
+        els.studentPhotoViewerPlaceholder.hidden = Boolean(photo);
+        els.studentPhotoViewerPlaceholder.textContent = loading
+            ? "កំពុងទាញរូបថត..."
+            : (hasStudent ? "សិស្សនេះមិនទាន់មានរូបថត" : "រកមិនឃើញព័ត៌មានសិស្ស");
+    }
+
+    async function openStudentPhotoViewer(id) {
+        const student = allStudents.find(row => row.id === id);
+        if (!student) { showToast("រកមិនឃើញទិន្នន័យសិស្ស", "warning"); return; }
+        els.studentPhotoViewer.dataset.studentId = id;
+        els.studentPhotoViewer.classList.add("is-open");
+        renderStudentPhotoViewer(student, { loading:!safePhotoSrc(student.photo) });
+        if (safePhotoSrc(student.photo)) return;
+        await hydrateStudentPhotosFromSheet([student], 1);
+        if (els.studentPhotoViewer.classList.contains("is-open") && els.studentPhotoViewer.dataset.studentId === id) {
+            renderStudentPhotoViewer(student);
+        }
+    }
+
     async function loadImageFromBlob(blob) {
         const url = URL.createObjectURL(blob);
         try {
@@ -7868,7 +7966,7 @@
         els.classBrowserContent.innerHTML = `<div class="class-student-grid">${students.map((student, index) => {
             const photo = safePhotoSrc(student.photo);
             return `<article class="class-student-item">
-                ${photo ? `<img class="class-student-photo" src="${esc(photo)}" alt="" loading="lazy" decoding="async">` : `<div class="class-student-photo class-student-placeholder"><ion-icon name="person-outline" aria-hidden="true"></ion-icon></div>`}
+                ${photo ? `<img class="class-student-photo view-photo-img" src="${esc(photo)}" data-id="${esc(student.id)}" alt="មើលរូបថត ${esc(studentFullName(student))}" loading="lazy" decoding="async">` : `<button class="class-student-photo class-student-placeholder view-photo-btn" type="button" data-id="${esc(student.id)}" aria-label="មើលរូបថត ${esc(studentFullName(student))}"><ion-icon name="image-outline" aria-hidden="true"></ion-icon></button>`}
                 <div class="class-student-info">
                     <strong>${index + 1}. ${esc(studentFullName(student) || "មិនមានឈ្មោះ")}</strong>
                     <small>${esc(studentVisibleId(student) || "–")} · ${esc(student.gender || "–")} · ${esc(formatDate(student.dob) || "–")}</small>
@@ -7947,7 +8045,7 @@
                         <td style="font-family: monospace; font-size:.82rem;">${esc(studentVisibleId(s)||"–")}</td>
                         <td>
                             <div class="table-student-name" style="display: flex; align-items: center; gap: 8px;">
-                                    ${photoSrc ? `<img src="${esc(photoSrc)}" class="student-photo-thumbnail" alt="photo" loading="lazy" decoding="async">` : ''}
+                                    ${photoSrc ? `<img src="${esc(photoSrc)}" class="student-photo-thumbnail view-photo-img" data-id="${esc(s.id)}" alt="មើលរូបថត ${esc(studentFullName(s))}" loading="lazy" decoding="async">` : ''}
                                 <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
                                     <button class="student-name-button edit-btn" type="button" data-id="${esc(s.id)}" title="កែព័ត៌មាន ${esc(studentFullName(s))}">
                                         <span class="student-name">${esc(studentFullName(s))}</span>
@@ -7983,6 +8081,9 @@
                                 <button class="btn btn-icon print-student-card-btn" type="button" title="កាតសិស្ស" data-id="${esc(s.id)}">
                                     <ion-icon name="id-card-outline"></ion-icon>
                                 </button>
+                                <button class="btn btn-icon view-photo-btn" type="button" title="មើលរូបថត" data-id="${esc(s.id)}">
+                                    <ion-icon name="image-outline"></ion-icon>
+                                </button>
                                 <button class="btn btn-icon edit-btn" type="button" title="កែ" data-id="${esc(s.id)}">
                                     <ion-icon name="create-outline"></ion-icon>
                                 </button>
@@ -8015,7 +8116,7 @@
                         <div class="mobile-student-row">
                             <button class="student-name-button mobile-student-main edit-btn" type="button" data-id="${esc(s.id)}" aria-label="កែព័ត៌មាន ${esc(studentFullName(s))}">
                                 <span class="mobile-student-title" style="display: flex; align-items: center;">
-                                    ${photoSrc ? `<img src="${esc(photoSrc)}" class="student-photo-thumbnail" style="margin-right: 8px; width: 26px; height: 26px;" alt="photo" loading="lazy" decoding="async">` : ''}
+                                    ${photoSrc ? `<img src="${esc(photoSrc)}" class="student-photo-thumbnail view-photo-img" style="margin-right: 8px; width: 26px; height: 26px;" data-id="${esc(s.id)}" alt="មើលរូបថត ${esc(studentFullName(s))}" loading="lazy" decoding="async">` : ''}
                                     <span class="student-index">${cardNum}.</span>
                                     <span class="student-name">${esc(studentFullName(s))}</span>
                                 </span>
@@ -8026,6 +8127,9 @@
                                 ${dataStatusBadge(status)}
                                 ${genderBadge(s.gender||"")}
                                 <div class="mobile-quick-actions" aria-label="សកម្មភាពសិស្ស">
+                                    <button class="btn btn-icon view-photo-btn" type="button" title="មើលរូបថត" data-id="${esc(s.id)}">
+                                        <ion-icon name="image-outline" aria-hidden="true"></ion-icon>
+                                    </button>
                                     <button class="btn btn-icon print-student-btn" type="button" title="Print" data-id="${esc(s.id)}">
                                         <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
                                     </button>
@@ -8081,7 +8185,6 @@
     async function refreshStudents({ reset=false, source="local" }={}) {
         if (reset) resetPagination();
         if (source !== "memory") allStudents = loadFromLocalStorage();
-        await restoreStudentPhotos(allStudents);
         allStudents.sort((a,b) => tsMillis(b.createdAt)-tsMillis(a.createdAt));
         await updateStats();
         buildSchoolFilter();
@@ -8166,10 +8269,14 @@
                 retry.hidden = true;
                 try {
                     await restoreStudentPhotos(photoRows);
-                    for (let offset = 0; offset < photoRows.length; offset += 8) {
+                    for (let offset = 0; offset < photoRows.length; offset += 24) {
                         if (win.closed) return;
-                        win.document.getElementById("prepare-status").textContent = `កំពុងរៀបចំរូបថត ${Math.min(offset + 8, photoRows.length)} / ${photoRows.length}`;
-                        await hydrateStudentPhotosFromSheet(photoRows.slice(offset, offset + 8), 8, { strict:true });
+                        const batch = photoRows.slice(offset, offset + 24);
+                        win.document.getElementById("prepare-status").textContent = `កំពុងរៀបចំរូបថត ${Math.min(offset + batch.length, photoRows.length)} / ${photoRows.length}`;
+                        await Promise.all([
+                            hydrateStudentPhotosFromSheet(batch.slice(0, 12), 12, { strict:true, priority:true }),
+                            batch.length > 12 ? hydrateStudentPhotosFromSheet(batch.slice(12), 12, { strict:true, priority:true }) : Promise.resolve()
+                        ]);
                     }
                     if (!win.closed) printWindow(title, content(), [], win);
                 } catch (error) {
@@ -8958,8 +9065,11 @@
 
     // ===================== INIT =====================
     function handleStudentAction(e){
+        const photo = e.target.closest(".view-photo-img");
+        if (photo?.dataset.id) { openStudentPhotoViewer(photo.dataset.id); return; }
         const btn=e.target.closest("button");if(!btn) return;
         const id=btn.dataset.id;
+        if(btn.classList.contains("view-photo-btn")) { openStudentPhotoViewer(id); return; }
         if(btn.classList.contains("print-student-btn")) printStudent(id);
         if(btn.classList.contains("print-student-card-btn")) {
             const student = allStudents.find(i => i.id === id);
@@ -9008,6 +9118,19 @@
         els.phoneCameraModal?.addEventListener("click",e=>{if(e.target===els.phoneCameraModal)closePhoneCameraModal();});
         els.choosePhotoBtn?.addEventListener("click",()=>els.photoUploadInput?.click());
         els.photoUploadInput?.addEventListener("change",handlePhotoUpload);
+        els.studentPhotoViewerCloseBtn?.addEventListener("click", closeStudentPhotoViewer);
+        els.studentPhotoViewer?.addEventListener("click", event => { if (event.target === els.studentPhotoViewer) closeStudentPhotoViewer(); });
+        els.studentPhotoViewerPrintBtn?.addEventListener("click", () => {
+            const id = els.studentPhotoViewer?.dataset.studentId;
+            closeStudentPhotoViewer();
+            if (id) printStudent(id);
+        });
+        els.studentPhotoViewerCardBtn?.addEventListener("click", () => {
+            const id = els.studentPhotoViewer?.dataset.studentId;
+            const student = allStudents.find(row => row.id === id);
+            closeStudentPhotoViewer();
+            if (student) printStudentCards([student]);
+        });
         els.cancelCamBtn?.addEventListener("click",closeCameraModal);
         els.switchCamBtn?.addEventListener("click",switchCamera);
         els.captureCamBtn?.addEventListener("click",capturePhoto);

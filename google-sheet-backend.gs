@@ -176,15 +176,20 @@ function doGet(e) {
       const requestedLimit = Number((e && e.parameter && e.parameter.limit) || 64);
       const limit = Number.isFinite(requestedLimit) ? Math.min(100, Math.max(1, Math.floor(requestedLimit))) : 64;
       const rowCount = Math.min(limit, total - offset);
-      const students = rowCount
-        ? sheet.getRange(offset + 2, 1, rowCount, HEADERS.length).getValues()
+      const photoIndex = HEADERS.indexOf("photo");
+      let rows = [];
+      if (rowCount) {
+        if (includePhotos) {
+          rows = sheet.getRange(offset + 2, 1, rowCount, HEADERS.length).getValues();
+        } else {
+          const left = sheet.getRange(offset + 2, 1, rowCount, photoIndex).getValues();
+          const right = sheet.getRange(offset + 2, photoIndex + 2, rowCount, HEADERS.length - photoIndex - 1).getValues();
+          rows = left.map(function(row, index) { return row.concat([""], right[index]); });
+        }
+      }
+      const students = rows
           .filter(function(row) { return row.some(function(cell) { return String(cell || "").trim() !== ""; }); })
-          .map(function(row) {
-            const student = rowToStudent_(row);
-            if (!includePhotos) student.photo = "";
-            return student;
-          })
-        : [];
+          .map(rowToStudent_);
       return output_({
         ok: true,
         students: students,
@@ -208,12 +213,17 @@ function doGet(e) {
       const count = Math.max(0, sheet.getLastRow() - 1);
       const idAndCodes = count ? sheet.getRange(2, 1, count, 2).getDisplayValues() : [];
       const photoColumn = HEADERS.indexOf("photo") + 1;
-      const photos = count ? sheet.getRange(2, photoColumn, count, 1).getValues() : [];
       const students = idAndCodes.map(function(row, index) {
         const id = String(row[0] || "").trim();
         const studentCode = String(row[1] || "").trim();
         if (!requested[id] && !requested[studentCode]) return null;
-        return { id:id, studentCode:studentCode, photo:String(photos[index][0] || "") };
+        return { id:id, studentCode:studentCode, rowNumber:index + 2 };
+      }).filter(Boolean).map(function(student) {
+        return {
+          id:student.id,
+          studentCode:student.studentCode,
+          photo:String(sheet.getRange(student.rowNumber, photoColumn).getValue() || "")
+        };
       }).filter(Boolean);
       return output_({ ok:true, students:students, revision:getRevision_(DATA_REVISION_PROPERTY) }, e);
     }
@@ -504,19 +514,25 @@ function upsertStudent_(student) {
   const sheet = getStudentsSheet_();
   const lastRow = sheet.getLastRow();
   if (lastRow >= 2) {
-    const range = sheet.getRange(2, 1, lastRow - 1, HEADERS.length);
-    const rows = range.getValues();
-    for (let i = 0; i < rows.length; i++) {
-      const existing = rowToStudent_(rows[i]);
-      if (studentMatchesKey_(existing, key)) {
+    const count = lastRow - 1;
+    const identityRows = sheet.getRange(2, 1, count, 3).getDisplayValues();
+    const matchingIndex = identityRows.findIndex(function(row) {
+      return studentMatchesKey_({ id:row[0], studentCode:row[1] }, key);
+    });
+    if (matchingIndex >= 0) {
+        const existing = rowToStudent_(sheet.getRange(matchingIndex + 2, 1, 1, HEADERS.length).getValues()[0]);
         const merged = mergeStudentRecord_(existing, student);
         merged.createdAt = existing.createdAt || student.createdAt;
-        sheet.getRange(i + 2, 1, 1, HEADERS.length).setValues([studentToRow_(merged)]);
+        sheet.getRange(matchingIndex + 2, 1, 1, HEADERS.length).setValues([studentToRow_(merged)]);
         return;
-      }
     }
-    for (let i = 0; i < rows.length; i++) {
-      if (sameStudentName_(rowToStudent_(rows[i]), student)) return;
+    const splitNames = sheet.getRange(2, HEADERS.indexOf("studentSurname") + 1, count, 2).getDisplayValues();
+    for (let i = 0; i < identityRows.length; i++) {
+      if (sameStudentName_({
+        studentName:identityRows[i][2],
+        studentSurname:splitNames[i][0],
+        studentGivenName:splitNames[i][1]
+      }, student)) return;
     }
   }
   sheet.getRange(Math.max(2, lastRow + 1), 1, 1, HEADERS.length).setValues([studentToRow_(student)]);
@@ -598,9 +614,9 @@ function deleteStudent_(key) {
   const sheet = getStudentsSheet_();
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return;
-  const rows = sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
+  const rows = sheet.getRange(2, 1, lastRow - 1, 2).getDisplayValues();
   for (let i = rows.length - 1; i >= 0; i--) {
-    if (studentMatchesKey_(rowToStudent_(rows[i]), wanted)) sheet.deleteRow(i + 2);
+    if (studentMatchesKey_({ id:rows[i][0], studentCode:rows[i][1] }, wanted)) sheet.deleteRow(i + 2);
   }
 }
 
