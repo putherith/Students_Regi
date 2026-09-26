@@ -85,17 +85,19 @@ app.whenReady().then(async () => {
         const regulationCard = probe.querySelector('.certificate-student-card-back');
         const regulationContent = regulationCard.querySelector('.regulations-content').getBoundingClientRect();
         const regulationCardRect = regulationCard.getBoundingClientRect();
-        const watermark = regulationCard.querySelector('.regulations-watermark');
-        const watermarkVisible = watermark.complete && watermark.naturalWidth > 0 && Number(getComputedStyle(watermark).opacity) > 0;
+        const noBackWatermark = !regulationCard.querySelector('.regulations-watermark, .regulations-reminder');
         const regulationsFillPanel = regulationContent.height >= regulationCardRect.height * .92;
         const ruleSections = [...regulationCard.querySelectorAll('.regulations-sections section')];
+        const regulationHeadings = ruleSections.map(section => section.querySelector('h2').textContent.trim());
+        const regulationCounts = ruleSections.map(section => section.querySelectorAll('ol > li').length);
+        const regulationBarColors = ruleSections.map(section => getComputedStyle(section.querySelector('h2')).backgroundColor);
         const rulesDoNotOverlap = ruleSections.every((section, index) => index === ruleSections.length - 1 || section.getBoundingClientRect().bottom + 1 < ruleSections[index + 1].getBoundingClientRect().top) &&
-            ruleSections.at(-1).getBoundingClientRect().bottom + 1 < regulationCard.querySelector('.regulations-reminder').getBoundingClientRect().top;
+            ruleSections.at(-1).getBoundingClientRect().bottom < regulationCardRect.bottom - 2;
         const a4PageSize = Math.abs(frontRect.width - 194*96/25.4)<1 && Math.abs(frontRect.height - 281*96/25.4)<1;
         const fourPerSheet = frontPages.length===2 && backPages.length===2 &&
             [...frontPages,...backPages].every(page => page.querySelectorAll('.certificate-student-card').length<=4);
         const frontCard = document.querySelector('.certificate-student-card:not(.certificate-student-card-back)');
-        return { width:card.width, height:card.height, overflow, teacherVisible:frontCard?.innerText.includes('គ្រូបន្ទុកថ្នាក់'), fonts:document.fonts.check('18px "Khmer OS Siemreap"'), photoReframed:photo?.src.startsWith('data:image/jpeg'), photoFillsSlot:Math.abs(photoBounds.height-slot.height)<1 && Math.abs(photoBounds.width-slot.width)<1, portraitFill, photoAspect:slot.width/slot.height, objectFit:getComputedStyle(photo).objectFit, blueAboveNotBelow, shirtAtBottomEdges, bottomEdgePixels:[...bottomLeftPixel.slice(0,3),...bottomRightPixel.slice(0,3)], blueMatchesReference, frameHeight:frame.height, fourPerSheet, a4PageSize, duplexPositionsMirror, regulationsFit, regulationsFillPanel, rulesDoNotOverlap, regulationContentHeight:regulationContent.height, regulationCardHeight:regulationCardRect.height, watermarkVisible };
+        return { width:card.width, height:card.height, overflow, teacherVisible:frontCard?.innerText.includes('គ្រូបន្ទុកថ្នាក់'), fonts:document.fonts.check('18px "Khmer OS Siemreap"'), photoReframed:photo?.src.startsWith('data:image/jpeg'), photoFillsSlot:Math.abs(photoBounds.height-slot.height)<1 && Math.abs(photoBounds.width-slot.width)<1, portraitFill, photoAspect:slot.width/slot.height, objectFit:getComputedStyle(photo).objectFit, blueAboveNotBelow, shirtAtBottomEdges, bottomEdgePixels:[...bottomLeftPixel.slice(0,3),...bottomRightPixel.slice(0,3)], blueMatchesReference, frameHeight:frame.height, fourPerSheet, a4PageSize, duplexPositionsMirror, regulationsFit, regulationsFillPanel, rulesDoNotOverlap, regulationHeadings, regulationCounts, regulationBarColors, regulationContentHeight:regulationContent.height, regulationCardHeight:regulationCardRect.height, noBackWatermark };
     })()`);
     const shot = await win.webContents.capturePage({ x:0,y:0,width:Math.ceil(metrics.width),height:Math.ceil(metrics.height) });
     fs.writeFileSync(path.join(out, 'student-card-75x100.png'), shot.toPNG());
@@ -159,6 +161,6 @@ app.whenReady().then(async () => {
     fs.writeFileSync(path.join(out, 'metrics.json'), JSON.stringify(metrics, null, 2));
     console.log(JSON.stringify(metrics));
     win.destroy();
-    if (Math.abs(metrics.width - 75*96/25.4) > .1 || Math.abs(metrics.height - 100*96/25.4) > .1 || metrics.overflow.length || metrics.teacherVisible || (!suppliedPhoto && !metrics.photoReframed) || !metrics.photoFillsSlot || !metrics.portraitFill || !metrics.blueAboveNotBelow || !metrics.shirtAtBottomEdges || !metrics.alreadyFramedBlueSidesFixed || (exampleCardScreenshot && (!metrics.suppliedScreenshot.beforeBlue || metrics.suppliedScreenshot.afterBlue || !metrics.suppliedScreenshot.reframed)) || !metrics.blueMatchesReference || !metrics.fourPerSheet || !metrics.a4PageSize || !metrics.duplexPositionsMirror || !metrics.regulationsFit || !metrics.regulationsFillPanel || !metrics.rulesDoNotOverlap || !metrics.watermarkVisible || metrics.frameHeight < 108 || metrics.frameHeight > 115) throw new Error('Card layout validation failed');
+    if (Math.abs(metrics.width - 75*96/25.4) > .1 || Math.abs(metrics.height - 100*96/25.4) > .1 || metrics.overflow.length || metrics.teacherVisible || (!suppliedPhoto && !metrics.photoReframed) || !metrics.photoFillsSlot || !metrics.portraitFill || !metrics.blueAboveNotBelow || !metrics.shirtAtBottomEdges || !metrics.alreadyFramedBlueSidesFixed || (exampleCardScreenshot && (!metrics.suppliedScreenshot.beforeBlue || metrics.suppliedScreenshot.afterBlue || !metrics.suppliedScreenshot.reframed)) || !metrics.blueMatchesReference || !metrics.fourPerSheet || !metrics.a4PageSize || !metrics.duplexPositionsMirror || !metrics.regulationsFit || !metrics.regulationsFillPanel || !metrics.rulesDoNotOverlap || !metrics.noBackWatermark || metrics.regulationCounts.join(',') !== '7,8,3' || metrics.regulationBarColors.join('|') !== 'rgb(32, 81, 125)|rgb(199, 0, 0)|rgb(138, 105, 0)' || metrics.frameHeight < 108 || metrics.frameHeight > 115) throw new Error('Card layout validation failed');
     app.quit();
 }).catch(error => { console.error(error); app.exit(1); });
