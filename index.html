@@ -3820,7 +3820,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.32</span>
+        <span class="footer-version">កំណែ 2.1.33</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4311,8 +4311,15 @@
 
     const cachedPhotoSignatures = new Map();
 
+    function studentCodeIsUnique(student={}) {
+        const code = String(student.studentCode || student.studentId || "").trim();
+        return !code || allStudents.filter(row => String(row.studentCode || row.studentId || "").trim() === code).length <= 1;
+    }
+
     function studentPhotoCacheKeys(student={}, fallback="") {
-        return [...new Set([studentPhotoCacheKey(student, fallback), String(student.studentCode || student.studentId || "").trim()].filter(Boolean))];
+        const recordId = String(student.id || student.recordId || fallback || "").trim();
+        const code = String(student.studentCode || student.studentId || "").trim();
+        return [...new Set([recordId, studentCodeIsUnique(student) ? code : ""].filter(Boolean))];
     }
 
     async function cacheStudentPhoto(student={}, fallback="") {
@@ -4320,6 +4327,7 @@
         const photo = safePhotoSrc(student.photo);
         if (!id || !photo) return false;
         const keys = studentPhotoCacheKeys(student, fallback);
+        if (!keys.length) return false;
         const signature = `${photo.length}:${photo.slice(0, 64)}:${photo.slice(-64)}`;
         if (keys.every(key => cachedPhotoSignatures.get(key) === signature)) return true;
         const db = await openPhotoCache();
@@ -4374,13 +4382,13 @@
     }
 
     function historicalStudentPhoto(student={}) {
-        const id = studentPhotoCacheKey(student);
+        const id = String(student.id || student.recordId || "").trim();
         const code = String(student.studentCode || student.studentId || "").trim();
         for (const log of loadHistoryFromLocalStorage()) {
             try {
                 const details = JSON.parse(log.details || "{}");
                 const matches = (id && String(details.recordId || "") === id)
-                    || (code && String(details.studentId || "") === code);
+                    || (code && studentCodeIsUnique(student) && String(details.studentId || "") === code);
                 const photo = safePhotoSrc(details.photo);
                 if (matches && photo) return photo;
             } catch {}
@@ -4388,12 +4396,16 @@
         return "";
     }
 
-    async function restoreStudentPhoto(student={}) {
+    async function restoreStudentPhoto(student={}, historicalPhotos=null) {
         if (safePhotoSrc(student.photo)) {
             await cacheStudentPhoto(student);
             return student;
         }
-        const restored = await cachedStudentPhoto(student) || historicalStudentPhoto(student);
+        const restored = await cachedStudentPhoto(student)
+            || (historicalPhotos
+                ? (historicalPhotos.get(String(student.id || student.recordId || "").trim())
+                    || (studentCodeIsUnique(student) ? historicalPhotos.get(String(student.studentCode || "").trim()) : "") || "")
+                : historicalStudentPhoto(student));
         if (restored) {
             student.photo = restored;
             await cacheStudentPhoto(student);
@@ -4402,10 +4414,21 @@
     }
 
     async function restoreStudentPhotos(students=[]) {
+        const historicalPhotos = new Map();
+        for (const log of loadHistoryFromLocalStorage()) {
+            try {
+                const details = JSON.parse(log.details || "{}");
+                const photo = safePhotoSrc(details.photo);
+                if (!photo) continue;
+                for (const key of [details.recordId, details.studentId].filter(Boolean)) {
+                    if (!historicalPhotos.has(String(key))) historicalPhotos.set(String(key), photo);
+                }
+            } catch {}
+        }
         // A few parallel IndexedDB reads make the text list appear promptly,
         // while the small batch keeps low-memory phones smooth.
         for (let offset = 0; offset < (students || []).length; offset += 8) {
-            await Promise.all((students || []).slice(offset, offset + 8).map(restoreStudentPhoto));
+            await Promise.all((students || []).slice(offset, offset + 8).map(student => restoreStudentPhoto(student, historicalPhotos)));
         }
         return students;
     }
@@ -4445,16 +4468,22 @@
         const run = async () => {
             const payload = await readGoogleSheetJsonp({
                 action:"photos",
-                studentIds:candidates.map(googlePhotoKey).join(",")
+                studentIds:[...new Set(candidates.flatMap(student =>
+                    [student.id, student.studentCode].map(value => String(value || "").trim()).filter(Boolean)
+                ))].join(",")
             }, 45000);
             if (payload?.ok !== true || !Array.isArray(payload.students)) {
                 throw new Error(payload?.error || "Photo response is invalid");
             }
             let changed = false;
             for (const student of candidates) {
-                const remote = payload.students.find(row =>
-                    student.id ? String(row.id) === String(student.id)
-                        : String(row.studentCode) === String(student.studentCode));
+                const exactId = student.id
+                    ? payload.students.find(row => String(row.id) === String(student.id)) : null;
+                const codeMatches = student.studentCode
+                    ? payload.students.filter(row => String(row.studentCode) === String(student.studentCode)) : [];
+                // An ID wins. A code is a fallback only when it identifies one row;
+                // older Sheets can contain duplicate codes, so never guess a photo.
+                const remote = exactId || (codeMatches.length === 1 ? codeMatches[0] : null);
                 if (!remote) throw new Error("Student photo response is incomplete");
                 const photo = safePhotoSrc(remote.photo);
                 googlePhotoResults.set(resultKeys.get(student), { retryAt:0 });
@@ -4493,7 +4522,6 @@
     }
 
     function hydrateVisibleStudentPhotos() {
-        if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl()) return;
         if (visiblePhotoRefreshScheduled) return;
         visiblePhotoRefreshScheduled = true;
         requestAnimationFrame(async () => {
@@ -4521,7 +4549,8 @@
                     renderStudentViews();
                     if (inClassView) renderClassBrowser();
                 }
-                const remoteCandidates = candidates.filter(needsGooglePhoto);
+                const remoteCandidates = getCloudProvider() === GOOGLE_SHEET_PROVIDER && hasGoogleScriptUrl()
+                    ? candidates.filter(needsGooglePhoto) : [];
                 if (remoteCandidates.length && await hydrateStudentPhotosFromSheet(remoteCandidates, 8)) {
                     renderStudentViews();
                     if (inClassView) renderClassBrowser();
@@ -4531,6 +4560,26 @@
             }
             if (processed) hydrateVisibleStudentPhotos();
         });
+    }
+
+    let localPhotoRestoreGeneration = 0;
+    function restoreLocalPhotosInBackground() {
+        const snapshot = allStudents;
+        const generation = ++localPhotoRestoreGeneration;
+        setTimeout(async () => {
+            const missing = snapshot.filter(student => !safePhotoSrc(student.photo));
+            if (!missing.length) return;
+            try {
+                await restoreStudentPhotos(missing);
+                if (generation !== localPhotoRestoreGeneration || snapshot !== allStudents) return;
+                if (missing.some(student => safePhotoSrc(student.photo))) {
+                    renderStudentViews();
+                    if (document.body.classList.contains("class-browser-view")) renderClassBrowser();
+                }
+            } catch (error) {
+                console.debug("Local photo restore skipped:", error);
+            }
+        }, 0);
     }
 
     window.addEventListener("scroll", hydrateVisibleStudentPhotos, { passive:true });
@@ -6167,6 +6216,21 @@
             const normalizedCloudStudents = cloudRows.map(normalizeCloudStudent).filter(s => s.id || s.studentCode || s.studentName);
             const queuedOperations = loadPendingCloudMutations();
             const cloudStudents = applyPendingMutationsToStudents(normalizedCloudStudents, queuedOperations);
+            const previousById = new Map(allStudents.filter(student => student.id).map(student => [String(student.id), student]));
+            const previousByCode = new Map();
+            for (const previous of allStudents) {
+                const code = String(previous.studentCode || "").trim();
+                if (!code) continue;
+                previousByCode.set(code, previousByCode.has(code) ? null : previous);
+            }
+            for (const student of cloudStudents) {
+                if (safePhotoSrc(student.photo)) continue;
+                const previous = (student.id && previousById.get(String(student.id)))
+                    || (student.studentCode && previousByCode.get(String(student.studentCode)));
+                if (previous && String(previous.updatedAt || "") === String(student.updatedAt || "")) {
+                    student.photo = safePhotoSrc(previous.photo);
+                }
+            }
             // Local edits during the request win over an older cloud snapshot.
             if (writeVersionAtStart !== localStudentWriteVersion) return false;
             rememberGoogleSheetRevisions(payload);
@@ -6183,6 +6247,7 @@
             await saveToLocalStorage(allStudents);
             localStorage.setItem(BACKUP_TIME_STORAGE_KEY, new Date().toISOString());
             await refreshStudents({ reset:!background, source:"memory" });
+            restoreLocalPhotosInBackground();
             setStatus(queuedOperations.length ? `រក្សា Offline · រង់ចាំ Sync ${queuedOperations.length}` : "Google Sheet", queuedOperations.length ? "error" : "connected");
             if (!silent) showToast(`Load ពី Google Sheet ${allStudents.length} នាក់`);
             return true;
@@ -7605,6 +7670,7 @@
         els.tabListBtn?.classList.toggle("active", !isForm && !isClasses);
         els.tabClassesBtn?.classList.toggle("active", isClasses);
         if (isClasses) renderClassBrowser();
+        if (!isForm) requestAnimationFrame(hydrateVisibleStudentPhotos);
         if (options.scroll !== false) {
             requestAnimationFrame(() => window.scrollTo({ top:0, behavior:isMobileView() ? "auto" : "smooth" }));
         }
@@ -8191,6 +8257,7 @@
         buildClassFilter();
         applyFilters();
         if (document.body.classList.contains("class-browser-view")) renderClassBrowser();
+        if (source !== "memory") restoreLocalPhotosInBackground();
     }
 
     // ===================== HISTORY =====================
@@ -8256,23 +8323,35 @@
     }
 
     // ===================== PRINT =====================
-    function printWindow(title, content, photoRows=[], preparedWindow=null) {
+    function printWindow(title, content, photoRows=[], preparedWindow=null, { autoPrint=true, previewStatus="", showRetry=false }={}) {
         // Open during the user's tap, before any await, so Safari permits it.
         const win = preparedWindow || window.open("","_blank","width=1100,height=800");
         if (!win) { showToast("Browser បានរារាំងផ្ទាំង Print","warning"); return; }
         if (typeof content === "function") {
-            win.document.write('<!doctype html><html lang="km"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>រៀបចំបោះពុម្ព</title><body style="font-family:Siemreap,sans-serif;padding:24px;line-height:1.8"><p id="prepare-status" role="status">កំពុងទាញរូបថតសម្រាប់បោះពុម្ព...</p><button id="retry-prepare" hidden>សាកម្ដងទៀត</button> <button id="close-prepare">ត្រឡប់ទៅ App</button></body></html>');
-            win.document.close();
-            const retry = win.document.getElementById("retry-prepare");
-            win.document.getElementById("close-prepare").onclick = () => win.close();
+            // Already-loaded portraits should open exactly like the older version.
+            if (photoRows.every(student => safePhotoSrc(student.photo))) {
+                return printWindow(title, content(), [], win);
+            }
+            let preparing = false;
+            const showPreview = (message, retry=false) => {
+                if (win.closed) return;
+                printWindow(title, content(), [], win, { autoPrint:false, previewStatus:message, showRetry:retry });
+                if (retry) win.document.getElementById("retry-prepare")?.addEventListener("click", prepare);
+            };
             const prepare = async () => {
-                retry.hidden = true;
+                if (preparing || win.closed) return;
+                preparing = true;
+                showPreview("កំពុងរៀបចំរូបថតសម្រាប់បោះពុម្ព...");
                 try {
                     await restoreStudentPhotos(photoRows);
+                    if (win.closed) return;
+                    showPreview("កំពុងទាញរូបថតដែលនៅខ្វះ...");
                     for (let offset = 0; offset < photoRows.length; offset += 24) {
                         if (win.closed) return;
                         const batch = photoRows.slice(offset, offset + 24);
-                        win.document.getElementById("prepare-status").textContent = `កំពុងរៀបចំរូបថត ${Math.min(offset + batch.length, photoRows.length)} / ${photoRows.length}`;
+                        if (batch.every(student => safePhotoSrc(student.photo))) continue;
+                        const status = win.document.getElementById("prepare-status");
+                        if (status) status.textContent = `កំពុងរៀបចំរូបថត ${Math.min(offset + batch.length, photoRows.length)} / ${photoRows.length}`;
                         await Promise.all([
                             hydrateStudentPhotosFromSheet(batch.slice(0, 12), 12, { strict:true, priority:true }),
                             batch.length > 12 ? hydrateStudentPhotosFromSheet(batch.slice(12), 12, { strict:true, priority:true }) : Promise.resolve()
@@ -8281,15 +8360,17 @@
                     if (!win.closed) printWindow(title, content(), [], win);
                 } catch (error) {
                     if (!win.closed) {
-                        win.document.getElementById("prepare-status").textContent = "មិនទាន់ទាញរូបថតបានគ្រប់។ សូមពិនិត្យអ៊ីនធឺណិត ហើយសាកម្ដងទៀត។";
-                        retry.hidden = false;
+                        console.debug("Print photo preparation incomplete:", error);
+                        showPreview("រូបថតខ្លះមិនទាន់ទាញបាន។ ឯកសារនៅតែអាចមើលបាន សូមសាកម្ដងទៀត។", true);
                     }
+                } finally {
+                    preparing = false;
                 }
             };
-            retry.onclick = prepare;
             prepare();
             return;
         }
+        if (preparedWindow) win.document.open();
         const returnUrl = window.location.href;
         const isDark = document.documentElement.getAttribute("data-theme") === "dark";
         win.document.write(`
@@ -8316,11 +8397,14 @@
                 .print-bar button:disabled { opacity:.6; cursor:wait; }
                 .print-bar .return-btn { background:#e8eef7; color:#17345c; }
                 .print-bar .duplex-note { margin-right:auto; align-self:center; color:#334155; font-size:11px; }
+                .print-bar .prepare-status { margin-right:auto; align-self:center; color:#9a3412; font-size:12px; }
+                .print-bar .retry-btn { background:#e8eef7; color:#17345c; }
                 @media print { .print-bar { display:none; } }
             </style></head><body>
             <div class="print-bar">
                 <button id="return-app-btn" class="return-btn" type="button">← ត្រឡប់ទៅ App</button>
                 ${title === "កាតសិស្ស" ? '<span class="duplex-note">A4 បញ្ឈរ · 100% · Duplex: Flip on long edge</span>' : ""}
+                ${!autoPrint ? `<span id="prepare-status" class="prepare-status" role="status">${esc(previewStatus)}</span>${showRetry ? '<button id="retry-prepare" class="retry-btn" type="button">សាកម្ដងទៀត</button>' : ""}` : ""}
                 <button id="print-now-btn" type="button" disabled>កំពុងរៀបចំ...</button>
             </div>
             ${content}
@@ -8337,6 +8421,7 @@
                 else window.focus();
             }, 80);
         });
+        if (!autoPrint) { win.focus(); return win; }
         // The print document has its own font/image lifecycle.
         const ready = async () => {
             await Promise.all(Array.from(win.document.images, async img => {
@@ -9151,7 +9236,7 @@
         // Pagination
         els.prevPageBtn.addEventListener("click",()=>{if(currentPageIndex>0)loadStudentsPage(currentPageIndex-1);});
         els.nextPageBtn.addEventListener("click",()=>{if(hasNextPage)loadStudentsPage(currentPageIndex+1);});
-        els.pageSizeSelect.addEventListener("change",()=>{pageSize=Number(els.pageSizeSelect.value);refreshStudents({reset:true});});
+        els.pageSizeSelect.addEventListener("change",()=>{pageSize=Number(els.pageSizeSelect.value);refreshStudents({reset:true,source:"memory"});});
 
         // Import/Export
         els.importFileBtn.addEventListener("click",()=>els.importFileInput.click());

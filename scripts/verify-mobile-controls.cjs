@@ -212,12 +212,13 @@ app.whenReady().then(async () => {
             const popup = {
                 closed:false,
                 document:{
-                    write:html => { popupHtml = html; }, close:() => {},
+                    write:html => { popupHtml = html; }, open:() => {}, close:() => {},
+                    images:[], fonts:{ready:Promise.resolve()},
                     getElementById:id => ({ addEventListener:(_event, callback) => { buttons[id] = callback; } })
                 },
                 addEventListener:() => {},
                 close() { this.closed = true; },
-                focus:() => {}, print:() => {},
+                focus:() => {}, print:() => {}, requestAnimationFrame:callback => requestAnimationFrame(callback),
                 location:{ replace:() => {} }
             };
             window.testPrintPopup = popup;

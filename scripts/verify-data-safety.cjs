@@ -34,6 +34,13 @@ async function waitFor(predicate) {
     throw new Error('Deferred photo test timed out');
 }
 (async () => {
+    const cacheKeys = vm.createContext({
+        allStudents:[{id:'a', studentCode:'DUP'}, {id:'b', studentCode:'DUP'}],
+        studentPhotoCacheKey:student => student.id || student.studentCode
+    });
+    vm.runInContext(section('    function studentCodeIsUnique(', '    async function cacheStudentPhoto('), cacheKeys);
+    assert.deepEqual(Array.from(cacheKeys.studentPhotoCacheKeys(cacheKeys.allStudents[0])), ['a']);
+
     // Loading a visible batch must not read photos below the viewport.
     const c = photoContext();
     c.allStudents = Array.from({length:9}, (_, n) => ({id:`student-${n}`, photo:''}));
@@ -79,6 +86,27 @@ async function waitFor(predicate) {
     await late;
     assert.equal(d.allStudents[0].photo, 'new-upload');
 
+    // Old local IDs can still recover a photo by the stable student code.
+    const legacy = photoContext();
+    legacy.allStudents = [{id:'old-local-id', studentCode:'STU-99', photo:''}];
+    let requestedKeys = '';
+    legacy.readGoogleSheetJsonp = async params => {
+        requestedKeys = params.studentIds;
+        return {ok:true, students:[{id:'new-sheet-id', studentCode:'STU-99', photo:'matched-photo'}]};
+    };
+    await legacy.hydrateStudentPhotosFromSheet(legacy.allStudents, 1, {strict:true});
+    assert.equal(legacy.allStudents[0].photo, 'matched-photo');
+    assert.equal(requestedKeys, 'old-local-id,STU-99');
+
+    const ambiguous = photoContext();
+    ambiguous.allStudents = [{id:'old-local-id', studentCode:'STU-99', photo:''}];
+    ambiguous.readGoogleSheetJsonp = async () => ({ok:true, students:[
+        {id:'other-1', studentCode:'STU-99', photo:'wrong-1'},
+        {id:'other-2', studentCode:'STU-99', photo:'wrong-2'}
+    ]});
+    await assert.rejects(ambiguous.hydrateStudentPhotosFromSheet(ambiguous.allStudents, 1, {strict:true}));
+    assert.equal(ambiguous.allStudents[0].photo, '');
+
     // Failed photo loads cool down in the list; explicit print can retry.
     const f = photoContext();
     f.allStudents = [{id:'retry', photo:''}];
@@ -108,6 +136,7 @@ async function waitFor(predicate) {
             return {ok:true, students:[{id:'old'}]};
         },
         applySharedAppSettings:() => {}, normalizeCloudStudent:row => row,
+        safePhotoSrc:value => value || '',
         loadPendingCloudMutations:() => [], applyPendingMutationsToStudents:rows => rows,
         rememberGoogleSheetRevisions:() => { throw new Error('Stale response must not be committed'); },
         allStudents:[{id:'new-local'}], console

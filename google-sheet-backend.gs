@@ -205,7 +205,7 @@ function doGet(e) {
       // Fetch only explicitly requested photos. This prevents a few large Base64
       // images from stopping the full student list on a phone connection.
       const requestedKeys = String((e && e.parameter && (e.parameter.studentIds || e.parameter.ids)) || "")
-        .split(",").map(function(value) { return String(value || "").trim(); }).filter(Boolean).slice(0, 12);
+        .split(",").map(function(value) { return String(value || "").trim(); }).filter(Boolean).slice(0, 24);
       if (!requestedKeys.length) return output_({ ok:true, students:[] }, e);
       const requested = {};
       requestedKeys.forEach(function(key) { requested[key] = true; });

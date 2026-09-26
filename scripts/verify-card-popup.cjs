@@ -32,6 +32,7 @@ app.whenReady().then(async () => {
     await win.loadURL(pathToFileURL(path.join(root, 'index.html')).href);
     const result = await win.webContents.executeJavaScript(`(async () => {
         const esc = value => String(value ?? '');
+        const safePhotoSrc = value => value || '';
         const showToast = () => {};
         ${printWindowSource}
         const iframe = document.createElement('iframe');
@@ -58,7 +59,7 @@ app.whenReady().then(async () => {
         const source = photo.toDataURL('image/png');
         const student = { studentName:'Test Student', studentCode:'STU-0125', photo:'', gender:'ប្រុស', className:'7C' };
         const restoreStudentPhotos = async () => {};
-        const hydrateStudentPhotosFromSheet = async rows => {
+        let hydrateStudentPhotosFromSheet = async rows => {
             await new Promise(resolve => setTimeout(resolve, 100));
             rows.forEach(row => { row.photo = source; });
         };
@@ -84,11 +85,29 @@ app.whenReady().then(async () => {
         for (let i = 0; i < 30 && !printCalled; i++) {
             await new Promise(resolve => setTimeout(resolve, 20));
         }
+        const failedFrame = document.createElement('iframe');
+        document.body.append(failedFrame);
+        const failedPopup = failedFrame.contentWindow;
+        failedPopup.print = () => { throw new Error('Incomplete photos must not auto-print'); };
+        window.open = () => failedPopup;
+        hydrateStudentPhotosFromSheet = async () => { throw new Error('temporary photo error'); };
+        const missingStudent = {studentName:'Preview Student', studentCode:'STU-FAIL', photo:''};
+        printWindow('Card test', () => StudentCardTemplate.render([missingStudent], {}, 'assets/moeys-logo.png', '២០២៥-២០២៦'), [missingStudent]);
+        const previewOnFailure = await new Promise((resolve, reject) => {
+            const until = Date.now() + 4000;
+            const poll = () => {
+                const doc = failedFrame.contentDocument;
+                if (doc.getElementById('retry-prepare')) return resolve(doc.body.textContent.includes('STU-FAIL'));
+                if (Date.now() > until) return reject(new Error('Print preview did not survive photo failure'));
+                setTimeout(poll, 25);
+            };
+            poll();
+        });
         return { photoRepairRan:true, openedBeforePhoto, popupOpenCount, leftBlue:cornerIsBlue(4), rightBlue:cornerIsBlue(295),
-            printCalled, printButtonEnabled:!iframe.contentDocument.getElementById('print-now-btn').disabled };
+            printCalled, printButtonEnabled:!iframe.contentDocument.getElementById('print-now-btn').disabled, previewOnFailure };
     })()`);
     console.log(JSON.stringify(result));
     win.destroy();
-    if (!result.photoRepairRan || !result.openedBeforePhoto || result.popupOpenCount !== 1 || result.leftBlue || result.rightBlue || !result.printCalled || !result.printButtonEnabled) throw new Error('Card popup framing validation failed');
+    if (!result.photoRepairRan || !result.openedBeforePhoto || result.popupOpenCount !== 1 || result.leftBlue || result.rightBlue || !result.printCalled || !result.printButtonEnabled || !result.previewOnFailure) throw new Error('Card popup framing validation failed');
     app.quit();
 }).catch(error => { console.error(error); app.exit(1); });
