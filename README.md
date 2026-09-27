@@ -77,6 +77,12 @@ The phone can also open the regular Web App directly, connect to the same Google
 
 The phone-camera link contains a random token that changes whenever the app restarts. It works only while the computer app remains open; no phone photo is stored by the bridge after transfer.
 
+## Card PDF and photo downloads
+
+Click `កាតសិស្ស`, choose one class or all students, then choose Print or PDF. The Windows desktop app saves a two-sided, four-cards-per-A4 PDF directly; in a web browser choose **Save as PDF** in the print dialog. Duplex printing uses **flip on long edge** at 100% / actual size.
+
+Click `ទាញរូបថត` to download one ZIP. Each image keeps the bytes and resolution currently stored, with the student's name as its filename (a number is added when names repeat). Missing photos are reported instead of silently replaced. Existing Google Sheet photos are typically 300 × 400 px because of the cell-size limit; this export does not upscale them or recover originals that were never stored.
+
 ## Application number
 
 `លេខពាក្យ` is the final student-data column in the form, student table, print views, Excel template, and CSV import/export. After updating an existing installation:

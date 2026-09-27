@@ -10,3 +10,7 @@ contextBridge.exposeInMainWorld("desktopCamera", {
     return () => ipcRenderer.removeListener("phone-camera:photo", listener);
   }
 });
+
+contextBridge.exposeInMainWorld("desktopCardExport", {
+  savePdf: filename => ipcRenderer.invoke("card:save-pdf", filename)
+});

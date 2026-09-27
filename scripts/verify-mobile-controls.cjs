@@ -186,6 +186,13 @@ app.whenReady().then(async () => {
             classTiles.some(tile => tile.dataset.class === '7A') &&
             classTiles.some(tile => tile.dataset.class === '8B');
         const classGridFits = document.documentElement.scrollWidth <= innerWidth + 1;
+        document.getElementById('print-card-list-btn').click();
+        const exportDialog = document.getElementById('card-export-dialog');
+        const exportRect = exportDialog.getBoundingClientRect();
+        const cardExportFits = exportDialog.open && exportRect.left >= 0 && exportRect.right <= innerWidth + 1 &&
+            exportRect.top >= 0 && exportRect.bottom <= innerHeight + 1;
+        const cardExportClasses = [...document.getElementById('card-export-class').options].map(option => option.value).join(',') === ',7A,8B';
+        document.getElementById('card-export-cancel').click();
         classTiles.find(tile => tile.dataset.class === '7A').click();
         const classDetailHasOne = document.querySelectorAll('.class-student-item').length === 1 &&
             document.getElementById('class-browser-title').textContent.includes('7A');
@@ -250,7 +257,7 @@ app.whenReady().then(async () => {
         document.getElementById('class-browser-close-btn').click();
         const closeWorks = !document.body.classList.contains('class-browser-view') &&
             document.getElementById('tab-list-btn').classList.contains('active');
-        return { classGridHasBoth, classGridFits, classDetailHasOne, classDetailFits, photoViewerWorks, classBackWorks, printHasReturn, printClosed, settingsFits, settingsSaved, closeWorks,
+        return { classGridHasBoth, classGridFits, cardExportFits, cardExportClasses, classDetailHasOne, classDetailFits, photoViewerWorks, classBackWorks, printHasReturn, printClosed, settingsFits, settingsSaved, closeWorks,
             settingsGeometry:{ top:dialog.top, bottom:dialog.bottom, viewport:innerHeight, footerBottom:footer.bottom, scrollHeight, clientHeight } };
     })()`);
     console.log(JSON.stringify(navigation));

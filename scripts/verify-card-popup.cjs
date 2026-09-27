@@ -103,11 +103,26 @@ app.whenReady().then(async () => {
             };
             poll();
         });
+        const pdfFrame = document.createElement('iframe');
+        document.body.append(pdfFrame);
+        const pdfPopup = pdfFrame.contentWindow;
+        let pdfFilename = '';
+        pdfPopup.desktopCardExport = { savePdf: async name => {
+            pdfFilename = name;
+            return { saved:true, filePath:'Student-Cards-7C.pdf' };
+        }};
+        pdfPopup.print = () => { throw new Error('Desktop PDF must not open the print dialog'); };
+        window.open = () => pdfPopup;
+        const pdfStudent = { ...student, photo:source };
+        printWindow('Card test', () => StudentCardTemplate.render([pdfStudent], {}, 'assets/moeys-logo.png', '២០២៥-២០២៦'),
+            [pdfStudent], null, { downloadPdf:true, pdfFilename:'Student-Cards-7C' });
+        for (let i = 0; i < 100 && !pdfFilename; i++) await new Promise(resolve => setTimeout(resolve, 20));
         return { photoRepairRan:true, openedBeforePhoto, popupOpenCount, leftBlue:cornerIsBlue(4), rightBlue:cornerIsBlue(295),
-            printCalled, printButtonEnabled:!iframe.contentDocument.getElementById('print-now-btn').disabled, previewOnFailure };
+            printCalled, printButtonEnabled:!iframe.contentDocument.getElementById('print-now-btn').disabled, previewOnFailure,
+            pdfFilename };
     })()`);
     console.log(JSON.stringify(result));
     win.destroy();
-    if (!result.photoRepairRan || !result.openedBeforePhoto || result.popupOpenCount !== 1 || result.leftBlue || result.rightBlue || !result.printCalled || !result.printButtonEnabled || !result.previewOnFailure) throw new Error('Card popup framing validation failed');
+    if (!result.photoRepairRan || !result.openedBeforePhoto || result.popupOpenCount !== 1 || result.leftBlue || result.rightBlue || !result.printCalled || !result.printButtonEnabled || !result.previewOnFailure || result.pdfFilename !== 'Student-Cards-7C') throw new Error('Card popup framing/PDF validation failed');
     app.quit();
 }).catch(error => { console.error(error); app.exit(1); });

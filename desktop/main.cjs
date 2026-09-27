@@ -1,4 +1,4 @@
-const { app, BrowserWindow, clipboard, ipcMain, session, shell } = require("electron");
+const { app, BrowserWindow, clipboard, dialog, ipcMain, session, shell } = require("electron");
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const http = require("node:http");
@@ -15,6 +15,7 @@ const ALLOWED_PHONE_PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/web
 
 let mainWindow = null;
 let phoneCameraBridge = null;
+const cardPrintWindows = new Set();
 
 function lanIpv4Addresses() {
   const addresses = [];
@@ -188,6 +189,7 @@ function createWindow() {
         overrideBrowserWindowOptions: {
           autoHideMenuBar: true,
           webPreferences: {
+            preload: path.join(__dirname, "preload.cjs"),
             contextIsolation: true,
             nodeIntegration: false,
             sandbox: true
@@ -198,6 +200,11 @@ function createWindow() {
 
     openExternalUrl(url);
     return { action: "deny" };
+  });
+
+  mainWindow.webContents.on("did-create-window", child => {
+    cardPrintWindows.add(child.webContents.id);
+    child.once("closed", () => cardPrintWindows.delete(child.webContents.id));
   });
 
   mainWindow.webContents.on("will-navigate", (event, url) => {
@@ -233,6 +240,27 @@ if (!app.requestSingleInstanceLock()) {
       const info = await phoneCameraConnectionInfo();
       if (info.url) clipboard.writeText(info.url);
       return Boolean(info.url);
+    });
+    ipcMain.handle("card:save-pdf", async (event, requestedName) => {
+      if (!cardPrintWindows.has(event.sender.id) || event.sender.getURL() !== "about:blank") {
+        throw new Error("PDF export is only available from a card preview");
+      }
+      const filename = String(requestedName || "Student-Cards")
+        .replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_").trim().slice(0, 100) || "Student-Cards";
+      const parent = BrowserWindow.fromWebContents(event.sender);
+      const choice = await dialog.showSaveDialog(parent, {
+        title: "Save student cards as PDF",
+        defaultPath: path.join(app.getPath("downloads"), `${filename}.pdf`),
+        filters: [{ name:"PDF", extensions:["pdf"] }]
+      });
+      if (choice.canceled || !choice.filePath) return { saved:false };
+      const filePath = choice.filePath.toLowerCase().endsWith(".pdf") ? choice.filePath : `${choice.filePath}.pdf`;
+      const pdf = await event.sender.printToPDF({
+        pageSize:"A4", preferCSSPageSize:true, printBackground:true,
+        margins:{ top:0, bottom:0, left:0, right:0 }
+      });
+      await fs.promises.writeFile(filePath, pdf);
+      return { saved:true, filePath };
     });
 
     try {
