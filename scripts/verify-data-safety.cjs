@@ -15,11 +15,13 @@ function photoContext() {
     const context = vm.createContext({
         console, setTimeout, Date,
         pendingGooglePhotos:new Map(), googlePhotoResults:new Map(), localPhotoLookups:new Set(), googlePhotoQueue:Promise.resolve(),
-        visiblePhotoRefreshScheduled:false, lastGoogleDataRevision:'r1',
+        visiblePhotoRefreshScheduled:false, lastGoogleDataRevision:'r1', localStudentWriteVersion:0, SHARED_DATA_REFRESH_MS:20000,
         GOOGLE_SHEET_PROVIDER:'google', getCloudProvider:() => 'google', hasGoogleScriptUrl:() => true,
-        safePhotoSrc:value => value || '', cacheStudentPhoto:async () => true, allStudents:[],
+        safePhotoSrc:value => value || '', cacheStudentPhoto:async () => true, forgetStudentPhoto:async () => {},
+        loadPendingCloudMutations:() => [], saveToLocalStorage:async () => {}, allStudents:[],
         document:{ body:{ classList:{ contains:() => false } } }, window:{addEventListener:() => {}},
-        els:{studentList:{querySelectorAll:() => []}}, isMobileView:() => false, innerHeight:800,
+        els:{studentList:{querySelectorAll:() => []}, editingId:{value:''}}, getValue:() => '', setPhotoPreview:() => {},
+        isMobileView:() => false, innerHeight:800,
         restoreStudentPhoto:async student => student,
         requestAnimationFrame:fn => setTimeout(fn, 0), visibleStudents:[], renderStudentViews:() => {},
     });
@@ -39,7 +41,7 @@ async function waitFor(predicate) {
         studentPhotoCacheKey:student => student.id || student.studentCode
     });
     vm.runInContext(section('    function studentCodeIsUnique(', '    async function cacheStudentPhoto('), cacheKeys);
-    assert.deepEqual(Array.from(cacheKeys.studentPhotoCacheKeys(cacheKeys.allStudents[0])), ['a']);
+    assert.deepEqual(Array.from(cacheKeys.studentPhotoCacheKeys(cacheKeys.allStudents[0])), ['record-photo-v2:a']);
 
     // Loading a visible batch must not read photos below the viewport.
     const c = photoContext();
@@ -86,7 +88,7 @@ async function waitFor(predicate) {
     await late;
     assert.equal(d.allStudents[0].photo, 'new-upload');
 
-    // Old local IDs can still recover a photo by the stable student code.
+    // A different record ID cannot borrow a photo even when the code matches.
     const legacy = photoContext();
     legacy.allStudents = [{id:'old-local-id', studentCode:'STU-99', photo:''}];
     let requestedKeys = '';
@@ -94,8 +96,8 @@ async function waitFor(predicate) {
         requestedKeys = params.studentIds;
         return {ok:true, students:[{id:'new-sheet-id', studentCode:'STU-99', photo:'matched-photo'}]};
     };
-    await legacy.hydrateStudentPhotosFromSheet(legacy.allStudents, 1, {strict:true});
-    assert.equal(legacy.allStudents[0].photo, 'matched-photo');
+    await assert.rejects(legacy.hydrateStudentPhotosFromSheet(legacy.allStudents, 1, {strict:true}));
+    assert.equal(legacy.allStudents[0].photo, '');
     assert.equal(requestedKeys, 'old-local-id,STU-99');
 
     const ambiguous = photoContext();
@@ -166,5 +168,27 @@ async function waitFor(predicate) {
     const filters = vm.createContext({hasActiveFilters:() => true, filteredStudents:[1,2,3], visibleStudents:[1], allStudents:[1,2,3,4]});
     vm.runInContext(section('    function printableRows(', '    function printStudentNameList('), filters);
     assert.deepEqual(Array.from(filters.printableRows()), [1,2,3]);
+
+    // Cached browser portraits are unverified until the Sheet supplies them.
+    const cachedLoad = vm.createContext({
+        LOCAL_STUDENTS_KEY:'test', GOOGLE_SHEET_PROVIDER:'google', console,
+        localStorage:{getItem:() => JSON.stringify([{id:'blank-on-sheet',photo:'old-cache'}])},
+        normalizeStudentIdentity:student => student,
+        getCloudProvider:() => 'google', hasGoogleScriptUrl:() => true,
+        applyPendingMutationsToStudents:students => students
+    });
+    vm.runInContext(section('    function loadFromLocalStorage(', '    async function saveToLocalStorage('), cachedLoad);
+    assert.equal(cachedLoad.loadFromLocalStorage()[0].photo, '');
+
+    const editPhoto = vm.createContext({
+        GOOGLE_SHEET_PROVIDER:'google', getCloudProvider:() => 'google', hasGoogleScriptUrl:() => true,
+        photoSelectedByUser:false, safePhotoSrc:value => value || '', cachedStudentPhoto:async () => 'old-cache'
+    });
+    vm.runInContext(section('    async function studentEditPhoto(', '    async function handleFormSubmit('), editPhoto);
+    assert.equal(await editPhoto.studentEditPhoto('old-cache', {id:'a',photo:'old-cache'}, 'a'), '',
+        'a text-only edit must not re-upload an old cached photo');
+    editPhoto.photoSelectedByUser = true;
+    assert.equal(await editPhoto.studentEditPhoto('new-camera-photo', {id:'a',photo:'old-cache'}, 'a'), 'new-camera-photo',
+        'a new explicit camera/upload photo must still save');
     console.log('Data safety passed: lazy photos, shared requests, upload preservation, retry, pagination, stale-load protection, filtered print.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

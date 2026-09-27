@@ -3833,7 +3833,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.36</span>
+        <span class="footer-version">កំណែ 2.1.37</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4280,9 +4280,14 @@
             const data = localStorage.getItem(LOCAL_STUDENTS_KEY);
             const parsed = data ? JSON.parse(data) : [];
             const localStudents = Array.isArray(parsed) ? parsed.map(normalizeStudentIdentity) : [];
+            // A saved browser photo may be older than the Sheet's current cell.
+            // Never show it as confirmed while the authoritative photo is loading.
+            const baseStudents = getCloudProvider() === GOOGLE_SHEET_PROVIDER && hasGoogleScriptUrl()
+                ? localStudents.map(student => ({ ...student, photo:"" }))
+                : localStudents;
             // Re-apply unsynced writes after a reload so a stale/unavailable Sheet
             // can never erase data that was already saved on this device.
-            return applyPendingMutationsToStudents(localStudents);
+            return applyPendingMutationsToStudents(baseStudents);
         } catch (e) {
             console.error("Error loading students from localStorage:", e);
             return [];
@@ -4486,13 +4491,18 @@
         return `${googlePhotoKey(student)}:${lastGoogleDataRevision}`;
     }
 
+    function googlePhotoIsVerified(student) {
+        const result = googlePhotoResults.get(googlePhotoResultKey(student));
+        return Boolean(result?.checkedAt && !result.retryAt && Date.now() - result.checkedAt < SHARED_DATA_REFRESH_MS);
+    }
+
     function needsGooglePhoto(student) {
         if (!googlePhotoKey(student)) return false;
         const result = googlePhotoResults.get(googlePhotoResultKey(student));
         return !result || (result.retryAt ? Date.now() >= result.retryAt : Date.now() - (result.checkedAt || 0) >= SHARED_DATA_REFRESH_MS);
     }
 
-    async function hydrateStudentPhotosFromSheet(students=[], limit=8, { strict=false, priority=false }={}) {
+    async function hydrateStudentPhotosFromSheet(students=[], limit=8, { strict=false, priority=false, force=false }={}) {
         if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl()) return false;
         const candidates = [];
         const waiting = [];
@@ -4503,7 +4513,7 @@
                 waiting.push(pendingGooglePhotos.get(key));
                 continue;
             }
-            if (!needsGooglePhoto(student) && !(strict && googlePhotoResults.get(googlePhotoResultKey(student))?.retryAt)) continue;
+            if (!force && !needsGooglePhoto(student) && !(strict && googlePhotoResults.get(googlePhotoResultKey(student))?.retryAt)) continue;
             candidates.push(student);
             if (candidates.length >= Math.min(12, Math.max(1, limit))) break;
         }
@@ -4895,6 +4905,7 @@
     let lastCloudError = "";
     let cloudSyncWarning = "";
     let studentSaveInProgress = false;
+    let photoSelectedByUser = false;
     const disabledSupabaseColumns = new Set();
 
     const fieldIds = [
@@ -7194,9 +7205,10 @@
         throw new Error("រូបថតធំពេកសម្រាប់ Google Sheet");
     }
 
-    function setPhotoPreview(src = "") {
+    function setPhotoPreview(src = "", { userSelected=false }={}) {
         if (!els.photoPreviewBox) return;
         const safeSrc = safePhotoSrc(src);
+        if (userSelected && safeSrc) photoSelectedByUser = true;
         els.studentPhotoData.value = safeSrc;
         els.photoPreviewBox.innerHTML = safeSrc
             ? `<img src="${esc(safeSrc)}" alt="រូបថតសិស្ស">`
@@ -7229,8 +7241,18 @@
         if (!student) { showToast("រកមិនឃើញទិន្នន័យសិស្ស", "warning"); return; }
         els.studentPhotoViewer.dataset.studentId = id;
         els.studentPhotoViewer.classList.add("is-open");
-        renderStudentPhotoViewer(student, { loading:!safePhotoSrc(student.photo) });
-        await hydrateStudentPhotosFromSheet([student], 1);
+        const needsCheck = getCloudProvider() === GOOGLE_SHEET_PROVIDER && hasGoogleScriptUrl() && !googlePhotoIsVerified(student);
+        renderStudentPhotoViewer(needsCheck ? { ...student, photo:"" } : student,
+            { loading:needsCheck || !safePhotoSrc(student.photo) });
+        try {
+            await hydrateStudentPhotosFromSheet([student], 1, { strict:needsCheck, priority:needsCheck, force:needsCheck });
+        } catch (error) {
+            if (els.studentPhotoViewer.classList.contains("is-open") && els.studentPhotoViewer.dataset.studentId === id) {
+                renderStudentPhotoViewer({ ...student, photo:"" });
+                els.studentPhotoViewerPlaceholder.textContent = "ផ្ទៀងផ្ទាត់រូបថតពី Sheet មិនបាន។ សូមពិនិត្យការភ្ជាប់។";
+            }
+            return;
+        }
         if (els.studentPhotoViewer.classList.contains("is-open") && els.studentPhotoViewer.dataset.studentId === id) {
             renderStudentPhotoViewer(student);
         }
@@ -7543,7 +7565,7 @@
         try {
             originalImg = await loadImageFromBlob(imageSource);
             if (isReferenceBluePortrait(originalImg)) {
-                setPhotoPreview(composeStudentPhoto(originalImg, false));
+                setPhotoPreview(composeStudentPhoto(originalImg, false), { userSelected:true });
                 showToast("រូបថតមានផ្ទៃខៀវតាមគំរូរួចហើយ · បានរក្សាគុណភាពរូប");
                 closeCameraModal();
                 return;
@@ -7558,7 +7580,7 @@
             subjectImg = await loadImageFromBlob(segmentedBlob);
             setPhotoProcessing(true, "កំពុងដាក់ផ្ទៃក្រោយពណ៌ខៀវ...");
             const base64 = composeStudentPhoto(subjectImg, true);
-            setPhotoPreview(base64);
+            setPhotoPreview(base64, { userSelected:true });
             showToast("បានកាត់ផ្ទៃក្រោយ និងដាក់ផ្ទៃខៀវតាមគំរូ");
             closeCameraModal();
         } catch (err) {
@@ -7569,13 +7591,13 @@
                 const processedBlob = await removePhotoBackground(imageSource);
                 subjectImg = await loadImageFromBlob(processedBlob);
                 const base64 = composeStudentPhoto(subjectImg, true);
-                setPhotoPreview(base64);
+                setPhotoPreview(base64, { userSelected:true });
                 showToast("បានកាត់ផ្ទៃក្រោយ និងដាក់ផ្ទៃខៀវតាមគំរូ");
                 closeCameraModal();
             } catch (fallbackErr) {
                 console.error("Photo processing error:", fallbackErr);
                 if (originalImg) {
-                    setPhotoPreview(composeStudentPhoto(originalImg, false));
+                    setPhotoPreview(composeStudentPhoto(originalImg, false), { userSelected:true });
                     showToast("មិនអាចកាត់ផ្ទៃក្រោយបាន ប៉ុន្តែបានរក្សារូបថតធម្មតា", "warning");
                     closeCameraModal();
                 } else {
@@ -7730,6 +7752,7 @@
     }
 
     function resetForm() {
+        photoSelectedByUser = false;
         closeMobileEditPanel();
         els.registrationForm.reset();
         DATE_SELECTOR_CONFIGS.forEach(config => {
@@ -7757,8 +7780,10 @@
         setDobSelectors(s.dob);
         setFamilyDobSelectors(s);
 
-        // Handle photo
-        setPhotoPreview(s.photo || "");
+        // Showing an existing portrait is not a new photo upload.
+        photoSelectedByUser = false;
+        const verifyPhoto = getCloudProvider() === GOOGLE_SHEET_PROVIDER && hasGoogleScriptUrl() && !googlePhotoIsVerified(found);
+        setPhotoPreview(verifyPhoto ? "" : s.photo || "");
 
         ensureSchoolOption(s.fromSchool);
         els.fromSchool.value = s.fromSchool || "";
@@ -7773,11 +7798,12 @@
         } else {
             els.formPanel.scrollIntoView({ behavior:"smooth", block:"start" });
         }
-        // Open immediately; a late photo must not replace another student's form.
-        if (!safePhotoSrc(found.photo)) {
-            await hydrateStudentPhotosFromSheet([found], 1);
-            if (els.editingId.value === id && !getValue("studentPhotoData")) {
-                setPhotoPreview(found.photo || "");
+        // Recheck even an existing portrait: the Sheet may now have a blank cell.
+        if (getCloudProvider() === GOOGLE_SHEET_PROVIDER && hasGoogleScriptUrl()) {
+            const before = getValue("studentPhotoData");
+            await hydrateStudentPhotosFromSheet([found], 1, { priority:true, force:true });
+            if (els.editingId.value === id && !photoSelectedByUser && getValue("studentPhotoData") === before) {
+                setPhotoPreview(googlePhotoIsVerified(found) ? found.photo || "" : "");
             }
         }
     }
@@ -7814,6 +7840,14 @@
         }
     }
 
+    async function studentEditPhoto(payloadPhoto, existing, editingId) {
+        // The edit form can display a previously cached portrait. Only an
+        // explicit new camera/upload selection may write a Sheet photo cell.
+        if (getCloudProvider() === GOOGLE_SHEET_PROVIDER && hasGoogleScriptUrl() && !photoSelectedByUser) return "";
+        return safePhotoSrc(payloadPhoto) || safePhotoSrc(existing?.photo)
+            || await cachedStudentPhoto(existing || { id:editingId }, editingId);
+    }
+
     async function handleFormSubmit(e) {
         e.preventDefault();
         if (studentSaveInProgress) return;
@@ -7834,10 +7868,7 @@
             const nowIso = new Date().toISOString();
             if (editingId) {
                 const existing = allStudents.find(i => i.id === editingId);
-                // Editing text must never erase a photo that is already stored locally or in IndexedDB.
-                if (!safePhotoSrc(payload.photo)) {
-                    payload.photo = safePhotoSrc(existing?.photo) || await cachedStudentPhoto(existing || { id:editingId }, editingId);
-                }
+                payload.photo = await studentEditPhoto(payload.photo, existing, editingId);
                 if (!payload.studentCode) {
                     payload.studentCode = studentDisplayId(existing, editingId);
                 }
@@ -7847,6 +7878,7 @@
                         ...allStudents[idx],
                         ...payload,
                         ...normStudentFields(payload),
+                        photo: payload.photo || (getCloudProvider() === GOOGLE_SHEET_PROVIDER ? "" : safePhotoSrc(existing?.photo)),
                         updatedAt: nowIso
                     };
                 }
