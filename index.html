@@ -893,6 +893,8 @@
             flex-wrap: wrap;
         }
 
+        .photo-filter-status { color: var(--muted); font-size: .82rem; }
+
         /* ========================
            TABLE
         ======================== */
@@ -3415,7 +3417,8 @@
                                 <div class="field field-full">
                                     <label for="studentCode">អត្តលេខសិស្ស (អាចកែបាន)</label>
                                     <input id="studentCode" name="studentCode" type="text"
-                                           placeholder="ឧ. STU-0001 ឬទុកទទេដើម្បីបង្កើតស្វ័យប្រវត្តិ">
+                                           placeholder="ឧ. 9022607001 ឬទុកទទេដើម្បីបង្កើតស្វ័យប្រវត្តិ">
+                                    <small class="field-help">ទុកទទេដើម្បីបង្កើតពីកូដសាលា 902 + ឆ្នាំជំនាន់ + កម្រិតថ្នាក់ + លេខរៀង។ ត្រូវបំពេញថ្នាក់ទី ៧–១២។</small>
                                 </div>
                                 <div class="field">
                                     <label for="studentSurname" class="required">គោត្តនាម</label>
@@ -3720,6 +3723,11 @@
                     <select id="school-filter" aria-label="តម្រងសាលា">
                         <option value="">សាលាទាំងអស់</option>
                     </select>
+                    <select id="photo-filter" aria-label="តម្រងរូបថត">
+                        <option value="">រូបថតទាំងអស់</option>
+                        <option value="missing">គ្មានរូបថត</option>
+                    </select>
+                    <span id="photo-filter-status" class="photo-filter-status" role="status" aria-live="polite"></span>
                 </div>
             </div>
 
@@ -3833,7 +3841,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.37</span>
+        <span class="footer-version">កំណែ 2.1.38</span>
     </footer>
 
 </main><!-- end .app -->
@@ -3994,16 +4002,7 @@
                     <input id="ict-phone-input" type="tel">
                 </div>
             </div>
-            <div class="field-grid">
-                <div class="field">
-                    <label for="student-code-prefix-input">ប្រភេទ/Prefix អត្តលេខ</label>
-                    <input id="student-code-prefix-input" type="text" maxlength="12" placeholder="ឧ. STU">
-                </div>
-                <div class="field">
-                    <label for="student-code-digits-input">ចំនួនខ្ទង់លេខ</label>
-                    <input id="student-code-digits-input" type="number" min="2" max="8" step="1" placeholder="4">
-                </div>
-            </div>
+            <p class="settings-help">អត្តលេខថ្មី៖ កូដសាលា 902 + ឆ្នាំចូលថ្នាក់ទី ៧ (២ ខ្ទង់) + កម្រិតថ្នាក់ (២ ខ្ទង់) + លេខរៀង (៣ ខ្ទង់)។ ឧទាហរណ៍ 9022607001។ អត្តលេខចាស់នៅដដែល។</p>
             <h3 class="settings-section-title">គ្រូបន្ទុកតាមថ្នាក់</h3>
             <p class="settings-help">ថ្នាក់ត្រូវបានយកពីបញ្ជីសិស្សបច្ចុប្បន្ន។ Settings នេះនឹង sync ទៅ Google Sheet ប្រសិនបើបានភ្ជាប់។</p>
             <div id="teacher-settings-list" class="teacher-settings-list"></div>
@@ -4214,6 +4213,7 @@
     const PHOTO_CACHE_DB_NAME = "studentRegistrationPhotoCache";
     const PHOTO_CACHE_STORE_NAME = "studentPhotos";
     const DEFAULT_STUDENT_CODE_PREFIX = "STU";
+    const SCHOOL_STUDENT_CODE = "902";
     const SUPABASE_READ_PAGE_SIZE    = 1000;
     // The initial phone load deliberately excludes photos. A larger text-only
     // page means fewer Google Script requests without blocking the UI.
@@ -4766,6 +4766,8 @@
         genderFilter: document.getElementById("gender-filter"),
         classFilter: document.getElementById("class-filter"),
         schoolFilter: document.getElementById("school-filter"),
+        photoFilter: document.getElementById("photo-filter"),
+        photoFilterStatus: document.getElementById("photo-filter-status"),
         pageInfo: document.getElementById("page-info"),
         prevPageBtn: document.getElementById("prev-page-btn"),
         nextPageBtn: document.getElementById("next-page-btn"),
@@ -4779,8 +4781,6 @@
         principalNameInput: document.getElementById("principal-name-input"),
         principalPhoneInput: document.getElementById("principal-phone-input"),
         ictPhoneInput: document.getElementById("ict-phone-input"),
-        studentCodePrefixInput: document.getElementById("student-code-prefix-input"),
-        studentCodeDigitsInput: document.getElementById("student-code-digits-input"),
         teacherSettingsList: document.getElementById("teacher-settings-list"),
         saveAppSettingsBtn: document.getElementById("save-app-settings-btn"),
         cancelAppSettingsBtn: document.getElementById("cancel-app-settings-btn"),
@@ -4894,6 +4894,9 @@
     // ===================== STATE =====================
     let allStudents = [];
     let filteredStudents = [];
+    let missingPhotoCodes = null;
+    let missingPhotoRevision = "";
+    let missingPhotoLookup = null;
     let visibleStudents = [];
     let selectedClassName = null;
     let totalStudentsCount = 0;
@@ -5304,8 +5307,8 @@
     function updateStudentCodeHint() {
         const input = document.getElementById("studentCode");
         if (!input) return;
-        const sample = `${appSettings.studentCodePrefix}-${String(1).padStart(appSettings.studentCodeDigits, "0")}`;
-        input.placeholder = `ឧ. ${sample} ឬទុកទទេដើម្បីបង្កើតស្វ័យប្រវត្តិ`;
+        const stem = studentCodeStem(getValue("className"));
+        input.placeholder = `ឧ. ${stem ? `${stem}001` : "9022607001"} ឬទុកទទេដើម្បីបង្កើតស្វ័យប្រវត្តិ`;
     }
 
     function applySharedAppSettings(settings) {
@@ -5356,8 +5359,6 @@
         els.principalPhoneInput.value = appSettings.principalPhone;
         els.cardLunarDateInput.value = appSettings.cardLunarDate;
         els.ictPhoneInput.value = appSettings.ictPhone;
-        els.studentCodePrefixInput.value = appSettings.studentCodePrefix;
-        els.studentCodeDigitsInput.value = appSettings.studentCodeDigits;
         renderTeacherSettings();
         els.appSettingsModal.classList.add("is-open");
     }
@@ -5393,8 +5394,9 @@
             principalPhone: els.principalPhoneInput.value,
             cardLunarDate: els.cardLunarDateInput.value,
             ictPhone: els.ictPhoneInput.value,
-            studentCodePrefix: els.studentCodePrefixInput.value,
-            studentCodeDigits: els.studentCodeDigitsInput.value,
+            // Preserve legacy settings for old records/import compatibility.
+            studentCodePrefix: appSettings.studentCodePrefix,
+            studentCodeDigits: appSettings.studentCodeDigits,
             classTeachers
         });
         storeAppSettings();
@@ -6136,7 +6138,9 @@
 
     function rememberGoogleSheetRevisions(payload={}) {
         if (Object.prototype.hasOwnProperty.call(payload, "revision")) {
-            lastGoogleDataRevision = String(payload.revision ?? "");
+            const revision = String(payload.revision ?? "");
+            if (revision !== lastGoogleDataRevision) missingPhotoCodes = null;
+            lastGoogleDataRevision = revision;
             localStorage.setItem(GOOGLE_DATA_REVISION_STORAGE_KEY, lastGoogleDataRevision);
         }
         if (Object.prototype.hasOwnProperty.call(payload, "settingsRevision")) {
@@ -6325,6 +6329,7 @@
         } finally {
             googleSheetLoadsInFlight--;
             if (!background) setCloudControlsLoading(false);
+            if (els.photoFilter.value === "missing") void refreshMissingPhotoCodes({ force:true });
         }
     }
 
@@ -6498,16 +6503,15 @@
         return null;
     }
 
-    async function findDuplicateOnServer(student, ignoreId="", localSource=[]) {
+    async function findDuplicateOnServer(student, ignoreId="", localSource=[], sharedRows=null) {
         const localDuplicate = findDuplicate(student, ignoreId, localSource);
         if (localDuplicate) return localDuplicate;
         if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl() || navigator.onLine === false) return null;
         try {
             // A short live check closes the gap between multiple phones saving at once.
             // Failure never blocks offline work; the persistent outbox will keep the record.
-            const payload = await readGoogleSheetJsonp({ action:"identities" }, 12000);
-            if (payload?.ok === false || !Array.isArray(payload?.students)) return null;
-            const cloudStudents = payload.students.map(normalizeCloudStudent);
+            const rows = sharedRows || await sharedStudentIdentities();
+            const cloudStudents = rows.map(normalizeCloudStudent);
             return findDuplicate(student, ignoreId, cloudStudents);
         } catch (error) {
             console.debug("Live duplicate check skipped:", error);
@@ -6522,24 +6526,53 @@
     }
 
     // ===================== STUDENT CODE GENERATION =====================
-    async function generateStudentCode() {
-        const prefix = appSettings.studentCodePrefix || DEFAULT_STUDENT_CODE_PREFIX;
-        const digits = appSettings.studentCodeDigits || 4;
-        let maxNum = 0;
-        allStudents.forEach(s => {
-            const code = s.studentCode || "";
-            if (!code.startsWith(`${prefix}-`)) return;
-            const m = code.match(/(\d+)$/);
-            if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
-        });
-        let num = maxNum + 1;
-        let code = `${prefix}-${String(num).padStart(digits,"0")}`;
-        const usedCodes = new Set(allStudents.map(s => s.studentCode).filter(Boolean));
-        while (usedCodes.has(code)) {
-            num++;
-            code = `${prefix}-${String(num).padStart(digits,"0")}`;
+    function classGrade(className) {
+        const text = String(className || "").replace(/[០-៩]/g, digit => String(digit.charCodeAt(0) - 0x17E0))
+            .replace(/^\s*(?:ថ្នាក់ទី|ថ្នាក់|ទី)\s*/, "").trim();
+        const match = text.match(/^(1[0-2]|[7-9])(?=\D|$)/);
+        return match ? Number(match[1]) : null;
+    }
+
+    function studentCodeStem(className, calendarYear=new Date().getFullYear()) {
+        const grade = classGrade(className);
+        if (!grade) return "";
+        const cohortYear = (calendarYear - (grade - 7)) % 100;
+        return `${SCHOOL_STUDENT_CODE}${String(cohortYear).padStart(2,"0")}${String(grade).padStart(2,"0")}`;
+    }
+
+    function nextStudentCode(stem, codes) {
+        if (!stem) throw new Error("សូមបំពេញថ្នាក់ទី ៧–១២ មុនបង្កើតអត្តលេខស្វ័យប្រវត្តិ");
+        const used = new Set([...codes].map(code => String(code || "").trim()));
+        let maximum = 0;
+        for (const code of used) {
+            if (code.startsWith(stem) && /^\d{3}$/.test(code.slice(stem.length))) {
+                maximum = Math.max(maximum, Number(code.slice(stem.length)));
+            }
         }
-        return code;
+        if (maximum >= 999) throw new Error(`លេខរៀងក្នុងកម្រិតថ្នាក់ ${stem} បានដល់ 999 ហើយ`);
+        return `${stem}${String(maximum + 1).padStart(3,"0")}`;
+    }
+
+    async function sharedStudentIdentities() {
+        if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl() || navigator.onLine === false) return [];
+        try {
+            const payload = await readGoogleSheetJsonp({ action:"identities" }, 12000);
+            if (payload?.ok !== true || !Array.isArray(payload.students)) return [];
+            return payload.students;
+        } catch (error) {
+            console.debug("Shared student identities unavailable; using local records:", error);
+            return [];
+        }
+    }
+
+    async function sharedStudentCodes() {
+        return (await sharedStudentIdentities()).map(student => student.studentCode).filter(Boolean);
+    }
+
+    async function generateStudentCode(className, extraCodes=[], { fetchShared=true }={}) {
+        const codes = [...allStudents.map(student => student.studentCode), ...extraCodes,
+            ...(fetchShared ? await sharedStudentCodes() : [])];
+        return nextStudentCode(studentCodeStem(className), codes);
     }
 
     // ===================== PHOTO & WEBCAM =====================
@@ -7765,6 +7798,7 @@
         resetAddressGroup(currentGroup);
         els.sameAddress.checked = false;
         lockCurrentAddress(false);
+        updateStudentCodeHint();
     }
 
     function ensureSchoolOption(v) {
@@ -7777,6 +7811,7 @@
         const s = found ? normalizeStudentIdentity(found) : null;
         if (!s) { showToast("រកមិនឃើញទិន្នន័យសិស្ស","error"); return; }
         fieldIds.forEach(fid => setValue(fid, s[fid]||""));
+        updateStudentCodeHint();
         setDobSelectors(s.dob);
         setFamilyDobSelectors(s);
 
@@ -7859,19 +7894,27 @@
 
         if (!payload.studentName) { showToast("សូមបំពេញឈ្មោះសិស្ស","warning"); return; }
         if (!payload.contact) { showToast("សូមបំពេញលេខទូរស័ព្ទ","warning"); return; }
+        const localDuplicate = findDuplicate(payload, editingId, allStudents);
+        if (localDuplicate) { showToast(duplicateMsg(localDuplicate), "warning"); return; }
+        if (!payload.studentCode && !classGrade(payload.className)) {
+            showToast("សូមបំពេញថ្នាក់ទី ៧–១២ មុនបង្កើតអត្តលេខស្វ័យប្រវត្តិ", "warning");
+            return;
+        }
 
         studentSaveInProgress = true;
         setSaving(true);
         try {
-            const dup = await findDuplicateOnServer(payload, editingId, allStudents);
+            const sharedRows = await sharedStudentIdentities();
+            if (!payload.studentCode) {
+                payload.studentCode = await generateStudentCode(payload.className,
+                    sharedRows.map(student => student.studentCode), { fetchShared:false });
+            }
+            const dup = await findDuplicateOnServer(payload, editingId, allStudents, sharedRows);
             if (dup) { showToast(duplicateMsg(dup),"warning"); return; }
             const nowIso = new Date().toISOString();
             if (editingId) {
                 const existing = allStudents.find(i => i.id === editingId);
                 payload.photo = await studentEditPhoto(payload.photo, existing, editingId);
-                if (!payload.studentCode) {
-                    payload.studentCode = studentDisplayId(existing, editingId);
-                }
                 const idx = allStudents.findIndex(i => i.id === editingId);
                 if (idx !== -1) {
                     allStudents[idx] = {
@@ -7887,7 +7930,6 @@
                 enqueueCloudMutation("upsert", {...payload, recordId: editingId}, payload.studentCode||editingId);
                 showToast("បានកែសម្រួលព័ត៌មានសិស្ស");
             } else {
-                if (!payload.studentCode) payload.studentCode = await generateStudentCode();
                 const newId = `stu-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
                 const newStudent = {
                     id: newId,
@@ -7908,7 +7950,7 @@
             if (isMobileView()) setActiveTab("list", { scroll: !editingId });
         } catch(e) {
             console.error("Save error:", e);
-            showToast("រក្សាទុកមិនបាន","error");
+            showToast(e?.message || "រក្សាទុកមិនបាន","error");
         } finally {
             studentSaveInProgress = false;
             setSaving(false);
@@ -8035,13 +8077,30 @@
         const gender = els.genderFilter.value;
         const className = els.classFilter.value;
         const school = els.schoolFilter.value;
+        const missingPhotos = els.photoFilter.value === "missing";
+        const useSheetPhotoStatus = getCloudProvider() === GOOGLE_SHEET_PROVIDER && hasGoogleScriptUrl();
+        const pendingPhotoRecords = missingPhotos && useSheetPhotoStatus
+            ? new Map(loadPendingCloudMutations()
+                .filter(operation => operation.action === "upsert" && operation.student)
+                .map(operation => [String(operation.student.id || operation.student.recordId || ""), operation.student]))
+            : new Map();
+        els.photoFilterStatus.textContent = missingPhotos && useSheetPhotoStatus
+            ? (missingPhotoLookup ? "កំពុងផ្ទៀងផ្ទាត់រូបថត..." : missingPhotoCodes ? "" : "មិនអាចផ្ទៀងផ្ទាត់រូបថតពី Sheet")
+            : "";
         
         filteredStudents = allStudents.filter(s =>
             (!term || studentSearchText(s).includes(term)) &&
             (!gender || s.gender === gender) &&
             (!className || String(s.className ?? "") === className) &&
-            (!school || String(s.fromSchool ?? "") === school)
+            (!school || String(s.fromSchool ?? "") === school) &&
+            (!missingPhotos || (useSheetPhotoStatus
+                ? (!safePhotoSrc(pendingPhotoRecords.get(String(s.id || ""))?.photo)
+                    && Boolean(missingPhotoCodes?.has(String(s.studentCode || "").trim())))
+                : !safePhotoSrc(s.photo)))
         );
+        if (missingPhotos && (!useSheetPhotoStatus || missingPhotoCodes)) {
+            els.photoFilterStatus.textContent = `គ្មានរូបថត ${filteredStudents.length} នាក់`;
+        }
 
         if (isShowAll()) {
             visibleStudents = filteredStudents;
@@ -8057,7 +8116,31 @@
         renderStudentViews();
     }
 
-    function hasActiveFilters() { return Boolean(els.searchInput.value.trim()||els.genderFilter.value||els.classFilter.value||els.schoolFilter.value); }
+    function hasActiveFilters() { return Boolean(els.searchInput.value.trim()||els.genderFilter.value||els.classFilter.value||els.schoolFilter.value||els.photoFilter.value); }
+
+    async function refreshMissingPhotoCodes({ force=false }={}) {
+        if (els.photoFilter.value !== "missing") return;
+        if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl()) { applyFilters(); return; }
+        if (missingPhotoLookup) return missingPhotoLookup;
+        if (!force && missingPhotoCodes && missingPhotoRevision === lastGoogleDataRevision) { applyFilters(); return; }
+        missingPhotoCodes = null;
+        const lookup = readGoogleSheetJsonp({ action:"photostatus" }, 20000);
+        missingPhotoLookup = lookup;
+        applyFilters();
+        try {
+            const response = await lookup;
+            if (response?.ok !== true || !Array.isArray(response.missingCodes)) throw new Error("Invalid photo status");
+            missingPhotoCodes = new Set(response.missingCodes.map(code => String(code).trim()));
+            missingPhotoRevision = String(response.revision ?? "");
+        } catch (error) {
+            missingPhotoCodes = null;
+            console.debug("Cannot filter missing Sheet photos:", error);
+            showToast("មិនអាចផ្ទៀងផ្ទាត់សិស្សគ្មានរូបថតពី Sheet។ សូមសាកម្ដងទៀត", "warning");
+        } finally {
+            missingPhotoLookup = null;
+            applyFilters();
+        }
+    }
 
     // ===================== PAGER =====================
     function isShowAll() { return pageSize === 0; }
@@ -9074,20 +9157,14 @@
         els.importFileBtn.disabled=v;
         els.importFileBtn.innerHTML=v?'<span class="spinner"></span><span>កំពុងនាំចូល...</span>':'<ion-icon name="cloud-upload-outline"></ion-icon><span>នាំចូល</span>';
     }
-    function assignCodes(students,start=1){
-        const prefix=appSettings.studentCodePrefix||DEFAULT_STUDENT_CODE_PREFIX;
-        const digits=appSettings.studentCodeDigits||4;
+    async function assignCodes(students){
         const used=new Set([...allStudents,...students].map(s=>s.studentCode).filter(Boolean));
-        let maxExisting=0;
-        used.forEach(code=>{
-            const match=String(code).match(new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}-(\\d+)$`));
-            if(match) maxExisting=Math.max(maxExisting,Number(match[1]));
-        });
-        let n=Math.max(1,start,maxExisting+1);
-        return students.map(s=>{
-            if(s.studentCode) return s;let code="";
-            do{code=`${prefix}-${String(n).padStart(digits,"0")}`;n++;}while(used.has(code));
-            used.add(code);return {...s,studentCode:code};
+        (await sharedStudentCodes()).forEach(code=>used.add(code));
+        return students.map(student=>{
+            if(student.studentCode) return student;
+            const code=nextStudentCode(studentCodeStem(student.className), used);
+            used.add(code);
+            return {...student,studentCode:code};
         });
     }
     async function importStudentObjects(rawStudents,label="Import"){
@@ -9095,11 +9172,12 @@
         rawStudents.forEach(raw=>{
             const s={...normalizeStudentIdentity(raw),gender:normGender(raw.gender),dob:normDate(raw.dob),contact:String(raw.contact||"").trim()};
             if(!s.studentName){skipped.push({reason:"missing",student:s});return;}
+            if(!s.studentCode && !classGrade(s.className)){skipped.push({reason:"invalidClass",student:s});return;}
             const dup=findDuplicate(s,"",[...allStudents,...accepted.map((i,idx)=>({id:`new-${idx}`,...i}))]);
             if(dup){skipped.push({reason:dup.type,student:s});return;}
             accepted.push(s);
         });
-        const withCodes=assignCodes(accepted,allStudents.length+1);
+        const withCodes=await assignCodes(accepted);
         const nowIso=new Date().toISOString();
         const saved=withCodes.map((st,idx)=>{
             const newId=`stu-${Date.now()}-${idx}-${Math.random().toString(36).substr(2,9)}`;
@@ -9403,6 +9481,12 @@
         els.genderFilter.addEventListener("change",filterNow);
         els.classFilter.addEventListener("change",filterNow);
         els.schoolFilter.addEventListener("change",filterNow);
+        els.photoFilter.addEventListener("change", () => {
+            resetPagination();
+            if (els.photoFilter.value === "missing") void refreshMissingPhotoCodes({ force:true });
+            else applyFilters();
+        });
+        document.getElementById("className").addEventListener("input", updateStudentCodeHint);
 
         // Table actions
         els.studentList.addEventListener("click",handleStudentAction);

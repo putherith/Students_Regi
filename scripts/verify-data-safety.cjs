@@ -139,6 +139,7 @@ async function waitFor(predicate) {
         },
         applySharedAppSettings:() => {}, normalizeCloudStudent:row => row,
         safePhotoSrc:value => value || '',
+        els:{photoFilter:{value:''}},
         loadPendingCloudMutations:() => [], applyPendingMutationsToStudents:rows => rows,
         rememberGoogleSheetRevisions:() => { throw new Error('Stale response must not be committed'); },
         allStudents:[{id:'new-local'}], console
