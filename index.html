@@ -3195,6 +3195,10 @@
                     <ion-icon name="settings-outline" aria-hidden="true"></ion-icon>
                     <span>កំណត់សាលា</span>
                 </button>
+                <a class="btn btn-ghost" href="https://script.google.com/macros/s/AKfycbyc_1v8DBczUTac1CprLsj2Ae5uKt8In-XGpB6lXXmCZj7Mm-4OL1DPSJjNXsD-G2GK/exec?action=teacherportal" target="_blank" rel="noopener noreferrer" title="ផ្ទាំងគ្រូបន្ទុកថ្នាក់">
+                    <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
+                    <span>ផ្ទាំងគ្រូ</span>
+                </a>
                 <button id="sheet-settings-btn" class="btn btn-ghost" type="button" title="Cloud Storage Settings">
                     <ion-icon name="grid-outline" aria-hidden="true"></ion-icon>
                     <span>ឃ្លាំងទិន្នន័យ</span>
@@ -3841,7 +3845,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.40</span>
+        <span class="footer-version">កំណែ 2.1.41</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4057,9 +4061,9 @@
                     <small id="sheet-url-help" class="field-help">App ប្រើ Link ផ្លូវការនេះស្វ័យប្រវត្តិសម្រាប់អ្នកប្រើទាំងអស់។</small>
                 </div>
                 <div class="field">
-                    <label for="sheet-access-key-input">Shared access key (optional)</label>
+                    <label for="sheet-access-key-input">លេខសម្ងាត់រដ្ឋបាល (ត្រូវបញ្ចូល)</label>
                     <input id="sheet-access-key-input" type="password" autocomplete="off"
-                           placeholder="ត្រូវដូច STUDENT_APP_ACCESS_KEY ក្នុង Apps Script">
+                           placeholder="បញ្ចូលលេខសម្ងាត់រដ្ឋបាលថ្មី">
                 </div>
             </div>
         </div>
@@ -6387,7 +6391,12 @@
             console.error("Google Sheet load error:", e);
             lastCloudError = readableCloudError(e);
             if (!background) setStatus("Sheet មិនបានភ្ជាប់", "error");
-            if (!silent) showToast(`Load ពី Google Sheet មិនបាន${lastCloudError ? ": " + lastCloudError.slice(0, 90) : ""}`,"error");
+            if (!silent && /unauthorized|access key/i.test(lastCloudError)) {
+                showToast("សូមបញ្ចូលលេខសម្ងាត់រដ្ឋបាលថ្មីក្នុងឃ្លាំងទិន្នន័យ", "error");
+                openSheetModal();
+            } else if (!silent) {
+                showToast(`Load ពី Google Sheet មិនបាន${lastCloudError ? ": " + lastCloudError.slice(0, 90) : ""}`,"error");
+            }
             return false;
         } finally {
             googleSheetLoadsInFlight--;

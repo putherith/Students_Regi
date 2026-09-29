@@ -119,8 +119,13 @@ const CLASS_TAB_COLORS = ["#0f766e", "#2563eb", "#7c3aed", "#15803d", "#b45309",
 
 function doGet(e) {
   try {
-    assertAuthorized_(e, null);
     const action = String((e && e.parameter && e.parameter.action) || "list").toLowerCase();
+    // The public landing page contains no student data. Every portal RPC checks
+    // its own class-scoped session before reading or changing records.
+    if (action === "teacherportal") {
+      return HtmlService.createHtmlOutputFromFile("TeacherPortal").setTitle("ផ្ទាំងគ្រូបន្ទុកថ្នាក់");
+    }
+    assertAuthorized_(e, null);
     if (action === "status") {
       return output_({
         ok: true,
@@ -349,10 +354,18 @@ function output_(payload, e) {
 }
 
 function assertAuthorized_(e, body) {
-  const expected = String(PropertiesService.getScriptProperties().getProperty(ACCESS_KEY_PROPERTY) || "").trim();
-  if (!expected) return;
   const queryKey = e && e.parameter ? e.parameter.key : "";
   const supplied = String((body && body.accessKey) || queryKey || "").trim();
+  const admin = portalAdminCredential_();
+  if (admin) {
+    if (!portalPinMatches_(admin, supplied)) throw new Error("Unauthorized: admin access key is missing or incorrect");
+    return;
+  }
+  if (PropertiesService.getScriptProperties().getProperty(PORTAL_ADMIN_REQUIRED_PROPERTY) === "1") {
+    throw new Error("Unauthorized: admin credential is unavailable; contact the school administrator");
+  }
+  const expected = String(PropertiesService.getScriptProperties().getProperty(ACCESS_KEY_PROPERTY) || "").trim();
+  if (!expected) return;
   if (supplied !== expected) throw new Error("Unauthorized: access key is missing or incorrect");
 }
 
