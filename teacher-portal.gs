@@ -184,7 +184,8 @@ function portalRoster_(className) {
     .map(function(student) {
       const result = {};
       ["id", "studentCode", "studentName", "studentSurname", "studentGivenName", "gender", "dob", "className",
-       "fromSchool", "contact", "guardianName", "guardianDob", "fatherName", "fatherPhone", "motherName", "motherPhone",
+       "fromSchool", "contact", "guardianName", "guardianDob", "fatherName", "fatherPhone", "fatherDob", "fatherOccupation",
+       "motherName", "motherPhone", "motherDob", "motherOccupation",
        "pobVillage", "pobCommune", "pobDistrict", "pobProvince", "currentVillage", "currentCommune", "currentDistrict",
        "currentProvince", "updatedAt"].forEach(function(key) { result[key] = student[key] || ""; });
       return result;
@@ -362,7 +363,8 @@ function teacherPortalSaveActivity(token, className, activity) {
 }
 
 const PORTAL_EDITABLE_STUDENT_FIELDS = ["studentSurname", "studentGivenName", "gender", "dob", "fromSchool", "contact",
-  "fatherName", "fatherPhone", "motherName", "motherPhone", "guardianName", "guardianDob",
+  "fatherName", "fatherPhone", "fatherDob", "fatherOccupation", "motherName", "motherPhone", "motherDob",
+  "motherOccupation", "guardianName", "guardianDob",
   "pobVillage", "pobCommune", "pobDistrict", "pobProvince",
   "currentVillage", "currentCommune", "currentDistrict", "currentProvince"];
 
