@@ -10,8 +10,8 @@
     .hidden{display:none!important}h1,h2,h3,p{margin-top:0;overflow-wrap:anywhere}h1{font-size:21px;line-height:1.35;margin-bottom:2px}h2{font-size:20px;margin-bottom:8px}h3{font-size:16px}
     .site-header{background:#fff;border-bottom:1px solid #dfe7f0;box-shadow:0 2px 14px #0b31500b;position:relative;z-index:2}
     .header-inner{max-width:1220px;margin:auto;padding:12px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px}
-    .brand{display:flex;align-items:center;gap:12px}.brand-logo-wrap{height:53px;width:53px;flex:none;display:grid;place-items:center;position:relative;background:#e9f2fc;border:1px solid #d6e5f5;border-radius:14px;color:#1c5b99;font-size:24px;font-weight:800}.brand-logo{position:absolute;inset:0;height:100%;width:100%;object-fit:contain;background:#f5f9ff;border-radius:14px;padding:4px}
-    .brand small{color:#6b7c91}.header-actions{display:flex;align-items:center;gap:9px}.home-link{text-decoration:none;color:#1c477e;background:#eff5fd;border-radius:10px;padding:9px 14px;font-weight:700;white-space:nowrap}
+    .brand{display:flex;align-items:center;gap:12px}.brand-logo-wrap{height:53px;width:53px;flex:none;display:grid;place-items:center;background:#e9f2fc;border:1px solid #d6e5f5;border-radius:14px;color:#1c5b99;font-size:24px;font-weight:800}
+    .brand small{color:#6b7c91}.header-actions{display:flex;align-items:center;gap:9px}
     main{max-width:1220px;margin:24px auto 46px;padding:0 22px}.card{background:#fff;border:1px solid #dce5ef;border-radius:17px;box-shadow:0 6px 24px #13365c0b;padding:22px;margin-bottom:18px}
     .row{display:flex;gap:12px;align-items:end;flex-wrap:wrap}.row>*{min-width:0}.field{display:flex;flex-direction:column;gap:6px;flex:1 1 180px}label{font-size:13px;font-weight:700;color:#314862}
     input,select,textarea,button{font:inherit}input,select,textarea{width:100%;min-height:45px;border:1px solid #cbd8e8;border-radius:10px;padding:9px 12px;background:#fff;color:#14253d;outline:none}
@@ -36,12 +36,12 @@
     .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.full{grid-column:1/-1}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:600px}th,td{padding:9px 10px;border-bottom:1px solid #e5ebf2;text-align:left;vertical-align:middle}th{background:#f0f5fb;font-size:13px}td input,td select{min-width:100px}
     .notice{padding:11px 15px;border-radius:10px;margin-bottom:15px;background:#e5f5ec;color:#126338}.notice.error{background:#fdebec;color:#a12635}
     #loading{position:fixed;right:15px;bottom:15px;padding:10px 14px;background:#153e71;color:#fff;border-radius:10px;z-index:20;box-shadow:0 7px 20px #0a31504d}
-    @media(max-width:760px){.header-inner{padding:10px 14px}.brand-logo-wrap{width:44px;height:44px}.home-link{display:none}h1{font-size:16px}.brand small{font-size:11px}main{padding:0 12px;margin:13px auto}.login-layout{grid-template-columns:1fr;min-height:0}.login-hero{padding:25px;min-height:205px}.login-hero h2{font-size:23px}#login-card{padding:22px}.card{padding:16px}.grid{grid-template-columns:1fr}.row{align-items:stretch}.row button{width:100%}.portal-hero h2{font-size:21px}.tabs button{flex:auto;padding:8px 11px}.section-heading .field{max-width:none;flex-basis:100%}.list{grid-template-columns:repeat(auto-fill,minmax(265px,1fr))}}
-    @media(max-width:390px){.home-link{display:none}.list{grid-template-columns:1fr}.student-card{min-height:134px}.portrait{width:75px;height:100px}}
+    @media(max-width:760px){.header-inner{padding:10px 14px}.brand-logo-wrap{width:44px;height:44px}h1{font-size:16px}.brand small{font-size:11px}main{padding:0 12px;margin:13px auto}.login-layout{grid-template-columns:1fr;min-height:0}.login-hero{padding:25px;min-height:205px}.login-hero h2{font-size:23px}#login-card{padding:22px}.card{padding:16px}.grid{grid-template-columns:1fr}.row{align-items:stretch}.row button{width:100%}.portal-hero h2{font-size:21px}.tabs button{flex:auto;padding:8px 11px}.section-heading .field{max-width:none;flex-basis:100%}.list{grid-template-columns:repeat(auto-fill,minmax(265px,1fr))}}
+    @media(max-width:390px){.list{grid-template-columns:1fr}.student-card{min-height:134px}.portrait{width:75px;height:100px}}
   </style>
 </head>
 <body>
-<header class="site-header"><div class="header-inner"><div class="brand"><div class="brand-logo-wrap" aria-hidden="true">ស<img class="brand-logo" src="https://soanpreymelong.netlify.app/assets/moeys-logo.png" alt="" onerror="this.style.display='none'"></div><div><h1>ផ្ទាំងគ្រូបន្ទុកថ្នាក់</h1><small>វិទ្យាល័យសុខអានព្រៃមេលង</small></div></div><div class="header-actions"><a class="home-link" href="https://soanpreymelong.netlify.app/" target="_blank" rel="noopener noreferrer">កម្មវិធីសិស្ស ↗</a><button id="logout" class="secondary hidden" type="button">ចាកចេញ</button></div></div></header>
+<header class="site-header"><div class="header-inner"><div class="brand"><div class="brand-logo-wrap" aria-hidden="true">ស</div><div><h1>ផ្ទាំងគ្រូបន្ទុកថ្នាក់</h1><small>វិទ្យាល័យសុខអានព្រៃមេលង</small></div></div><div class="header-actions"><button id="logout" class="secondary hidden" type="button">ចាកចេញ</button></div></div></header>
 <main>
   <div id="notice" class="notice hidden" role="status" aria-live="polite"></div>
   <div id="login-layout" class="login-layout">
