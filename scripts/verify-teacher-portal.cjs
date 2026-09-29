@@ -13,6 +13,8 @@ class FakeSheet {
     return {
       getValues: read,
       getDisplayValues: () => read().map(line => line.map(String)),
+      getValue: () => read()[0][0],
+      getDisplayValue: () => String(read()[0][0]),
       setValues: values => { values.forEach((line, y) => { const at = row - 1 + y; this.rows[at] ||= []; line.forEach((value, x) => { this.rows[at][col - 1 + x] = value; }); }); return this; },
       setBackground() { return this; }, setFontColor() { return this; }, setFontWeight() { return this; }
     };
@@ -58,6 +60,14 @@ const call = (name, ...args) => context[name](...args);
 const teacher = call('teacherPortalLogin', '7A', '123456789012');
 assert.equal(teacher.role, 'class');
 assert.equal(call('teacherPortalRoster', teacher.token, '7A').students.length, 1);
+assert.equal(call('teacherPortalPhotos', teacher.token, '7A', ['id-a'])[0].photo, 'data:image/jpeg;base64,id-a');
+assert.throws(() => call('teacherPortalPhotos', teacher.token, '7A', ['id-b']), /សិទ្ធិ/);
+assert.throws(() => call('teacherPortalPhotos', teacher.token, '8A', ['id-b']), /សិទ្ធិ/);
+assert.throws(() => call('teacherPortalPhotos', teacher.token, '7A', ['id-a','id-a']), /អត្តសញ្ញាណ/);
+const originalPhoto = sheets.Students.rows[1][headers.indexOf('photo')];
+sheets.Students.rows[1][headers.indexOf('photo')] = '';
+assert.equal(call('teacherPortalPhotos', teacher.token, '7A', ['id-a'])[0].photo, '');
+sheets.Students.rows[1][headers.indexOf('photo')] = originalPhoto;
 assert.throws(() => call('teacherPortalRoster', teacher.token, '8A'), /សិទ្ធិ/);
 assert.throws(() => call('teacherPortalSaveAttendance', teacher.token, '7A', '2026-09-29', 'ព្រឹក', [{studentId:'id-b',status:'អវត្តមាន'}]), /សិស្ស/);
 assert.throws(() => call('teacherPortalSaveScores', teacher.token, '8A', 'Math', 'Monthly', '2026-09-29', 100, []), /សិទ្ធិ/);

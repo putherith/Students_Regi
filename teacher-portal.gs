@@ -198,6 +198,38 @@ function teacherPortalRoster(token, className) {
   return { className:cls, teacherName:session.actor, students:portalRoster_(cls) };
 }
 
+// Images stay out of the initial roster so a class opens quickly on a phone.
+// Fetch only visible portraits, and recheck every requested record's class.
+function teacherPortalPhotos(token, className, studentIds) {
+  const session = portalSession_(token, false);
+  const cls = portalAssertClass_(session, className);
+  if (!Array.isArray(studentIds) || !studentIds.length || studentIds.length > 4) {
+    throw new Error("សូមស្នើរូបថតពី ១ ដល់ ៤ នាក់ក្នុងមួយដង");
+  }
+  const requested = studentIds.map(function(id) { return String(id || "").trim(); });
+  if (requested.some(function(id) { return !id; }) || new Set(requested).size !== requested.length) {
+    throw new Error("អត្តសញ្ញាណរូបថតមិនត្រឹមត្រូវ");
+  }
+  const sheet = getStudentsSheet_();
+  const count = Math.max(0, sheet.getLastRow() - 1);
+  const ids = count ? sheet.getRange(2, HEADERS.indexOf("id") + 1, count, 1).getDisplayValues() : [];
+  const byId = Object.create(null);
+  ids.forEach(function(row, index) { if (row[0]) byId[String(row[0]).trim()] = index + 2; });
+  const rows = requested.map(function(id) {
+    const rowNumber = byId[id];
+    if (!rowNumber) throw new Error("រកមិនឃើញសិស្សសម្រាប់រូបថត");
+    return { id:id, rowNumber:rowNumber };
+  });
+  rows.forEach(function(item) {
+    const actualClass = String(sheet.getRange(item.rowNumber, HEADERS.indexOf("className") + 1).getDisplayValue() || "").trim();
+    if (actualClass !== cls) throw new Error("មិនមានសិទ្ធិមើលរូបថតថ្នាក់ផ្សេង");
+  });
+  return rows.map(function(item) {
+    const value = String(sheet.getRange(item.rowNumber, HEADERS.indexOf("photo") + 1).getValue() || "").trim();
+    return { id:item.id, photo:/^(data:image\/(?:png|jpe?g|webp);base64,|https:\/\/)/i.test(value) ? value : "" };
+  });
+}
+
 function portalDate_(value) {
   const date = String(value || "").trim();
   const parsed = new Date(date + "T00:00:00Z");
