@@ -38,7 +38,7 @@ context.getStudentsSheet_ = () => ({
     },
     deleteRow(row) { rows.splice(row - 2, 1); }
 });
-context.readAppSettings_ = () => ({ principalName:'Test' });
+context.readAppSettings_ = () => ({ principalName:'Test', academicYearStart:2026 });
 context.getRevision_ = () => 'revision-1';
 
 const get = params => JSON.parse(context.doGet({ parameter:params }).text);
@@ -49,6 +49,7 @@ const photoColumn = keys.indexOf('photo') + 1;
 assert.equal(readRanges.some(range => range.column <= photoColumn && range.column + range.width > photoColumn), false);
 const last = get({ action:'listpage', offset:'2', limit:'2' });
 const identities = get({ action:'identities' });
+const studentStatus = get({ action:'studentstatus', studentId:'id-2' });
 readRanges.length = 0;
 const photos = get({ action:'photos', studentIds:'id-2,STU-3' });
 const photosAfterTwelveKeys = get({ action:'photos', studentIds:[...Array.from({length:12}, (_, i) => `missing-${i}`), 'STU-3'].join(',') });
@@ -66,6 +67,8 @@ assert.equal(last.students.length, 1);
 assert.equal(last.settings, undefined);
 assert.equal(identities.students.length, 3);
 assert.equal(identities.students[0].photo, undefined);
+assert.equal(studentStatus.recordId, 'id-2');
+assert.equal(studentStatus.studentCode, 'STU-2');
 assert.equal(photos.students.length, 2);
 assert.equal(photos.students[0].photo, 'data:image/png;base64,example');
 readRanges.length = 0;

@@ -3415,10 +3415,10 @@
                         <div class="section-body">
                             <div class="field-grid">
                                 <div class="field field-full">
-                                    <label for="studentCode">អត្តលេខសិស្ស (អាចកែបាន)</label>
-                                    <input id="studentCode" name="studentCode" type="text"
+                                    <label for="studentCode">អត្តលេខសិស្ស (Server កំណត់)</label>
+                                    <input id="studentCode" name="studentCode" type="text" readonly
                                            placeholder="ឧ. 9022607001 ឬទុកទទេដើម្បីបង្កើតស្វ័យប្រវត្តិ">
-                                    <small class="field-help">ទុកទទេដើម្បីបង្កើតពីកូដសាលា 902 + ឆ្នាំជំនាន់ + កម្រិតថ្នាក់ + លេខរៀង។ ត្រូវបំពេញថ្នាក់ទី ៧–១២។</small>
+                                    <small class="field-help">លេខរៀងចុងក្រោយចេញដោយ Server ពេល Sync ដើម្បីមិនជាន់គ្នា។ ត្រូវបំពេញថ្នាក់ទី ៧–១២។</small>
                                 </div>
                                 <div class="field">
                                     <label for="studentSurname" class="required">គោត្តនាម</label>
@@ -3841,7 +3841,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.38</span>
+        <span class="footer-version">កំណែ 2.1.40</span>
     </footer>
 
 </main><!-- end .app -->
@@ -3987,6 +3987,10 @@
             <div class="field">
                 <label for="card-lunar-date-input">បន្ទាត់កាលបរិច្ឆេទចន្ទគតិ (អាចទុកទទេ)</label>
                 <input id="card-lunar-date-input" type="text" placeholder="ថ្ងៃ... ខែ... ឆ្នាំ... ព.ស...">
+            </div>
+            <div class="field">
+                <label for="academic-year-start-input">ឆ្នាំចាប់ផ្តើមឆ្នាំសិក្សា (សម្រាប់អត្តលេខ)</label>
+                <input id="academic-year-start-input" type="number" min="2000" max="2099" step="1" placeholder="2026">
             </div>
             <div class="field">
                 <label for="principal-name-input">ឈ្មោះនាយកសាលា</label>
@@ -4212,12 +4216,14 @@
     const PENDING_CLOUD_MUTATIONS_STORAGE_KEY = "studentRegistrationPendingCloudMutationsV1";
     const PHOTO_CACHE_DB_NAME = "studentRegistrationPhotoCache";
     const PHOTO_CACHE_STORE_NAME = "studentPhotos";
+    const STUDENT_SNAPSHOT_DB_NAME = "studentRegistrationTextCache";
+    const STUDENT_SNAPSHOT_STORE_NAME = "studentSnapshots";
     const DEFAULT_STUDENT_CODE_PREFIX = "STU";
     const SCHOOL_STUDENT_CODE = "902";
     const SUPABASE_READ_PAGE_SIZE    = 1000;
     // The initial phone load deliberately excludes photos. A larger text-only
     // page means fewer Google Script requests without blocking the UI.
-    const GOOGLE_SHEET_PAGE_SIZE     = 64;
+    const GOOGLE_SHEET_PAGE_SIZE     = 100;
     const SHARED_DATA_REFRESH_MS     = 20000;
     let sharedDataRefreshTimer = null;
     let sharedDataRefreshInFlight = false;
@@ -4232,6 +4238,7 @@
     let cloudMutationQueue = Promise.resolve();
     let cloudFlushInFlight = null;
     let photoCacheDbPromise = null;
+    let studentSnapshotDbPromise = null;
     let lastGoogleDataRevision = localStorage.getItem(GOOGLE_DATA_REVISION_STORAGE_KEY) || "";
     let lastGoogleSettingsRevision = localStorage.getItem(GOOGLE_SETTINGS_REVISION_STORAGE_KEY) || "";
     let appSettings = loadAppSettingsFromLocal();
@@ -4275,10 +4282,11 @@
     ]);
 
     // ===================== LOCAL STORAGE DB HANDLERS =====================
-    function loadFromLocalStorage() {
+    async function loadFromLocalStorage() {
         try {
-            const data = localStorage.getItem(LOCAL_STUDENTS_KEY);
-            const parsed = data ? JSON.parse(data) : [];
+            const snapshot = await readStudentSnapshot();
+            const data = snapshot === null ? localStorage.getItem(LOCAL_STUDENTS_KEY) : null;
+            const parsed = snapshot === null ? (data ? JSON.parse(data) : []) : snapshot;
             const localStudents = Array.isArray(parsed) ? parsed.map(normalizeStudentIdentity) : [];
             // A saved browser photo may be older than the Sheet's current cell.
             // Never show it as confirmed while the authoritative photo is loading.
@@ -4287,7 +4295,8 @@
                 : localStudents;
             // Re-apply unsynced writes after a reload so a stale/unavailable Sheet
             // can never erase data that was already saved on this device.
-            return applyPendingMutationsToStudents(baseStudents);
+            const queued = await loadHydratedPendingMutations();
+            return applyPendingMutationsToStudents(baseStudents, queued);
         } catch (e) {
             console.error("Error loading students from localStorage:", e);
             return [];
@@ -4300,13 +4309,16 @@
         // A slower photo-cache write must not persist an obsolete student list.
         if (writeVersion !== localStudentWriteVersion) return;
         const withoutCloudPhotos = () => students.map(student => ({ ...student, photo:"" }));
+        const localStudents = photosCached ? withoutCloudPhotos() : students;
+        const snapshotSaved = await writeStudentSnapshot(localStudents);
+        if (writeVersion !== localStudentWriteVersion) return;
         try {
             // Serializing every base64 photo repeatedly freezes low-memory phones.
             // Do not discard the only local copy until IndexedDB has confirmed it.
-            const localStudents = hasCloudStorageConfig() && photosCached ? withoutCloudPhotos() : students;
             localStorage.setItem(LOCAL_STUDENTS_KEY, JSON.stringify(localStudents));
         } catch (e) {
             console.error("Error saving students to localStorage:", e);
+            if (snapshotSaved) return;
             try {
                 localStorage.setItem(LOCAL_STUDENTS_KEY, JSON.stringify(withoutCloudPhotos()));
                 showToast("ឧបករណ៍ជិតពេញ៖ រូបថតមួយចំនួនមិនបានរក្សាក្នុងឧបករណ៍។ សូមពិនិត្យ Sheet មុនបិទ App", "warning");
@@ -4666,21 +4678,50 @@
         }
     }
 
-    function stripMutationPhotos(operation) {
+    function externalizeMutationPhotos(operation) {
+        const externalize = student => {
+            if (!student || !safePhotoSrc(student.photo)) return student;
+            const key = studentPhotoCacheKeys(student)[0];
+            const photo = safePhotoSrc(student.photo);
+            const signature = `${photo.length}:${photo.slice(0, 64)}:${photo.slice(-64)}`;
+            return key && cachedPhotoSignatures.get(key) === signature
+                ? { ...student, photo:"", photoCacheRequired:true }
+                : student;
+        };
         return {
             ...operation,
-            student: operation.student ? { ...operation.student, photo:"" } : operation.student,
+            student: externalize(operation.student),
             students: Array.isArray(operation.students)
-                ? operation.students.map(student => ({ ...student, photo:"" }))
+                ? operation.students.map(externalize)
                 : operation.students
         };
+    }
+
+    async function hydrateMutationPhotos(operation) {
+        const students = [operation.student, ...(operation.students || [])].filter(Boolean);
+        for (const student of students) {
+            if (!student.photoCacheRequired || safePhotoSrc(student.photo)) continue;
+            const photo = await cachedStudentPhoto(student);
+            if (!photo) throw new Error("រូបថតរង់ចាំ Sync មិនមានក្នុងឧបករណ៍។ មិនអាចផ្ញើទិន្នន័យដោយខ្វះរូបថតបានទេ");
+            student.photo = photo;
+        }
+    }
+
+    async function loadHydratedPendingMutations() {
+        const operations = loadPendingCloudMutations();
+        for (const operation of operations) {
+            try { await hydrateMutationPhotos(operation); }
+            catch (error) { console.warn("Pending photo is not available locally:", error); }
+        }
+        return operations;
     }
 
     function savePendingCloudMutations(operations, { quiet=false }={}) {
         const safeOperations = Array.isArray(operations) ? operations : [];
         try {
             if (safeOperations.length) {
-                localStorage.setItem(PENDING_CLOUD_MUTATIONS_STORAGE_KEY, JSON.stringify(safeOperations));
+                localStorage.setItem(PENDING_CLOUD_MUTATIONS_STORAGE_KEY,
+                    JSON.stringify(safeOperations.map(externalizeMutationPhotos)));
             } else {
                 localStorage.removeItem(PENDING_CLOUD_MUTATIONS_STORAGE_KEY);
             }
@@ -4688,18 +4729,9 @@
             return true;
         } catch (error) {
             console.error("Error saving pending cloud mutations:", error);
-            try {
-                const textOnly = safeOperations.map(stripMutationPhotos);
-                localStorage.setItem(PENDING_CLOUD_MUTATIONS_STORAGE_KEY, JSON.stringify(textOnly));
-                pendingCloudMutations = textOnly.length;
-                if (!quiet) showToast("ឧបករណ៍ជិតពេញ៖ បានរក្សាទុកទិន្នន័យ Offline ដោយមិនរក្សារូបថត", "warning");
-                return true;
-            } catch (fallbackError) {
-                console.error("Text-only pending mutation save failed:", fallbackError);
-                pendingCloudMutations = safeOperations.length;
-                if (!quiet) showToast("រក្សាជួររង់ចាំ Sync មិនបាន។ សូមកុំបិទ App ហើយសាក Backup ម្តងទៀត", "error");
-                return false;
-            }
+            pendingCloudMutations = safeOperations.length;
+            if (!quiet) showToast("រក្សាជួររង់ចាំ Sync មិនបាន។ សូមកុំបិទ App ហើយសាក Backup ម្តងទៀត", "error");
+            return false;
         }
     }
 
@@ -4778,6 +4810,7 @@
         appSettingsModal: document.getElementById("app-settings-modal"),
         cardIssueDateInput: document.getElementById("card-issue-date-input"),
         cardLunarDateInput: document.getElementById("card-lunar-date-input"),
+        academicYearStartInput: document.getElementById("academic-year-start-input"),
         principalNameInput: document.getElementById("principal-name-input"),
         principalPhoneInput: document.getElementById("principal-phone-input"),
         ictPhoneInput: document.getElementById("ict-phone-input"),
@@ -5264,6 +5297,7 @@
             principalName: "",
             principalPhone: "",
             cardLunarDate: "",
+            academicYearStart: new Date().getFullYear(),
             ictPhone: "",
             studentCodePrefix: DEFAULT_STUDENT_CODE_PREFIX,
             studentCodeDigits: 4,
@@ -5285,6 +5319,8 @@
             principalName: String(value.principalName || "").trim(),
             principalPhone: String(value.principalPhone || "").trim(),
             cardLunarDate: String(value.cardLunarDate || "").trim(),
+            academicYearStart: Number.isInteger(Number(value.academicYearStart)) && Number(value.academicYearStart) >= 2000 && Number(value.academicYearStart) <= 2099
+                ? Number(value.academicYearStart) : defaults.academicYearStart,
             ictPhone: String(value.ictPhone || "").trim(),
             studentCodePrefix: String(value.studentCodePrefix || defaults.studentCodePrefix).trim().replace(/\s+/g, "-").replace(/-+/g, "-").slice(0, 12) || defaults.studentCodePrefix,
             studentCodeDigits: Math.min(8, Math.max(2, Number.parseInt(value.studentCodeDigits, 10) || defaults.studentCodeDigits)),
@@ -5308,7 +5344,7 @@
         const input = document.getElementById("studentCode");
         if (!input) return;
         const stem = studentCodeStem(getValue("className"));
-        input.placeholder = `ឧ. ${stem ? `${stem}001` : "9022607001"} ឬទុកទទេដើម្បីបង្កើតស្វ័យប្រវត្តិ`;
+        input.placeholder = `Server នឹងចែកលេខ ឧ. ${stem ? `${stem}001` : "9022607001"}`;
     }
 
     function applySharedAppSettings(settings) {
@@ -5358,6 +5394,7 @@
         els.principalNameInput.value = appSettings.principalName;
         els.principalPhoneInput.value = appSettings.principalPhone;
         els.cardLunarDateInput.value = appSettings.cardLunarDate;
+        els.academicYearStartInput.value = appSettings.academicYearStart;
         els.ictPhoneInput.value = appSettings.ictPhone;
         renderTeacherSettings();
         els.appSettingsModal.classList.add("is-open");
@@ -5383,6 +5420,7 @@
 
     async function saveAppSettings() {
         const classTeachers = {};
+        if (!els.academicYearStartInput.reportValidity()) return;
         els.teacherSettingsList.querySelectorAll("input[data-class-name]").forEach(input => {
             const className = String(input.dataset.className || "").trim();
             const teacherName = input.value.trim();
@@ -5393,6 +5431,7 @@
             principalName: els.principalNameInput.value,
             principalPhone: els.principalPhoneInput.value,
             cardLunarDate: els.cardLunarDateInput.value,
+            academicYearStart: els.academicYearStartInput.value,
             ictPhone: els.ictPhoneInput.value,
             // Preserve legacy settings for old records/import compatibility.
             studentCodePrefix: appSettings.studentCodePrefix,
@@ -5913,12 +5952,31 @@
         } finally {
             clearTimeout(timeout);
         }
-        if (action === "upsert" && safePhotoSrc(student.photo)) {
-            // no-cors POST is opaque: a resolved fetch does not prove Apps Script saved the image.
-            const key = String(student.studentCode || studentId || student.id || "").trim();
-            const checked = await readGoogleSheetJsonp({ action:"studentstatus", studentId:key }, 12000);
-            if (checked.ok !== true || !checked.found || !checked.hasPhoto || Number(checked.photoLength) !== body.student.photo.length) {
-                throw new Error("រូបថតមិនទាន់បានបញ្ជាក់ថារក្សាក្នុង Google Sheet");
+        if (action === "upsert") {
+            // no-cors POST is opaque. Confirm the exact record and receive the
+            // code allocated under the server's write lock before clearing the outbox.
+            const recordId = String(student.recordId || student.id || studentId || "").trim();
+            const expectedUpdatedAt = String(student.updatedAt || "");
+            let checked = null;
+            for (let attempt=0; attempt<3; attempt++) {
+                checked = await readGoogleSheetJsonp({ action:"studentstatus", studentId:recordId }, 12000);
+                const correctRecord = checked?.ok === true && checked.found && String(checked.recordId || "") === recordId;
+                const savedLatest = !expectedUpdatedAt || String(checked.updatedAt || "") === expectedUpdatedAt;
+                const photoSaved = !safePhotoSrc(student.photo)
+                    || (checked.hasPhoto && Number(checked.photoLength) === body.student.photo.length);
+                if (correctRecord && checked.studentCode && savedLatest && photoSaved) break;
+                if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 650));
+            }
+            if (!checked?.found || String(checked.recordId || "") !== recordId || !checked.studentCode
+                || (expectedUpdatedAt && String(checked.updatedAt || "") !== expectedUpdatedAt)
+                || (safePhotoSrc(student.photo) && (!checked.hasPhoto || Number(checked.photoLength) !== body.student.photo.length))) {
+                throw new Error("Server មិនទាន់បញ្ជាក់អត្តលេខ ឬរូបថតសិស្ស។ កំពុងរង់ចាំ Sync ម្ដងទៀត");
+            }
+            const localStudent = allStudents.find(row => String(row.id) === recordId);
+            if (localStudent && localStudent.studentCode !== checked.studentCode) {
+                localStudent.studentCode = String(checked.studentCode);
+                await saveToLocalStorage(allStudents);
+                await refreshStudents({ source:"memory" });
             }
         }
         if (["upsert","upsertmany","delete","backup","replace"].includes(action)) {
@@ -5967,7 +6025,7 @@
             id:`mutation-${Date.now()}-${Math.random().toString(36).slice(2)}`,
             action,
             studentId:String(studentId || ""),
-            student:{ ...student },
+            student:action === "delete" ? { ...student, photo:"" } : { ...student },
             students:Array.isArray(students) ? students.map(item => ({ ...item })) : null,
             createdAt:new Date().toISOString()
         };
@@ -6000,8 +6058,13 @@
 
         while (operations.length) {
             const operation = operations[0];
-            if (operation.student) await restoreStudentPhoto(operation.student);
-            if (Array.isArray(operation.students)) await restoreStudentPhotos(operation.students);
+            try { await hydrateMutationPhotos(operation); }
+            catch (error) {
+                lastCloudError = readableCloudError(error);
+                setStatus(`រក្សា Offline · រង់ចាំ Sync ${operations.length}`, "error");
+                if (notify) showToast(lastCloudError, "warning");
+                return false;
+            }
             let ok = false;
             for (let attempt = 0; attempt < 2 && !ok; attempt++) {
                 ok = await syncCloudStorage(operation.action, operation.student || {}, operation.studentId || "", operation.students);
@@ -6197,8 +6260,8 @@
         const nameKey = normText(studentFullName(incoming));
         const index = students.findIndex(existing => {
             const existingKey = pendingStudentKey(existing);
-            return (key && existingKey === key)
-                || (incoming.studentCode && existing.studentCode === incoming.studentCode)
+            if (key && existingKey) return existingKey === key;
+            return (incoming.studentCode && existing.studentCode === incoming.studentCode)
                 || (nameKey && normText(studentFullName(existing)) === nameKey);
         });
         if (index >= 0) {
@@ -6249,7 +6312,7 @@
         setStatus("កំពុង Load ពី Supabase...", "");
         try {
             const cloudRows = await readSupabaseStudents();
-            const queuedOperations = loadPendingCloudMutations();
+            const queuedOperations = await loadHydratedPendingMutations();
             const cloudStudents = applyPendingMutationsToStudents(cloudRows, queuedOperations);
             await restoreStudentPhotos(cloudStudents);
             if (!cloudRows.length && keepLocalWhenCloudEmpty && allStudents.length && !queuedOperations.length) {
@@ -6295,7 +6358,7 @@
             applySharedAppSettings(payload.settings);
             const cloudRows = Array.isArray(payload.students) ? payload.students : [];
             const normalizedCloudStudents = cloudRows.map(normalizeCloudStudent).filter(s => s.id || s.studentCode || s.studentName);
-            const queuedOperations = loadPendingCloudMutations();
+            const queuedOperations = await loadHydratedPendingMutations();
             const cloudStudents = applyPendingMutationsToStudents(normalizedCloudStudents, queuedOperations);
             // Text-only rows intentionally omit photos. Fetch them from the Sheet;
             // carrying local photos forward can conceal an authoritative blank.
@@ -6486,8 +6549,8 @@
         };
     }
 
-    function findDuplicate(student, ignoreId="", source=allStudents) {
-        const codeKey = normText(student.studentCode);
+    function findDuplicate(student, ignoreId="", source=allStudents, { ignoreCode=false }={}) {
+        const codeKey = ignoreCode ? "" : normText(student.studentCode);
         const nameKey = normText(studentFullName(student));
         const classKey = normText(student.className);
         const dobKey = normDate(student.dob);
@@ -6503,8 +6566,8 @@
         return null;
     }
 
-    async function findDuplicateOnServer(student, ignoreId="", localSource=[], sharedRows=null) {
-        const localDuplicate = findDuplicate(student, ignoreId, localSource);
+    async function findDuplicateOnServer(student, ignoreId="", localSource=[], sharedRows=null, options={}) {
+        const localDuplicate = findDuplicate(student, ignoreId, localSource, options);
         if (localDuplicate) return localDuplicate;
         if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl() || navigator.onLine === false) return null;
         try {
@@ -6512,7 +6575,7 @@
             // Failure never blocks offline work; the persistent outbox will keep the record.
             const rows = sharedRows || await sharedStudentIdentities();
             const cloudStudents = rows.map(normalizeCloudStudent);
-            return findDuplicate(student, ignoreId, cloudStudents);
+            return findDuplicate(student, ignoreId, cloudStudents, options);
         } catch (error) {
             console.debug("Live duplicate check skipped:", error);
             return null;
@@ -6533,7 +6596,7 @@
         return match ? Number(match[1]) : null;
     }
 
-    function studentCodeStem(className, calendarYear=new Date().getFullYear()) {
+    function studentCodeStem(className, calendarYear=appSettings.academicYearStart) {
         const grade = classGrade(className);
         if (!grade) return "";
         const cohortYear = (calendarYear - (grade - 7)) % 100;
@@ -6563,6 +6626,49 @@
             console.debug("Shared student identities unavailable; using local records:", error);
             return [];
         }
+    }
+
+    function openStudentSnapshot() {
+        if (studentSnapshotDbPromise) return studentSnapshotDbPromise;
+        if (!("indexedDB" in window)) return Promise.resolve(null);
+        studentSnapshotDbPromise = new Promise(resolve => {
+            try {
+                const request = indexedDB.open(STUDENT_SNAPSHOT_DB_NAME, 1);
+                request.onupgradeneeded = () => request.result.createObjectStore(STUDENT_SNAPSHOT_STORE_NAME, { keyPath:"id" });
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = request.onblocked = () => resolve(null);
+            } catch (error) {
+                console.debug("Student snapshot cache is unavailable:", error);
+                resolve(null);
+            }
+        });
+        return studentSnapshotDbPromise;
+    }
+
+    async function readStudentSnapshot() {
+        const db = await openStudentSnapshot();
+        if (!db) return null;
+        return new Promise(resolve => {
+            try {
+                const request = db.transaction(STUDENT_SNAPSHOT_STORE_NAME, "readonly")
+                    .objectStore(STUDENT_SNAPSHOT_STORE_NAME).get("students");
+                request.onsuccess = () => resolve(Array.isArray(request.result?.students) ? request.result.students : null);
+                request.onerror = () => resolve(null);
+            } catch { resolve(null); }
+        });
+    }
+
+    async function writeStudentSnapshot(students) {
+        const db = await openStudentSnapshot();
+        if (!db) return false;
+        return new Promise(resolve => {
+            try {
+                const transaction = db.transaction(STUDENT_SNAPSHOT_STORE_NAME, "readwrite");
+                transaction.objectStore(STUDENT_SNAPSHOT_STORE_NAME).put({ id:"students", students });
+                transaction.oncomplete = () => resolve(true);
+                transaction.onerror = transaction.onabort = () => resolve(false);
+            } catch { resolve(false); }
+        });
     }
 
     async function sharedStudentCodes() {
@@ -7894,7 +8000,9 @@
 
         if (!payload.studentName) { showToast("សូមបំពេញឈ្មោះសិស្ស","warning"); return; }
         if (!payload.contact) { showToast("សូមបំពេញលេខទូរស័ព្ទ","warning"); return; }
-        const localDuplicate = findDuplicate(payload, editingId, allStudents);
+        const serverAllocatesCode = getCloudProvider() === GOOGLE_SHEET_PROVIDER && hasGoogleScriptUrl();
+        const duplicateOptions = { ignoreCode:serverAllocatesCode && !editingId };
+        const localDuplicate = findDuplicate(payload, editingId, allStudents, duplicateOptions);
         if (localDuplicate) { showToast(duplicateMsg(localDuplicate), "warning"); return; }
         if (!payload.studentCode && !classGrade(payload.className)) {
             showToast("សូមបំពេញថ្នាក់ទី ៧–១២ មុនបង្កើតអត្តលេខស្វ័យប្រវត្តិ", "warning");
@@ -7909,7 +8017,7 @@
                 payload.studentCode = await generateStudentCode(payload.className,
                     sharedRows.map(student => student.studentCode), { fetchShared:false });
             }
-            const dup = await findDuplicateOnServer(payload, editingId, allStudents, sharedRows);
+            const dup = await findDuplicateOnServer(payload, editingId, allStudents, sharedRows, duplicateOptions);
             if (dup) { showToast(duplicateMsg(dup),"warning"); return; }
             const nowIso = new Date().toISOString();
             if (editingId) {
@@ -7927,7 +8035,7 @@
                 }
                 await saveToLocalStorage(allStudents);
                 await logHistory("edited", payload.studentName, { studentId: payload.studentCode, recordId: editingId });
-                enqueueCloudMutation("upsert", {...payload, recordId: editingId}, payload.studentCode||editingId);
+                if (idx !== -1) enqueueCloudMutation("upsert", {...allStudents[idx], recordId: editingId}, editingId);
                 showToast("បានកែសម្រួលព័ត៌មានសិស្ស");
             } else {
                 const newId = `stu-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -7942,8 +8050,8 @@
                 allStudents.unshift(newStudent);
                 await saveToLocalStorage(allStudents);
                 await logHistory("added", payload.studentName, { studentId: payload.studentCode, recordId: newId, ...payload });
-                enqueueCloudMutation("upsert", {...payload, recordId: newId}, payload.studentCode);
-                showToast(`បានបន្ថែម ${payload.studentName} (${payload.studentCode})`);
+                enqueueCloudMutation("upsert", {...newStudent, recordId: newId}, newId);
+                showToast(`បានបន្ថែម ${payload.studentName} · កំពុងបញ្ជាក់អត្តលេខពី Server`);
             }
             resetForm();
             await refreshStudents({ reset: !editingId, source:"memory" });
@@ -8422,7 +8530,7 @@
 
     async function refreshStudents({ reset=false, source="local" }={}) {
         if (reset) resetPagination();
-        if (source !== "memory") allStudents = loadFromLocalStorage();
+        if (source !== "memory") allStudents = await loadFromLocalStorage();
         allStudents.sort((a,b) => tsMillis(b.createdAt)-tsMillis(a.createdAt));
         await updateStats();
         buildSchoolFilter();

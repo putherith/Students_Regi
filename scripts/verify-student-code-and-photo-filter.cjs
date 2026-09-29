@@ -19,7 +19,7 @@ function section(from, to) {
 }
 
 const codes = vm.createContext({
-    SCHOOL_STUDENT_CODE:'902', allStudents:[],
+    SCHOOL_STUDENT_CODE:'902', appSettings:{academicYearStart:2026}, allStudents:[],
     GOOGLE_SHEET_PROVIDER:'google-sheet', getCloudProvider:() => 'google-sheet',
     hasGoogleScriptUrl:() => true, navigator:{onLine:true},
     readGoogleSheetJsonp:async () => ({ok:true, students:[
@@ -48,6 +48,27 @@ assert.equal(codes.studentCodeStem('6A', 2026), '');
     ]);
     assert.deepEqual(Array.from(imported, student => student.studentCode),
         ['9022607003', '9022607004', '9022508003', 'CUSTOM-9']);
+
+    const duplicateCheck = vm.createContext({
+        allStudents:[], normText:value => String(value || '').trim(),
+        studentFullName:student => student.studentName || '', normDate:value => value || '',
+        getCloudProvider:() => 'google-sheet', GOOGLE_SHEET_PROVIDER:'google-sheet',
+        hasGoogleScriptUrl:() => true, navigator:{onLine:true},
+        normalizeCloudStudent:student => student,
+        sharedStudentIdentities:async () => [{id:'other',studentCode:'9022607001',studentName:'ឈ្មោះ ផ្សេង'}],
+        console
+    });
+    vm.runInContext(section('    function normStudentFields(',
+        '    // ===================== STUDENT CODE GENERATION ====================='), duplicateCheck);
+    const candidate = {id:'new',studentCode:'9022607001',studentName:'ឈ្មោះ ថ្មី'};
+    assert.equal((await duplicateCheck.findDuplicateOnServer(candidate, '', [], null))?.type, 'studentCode');
+    assert.equal(await duplicateCheck.findDuplicateOnServer(candidate, '', [], null, {ignoreCode:true}), null,
+        'a second phone may submit the same provisional code for server allocation');
+    duplicateCheck.sharedStudentIdentities = async () => [
+        {id:'other',studentCode:'9022607001',studentName:'ឈ្មោះ ថ្មី'}
+    ];
+    assert.equal((await duplicateCheck.findDuplicateOnServer(candidate, '', [], null,
+        {ignoreCode:true}))?.type, 'studentName', 'server checks still reject duplicate names');
 
     const filter = vm.createContext({
         els:{

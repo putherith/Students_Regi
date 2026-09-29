@@ -3,7 +3,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const outDir = path.join(root, "dist");
+const distRoot = path.join(root, "dist");
+const requestedOutDir = process.argv[2];
+const outDir = requestedOutDir ? path.resolve(root, requestedOutDir) : distRoot;
+if (requestedOutDir && (!outDir.startsWith(distRoot + path.sep) || fs.existsSync(outDir))) {
+  throw new Error("A clean output path inside dist/ is required");
+}
 const entries = [
   ".nojekyll",
   "README.md",

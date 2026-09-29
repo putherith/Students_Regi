@@ -29,6 +29,8 @@ Use `google-sheet-backend.gs` as the Apps Script backend:
 
 The Web App checks the shared Google Sheet revision every 20 seconds and downloads records in small pages only when something changed. A lightweight identity request checks for duplicate students without downloading every photo. Individual saves and deletes are protected by an Apps Script lock, and `Backup` merges records instead of replacing the complete shared list. `Delete all` is disabled while shared Google Sheet mode is active.
 
+Student IDs are assigned by Apps Script inside the write lock: school code `902`, cohort year, two-digit grade, then a three-digit sequence (for example `9022607001`). Set the academic-year start in school settings before registering a new cohort. Phones may show a provisional ID while offline, but the Sheet-assigned ID is authoritative after sync. The `Students` grid is provisioned for 3,000 students and the backend adds rows to the student and class-view sheets when needed. Browser text snapshots and photos use IndexedDB so a large roster does not depend on localStorage capacity; pending photo uploads are kept by record ID until confirmed by the Sheet.
+
 After updating `google-sheet-backend.gs`, use `Deploy -> Manage deployments -> Edit -> New version -> Deploy`; editing the script without deploying a new version does not update the web app.
 
 ### Restore missing photos

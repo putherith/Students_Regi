@@ -7,6 +7,7 @@ const ACCESS_KEY_PROPERTY = "STUDENT_APP_ACCESS_KEY";
 const DATA_REVISION_PROPERTY = "STUDENT_DATA_REVISION";
 const SETTINGS_REVISION_PROPERTY = "STUDENT_SETTINGS_REVISION";
 const WRITE_LOCK_TIMEOUT_MS = 30000;
+const STUDENT_SCHOOL_CODE = "902";
 
 const HEADERS = [
   "id",
@@ -153,8 +154,11 @@ function doGet(e) {
         const index = ids.findIndex(function(row) { return row[0] === key || row[1] === key; });
         if (index >= 0) rowNumber = index + 2;
       }
-      const photo = rowNumber ? String(sheet.getRange(rowNumber, HEADERS.indexOf("photo") + 1).getValue() || "") : "";
-      return output_({ ok: true, found: !!rowNumber, hasPhoto: !!photo.trim(), photoLength: photo.length }, e);
+      const row = rowNumber ? sheet.getRange(rowNumber, 1, 1, HEADERS.length).getValues()[0] : [];
+      const photo = String(row[HEADERS.indexOf("photo")] || "");
+      return output_({ ok: true, found: !!rowNumber, recordId:String(row[0] || ""),
+        studentCode:String(row[1] || ""), updatedAt:String(row[HEADERS.indexOf("updatedAt")] || ""),
+        hasPhoto: !!photo.trim(), photoLength: photo.length }, e);
     }
     if (action === "list") {
       return output_({
@@ -244,6 +248,7 @@ function doGet(e) {
       const count = withWriteLock_(function() {
         const students = readStudents_();
         refreshWorkbookDesign_(students);
+        touchRevision_(DATA_REVISION_PROPERTY);
         return students.length;
       });
       return output_({ ok: true, action: action, count: count }, e);
@@ -390,13 +395,15 @@ function getSettingsSheet_() {
 
 function readAppSettings_() {
   const sheet = getSettingsSheet_();
-  const settings = { issueDate: "", principalName: "", studentCodePrefix: "STU", studentCodeDigits: 4, classTeachers: {} };
+  const settings = { issueDate: "", principalName: "", studentCodePrefix: "STU", studentCodeDigits: 4,
+    academicYearStart: Number(Utilities.formatDate(new Date(), "Asia/Phnom_Penh", "yyyy")), classTeachers: {} };
   if (sheet.getLastRow() < 2) return settings;
   const values = sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).getDisplayValues();
   values.forEach(function(row) {
     const key = String(row[0] || "").trim();
     if (["issueDate", "cardLunarDate", "principalName", "principalPhone", "ictPhone", "studentCodePrefix"].indexOf(key) !== -1) settings[key] = String(row[1] || "").trim();
     if (key === "studentCodeDigits") settings.studentCodeDigits = Number(row[1]) || 4;
+    if (key === "academicYearStart") settings.academicYearStart = Number(row[1]) || settings.academicYearStart;
     if (key === "classTeachers") {
       try {
         const parsed = JSON.parse(row[1] || "{}");
@@ -412,6 +419,9 @@ function readAppSettings_() {
 function writeAppSettings_(settings) {
   const sheet = getSettingsSheet_();
   const safeTeachers = settings.classTeachers && typeof settings.classTeachers === "object" ? settings.classTeachers : {};
+  const requestedYear = Number(settings.academicYearStart);
+  const academicYear = Number.isInteger(requestedYear) && requestedYear >= 2000 && requestedYear <= 2099
+    ? requestedYear : readAppSettings_().academicYearStart;
   const rows = [
     ["issueDate", String(settings.issueDate || "").trim()],
     ["principalName", String(settings.principalName || "").trim()],
@@ -420,6 +430,7 @@ function writeAppSettings_(settings) {
     ["ictPhone", String(settings.ictPhone || "").trim()],
     ["studentCodePrefix", String(settings.studentCodePrefix || "STU").trim()],
     ["studentCodeDigits", Math.min(8, Math.max(2, Number(settings.studentCodeDigits) || 4))],
+    ["academicYearStart", academicYear],
     ["classTeachers", JSON.stringify(safeTeachers)]
   ];
   if (sheet.getLastRow() > 1) sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).clearContent();
@@ -483,7 +494,10 @@ function replaceStudents_(students) {
   });
   writeStudents_(students.map(function(student) {
     const previous = oldByKey[String(student.id || "").trim()] || oldByKey[String(student.studentCode || "").trim()];
-    return previous ? mergeStudentRecord_(previous, student) : student;
+    if (!previous) return student;
+    const merged = mergeStudentRecord_(previous, student);
+    merged.studentCode = previous.studentCode;
+    return merged;
   }));
 }
 
@@ -497,7 +511,9 @@ function mergeStudents_(incomingStudents) {
     });
     if (keyIndex >= 0) {
       const createdAt = students[keyIndex].createdAt;
+      const assignedCode = students[keyIndex].studentCode;
       students[keyIndex] = mergeStudentRecord_(students[keyIndex], student);
+      students[keyIndex].studentCode = assignedCode;
       if (createdAt) students[keyIndex].createdAt = createdAt;
       return;
     }
@@ -511,19 +527,22 @@ function mergeStudents_(incomingStudents) {
 
 function upsertStudent_(student) {
   const key = String(student.id || student.studentCode || "").trim();
+  if (!key) throw new Error("Student record ID is required");
   const sheet = getStudentsSheet_();
   const lastRow = sheet.getLastRow();
+  const identityRows = lastRow >= 2 ? sheet.getRange(2, 1, lastRow - 1, 3).getDisplayValues() : [];
+  const matchingIndex = identityRows.findIndex(function(row) { return row[0] === key; });
+  const academicYear = studentCodeAcademicYear_();
   if (lastRow >= 2) {
     const count = lastRow - 1;
-    const identityRows = sheet.getRange(2, 1, count, 3).getDisplayValues();
-    const matchingIndex = identityRows.findIndex(function(row) {
-      return studentMatchesKey_({ id:row[0], studentCode:row[1] }, key);
-    });
     if (matchingIndex >= 0) {
         const existing = rowToStudent_(sheet.getRange(matchingIndex + 2, 1, 1, HEADERS.length).getValues()[0]);
         const merged = mergeStudentRecord_(existing, student);
+        merged.studentCode = allocateStudentCode_(merged.className, existing.studentCode,
+          identityRows.filter(function(_row, index) { return index !== matchingIndex; }).map(function(row) { return row[1]; }), academicYear);
         merged.createdAt = existing.createdAt || student.createdAt;
         sheet.getRange(matchingIndex + 2, 1, 1, HEADERS.length).setValues([studentToRow_(merged)]);
+        student.studentCode = merged.studentCode;
         return;
     }
     const splitNames = sheet.getRange(2, HEADERS.indexOf("studentSurname") + 1, count, 2).getDisplayValues();
@@ -535,7 +554,65 @@ function upsertStudent_(student) {
       }, student)) return;
     }
   }
+  student.studentCode = allocateStudentCode_(student.className, "", identityRows.map(function(row) { return row[1]; }), academicYear);
+  ensureRows_(sheet, Math.max(2, lastRow + 1));
   sheet.getRange(Math.max(2, lastRow + 1), 1, 1, HEADERS.length).setValues([studentToRow_(student)]);
+}
+
+function studentCodeAcademicYear_() {
+  const year = Number(readAppSettings_().academicYearStart);
+  if (!Number.isInteger(year) || year < 2000 || year > 2099) throw new Error("Academic year must be 2000–2099");
+  return year;
+}
+
+function studentCodeGrade_(className) {
+  const text = String(className || "").replace(/[០-៩]/g, function(digit) { return String(digit.charCodeAt(0) - 0x17E0); })
+    .replace(/^\s*(?:ថ្នាក់ទី|ថ្នាក់|ទី)\s*/, "").trim();
+  const match = text.match(/^(1[0-2]|[7-9])(?=\D|$)/);
+  return match ? Number(match[1]) : null;
+}
+
+function studentCodeStem_(className, academicYear) {
+  const grade = studentCodeGrade_(className);
+  if (!grade) return "";
+  return STUDENT_SCHOOL_CODE + String((academicYear - (grade - 7)) % 100).padStart(2, "0")
+    + String(grade).padStart(2, "0");
+}
+
+function allocateStudentCode_(className, previousCode, otherCodes, academicYear) {
+  const stem = studentCodeStem_(className, academicYear);
+  const previous = String(previousCode || "").trim();
+  if (!stem) return previous;
+  const used = new Set((otherCodes || []).map(function(code) { return String(code || "").trim(); }));
+  if (previous.startsWith(stem) && /^\d{3}$/.test(previous.slice(stem.length)) && !used.has(previous)) return previous;
+  let maximum = 0;
+  used.forEach(function(code) {
+    if (code.startsWith(stem) && /^\d{3}$/.test(code.slice(stem.length))) {
+      maximum = Math.max(maximum, Number(code.slice(stem.length)));
+    }
+  });
+  if (maximum >= 999) throw new Error("Student code sequence is full for " + stem);
+  return stem + String(maximum + 1).padStart(3, "0");
+}
+
+function normalizeStudentCodes_(students) {
+  const academicYear = studentCodeAcademicYear_();
+  const used = new Set();
+  (students || []).forEach(function(student) {
+    const code = String(student.studentCode || "").trim();
+    const stem = studentCodeStem_(student.className, academicYear);
+    if ((!stem || (code.startsWith(stem) && /^\d{3}$/.test(code.slice(stem.length)))) && code && !used.has(code)) {
+      used.add(code);
+    } else if (stem) {
+      student.studentCode = "";
+    }
+  });
+  (students || []).forEach(function(student) {
+    if (!studentCodeStem_(student.className, academicYear) || student.studentCode) return;
+    student.studentCode = allocateStudentCode_(student.className, "", [...used], academicYear);
+    used.add(student.studentCode);
+  });
+  return students;
 }
 
 function mergeStudentRecord_(existing, incoming) {
@@ -622,7 +699,8 @@ function deleteStudent_(key) {
 
 function writeStudents_(students) {
   const sheet = getStudentsSheet_();
-  const sorted = sortStudents_(dedupeStudentsByName_(students.map(normalizeIncomingStudent_)));
+  const sorted = sortStudents_(normalizeStudentCodes_(dedupeStudentsByName_(students.map(normalizeIncomingStudent_))));
+  ensureRows_(sheet, Math.max(2, sorted.length + 1));
   if (sheet.getLastRow() > 1) {
     sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.length).clearContent();
   }
@@ -656,7 +734,7 @@ function normalizeIncomingStudent_(item) {
     if (!normalized.studentGivenName && parts.length > 1) normalized.studentGivenName = parts.slice(1).join(" ");
   }
   normalized.createdAt = student.createdAt || now;
-  normalized.updatedAt = now;
+  normalized.updatedAt = student.updatedAt || now;
   return normalized;
 }
 
@@ -733,9 +811,11 @@ function groupStudentsByClass_(students) {
 function refreshWorkbookDesign_(students) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sorted = sortStudents_(students || []);
-  rebuildDashboard_(ss, sorted);
-  rebuildByClassSheet_(ss, sorted);
-  rebuildClassSheets_(ss, sorted);
+  [["dashboard", rebuildDashboard_], ["by-class", rebuildByClassSheet_], ["class tabs", rebuildClassSheets_]]
+    .forEach(function(step) {
+      try { step[1](ss, sorted); }
+      catch (err) { throw new Error("Refresh " + step[0] + ": " + String(err && err.message || err)); }
+    });
 }
 
 function rebuildDashboard_(ss, students) {
@@ -745,6 +825,7 @@ function rebuildDashboard_(ss, students) {
   sheet.setHiddenGridlines(true);
 
   const groups = groupStudentsByClass_(students);
+  ensureRows_(sheet, Math.max(8, groups.length + 7));
   const male = students.filter(function(s) { return s.gender === "ប្រុស"; }).length;
   const female = students.filter(function(s) { return s.gender === "ស្រី"; }).length;
   const schools = countUnique_(students, "fromSchool");
@@ -816,6 +897,7 @@ function rebuildByClassSheet_(ss, students) {
 
   const colCount = VIEW_FIELDS.length;
   const groups = groupStudentsByClass_(students);
+  ensureRows_(sheet, Math.max(3, 3 + groups.reduce(function(total, group) { return total + group[1].length + 3; }, 0)));
   sheet.getRange(1, 1, 1, colCount).merge()
     .setValue("បញ្ជីសិស្សតាមថ្នាក់")
     .setBackground("#2563eb")
@@ -865,6 +947,7 @@ function rebuildClassSheets_(ss, students) {
     const sheetName = uniqueSheetName_(ss, CLASS_SHEET_PREFIX + sanitizeSheetName_(cls), usedNames);
     const sheet = ss.insertSheet(sheetName);
     resetSheet_(sheet);
+    ensureRows_(sheet, Math.max(5, items.length + 4));
     sheet.setTabColor(CLASS_TAB_COLORS[index % CLASS_TAB_COLORS.length]);
     sheet.setHiddenGridlines(true);
 
@@ -978,8 +1061,9 @@ function recreateFilter_(sheet, row, col, numRows, numCols) {
 
 function resetSheet_(sheet) {
   ensureColumns_(sheet, Math.max(HEADERS.length, VIEW_FIELDS.length, 8));
-  const range = sheet.getDataRange();
-  range.breakApart();
+  // A merged title can extend beyond getDataRange() when its other cells are
+  // empty. Unmerge the complete grid so a later rebuild never clips a merge.
+  sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getMaxColumns()).breakApart();
   sheet.clear();
   sheet.clearConditionalFormatRules();
   sheet.getBandings().forEach(function(banding) { banding.remove(); });
@@ -997,6 +1081,11 @@ function getOrCreateSheet_(ss, name) {
 function ensureColumns_(sheet, needed) {
   const current = sheet.getMaxColumns();
   if (current < needed) sheet.insertColumnsAfter(current, needed - current);
+}
+
+function ensureRows_(sheet, needed) {
+  const current = sheet.getMaxRows();
+  if (current < needed) sheet.insertRowsAfter(current, needed - current);
 }
 
 function countUnique_(students, key) {

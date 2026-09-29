@@ -140,7 +140,7 @@ async function waitFor(predicate) {
         applySharedAppSettings:() => {}, normalizeCloudStudent:row => row,
         safePhotoSrc:value => value || '',
         els:{photoFilter:{value:''}},
-        loadPendingCloudMutations:() => [], applyPendingMutationsToStudents:rows => rows,
+        loadHydratedPendingMutations:async () => [], applyPendingMutationsToStudents:rows => rows,
         rememberGoogleSheetRevisions:() => { throw new Error('Stale response must not be committed'); },
         allStudents:[{id:'new-local'}], console
     });
@@ -157,6 +157,7 @@ async function waitFor(predicate) {
         rememberStudentPhotos:rows => rows[0].id === 'old'
             ? new Promise(resolve => { finishOldCache = resolve; }) : Promise.resolve(true),
         hasCloudStorageConfig:() => true,
+        writeStudentSnapshot:async () => true,
         localStorage:{setItem:(_key, value) => { storedRows = JSON.parse(value); }}, console
     });
     vm.runInContext(section('    async function saveToLocalStorage(', '    function studentPhotoCacheKey('), storage);
@@ -174,12 +175,47 @@ async function waitFor(predicate) {
     const cachedLoad = vm.createContext({
         LOCAL_STUDENTS_KEY:'test', GOOGLE_SHEET_PROVIDER:'google', console,
         localStorage:{getItem:() => JSON.stringify([{id:'blank-on-sheet',photo:'old-cache'}])},
+        readStudentSnapshot:async () => null, loadHydratedPendingMutations:async () => [],
         normalizeStudentIdentity:student => student,
         getCloudProvider:() => 'google', hasGoogleScriptUrl:() => true,
         applyPendingMutationsToStudents:students => students
     });
-    vm.runInContext(section('    function loadFromLocalStorage(', '    async function saveToLocalStorage('), cachedLoad);
-    assert.equal(cachedLoad.loadFromLocalStorage()[0].photo, '');
+    vm.runInContext(section('    async function loadFromLocalStorage(', '    async function saveToLocalStorage('), cachedLoad);
+    assert.equal((await cachedLoad.loadFromLocalStorage())[0].photo, '');
+
+    const photo = 'data:image/jpeg;base64,' + 'A'.repeat(30000);
+    const signature = `${photo.length}:${photo.slice(0, 64)}:${photo.slice(-64)}`;
+    const storageValues = new Map();
+    const pending = vm.createContext({
+        cachedPhotoSignatures:new Map(Array.from({length:1600}, (_, n) => [`record-photo-v2:row-${n}`, signature])),
+        studentPhotoCacheKeys:student => [`record-photo-v2:${student.id}`],
+        safePhotoSrc:value => value || '', cachedStudentPhoto:async () => photo,
+        localStorage:{setItem:(key, value) => storageValues.set(key, value), removeItem:key => storageValues.delete(key)},
+        PENDING_CLOUD_MUTATIONS_STORAGE_KEY:'pending', pendingCloudMutations:0,
+        showToast:() => {}, console
+    });
+    vm.runInContext(section('    function externalizeMutationPhotos(', '    function loadHistoryFromLocalStorage('), pending);
+    const largeBatch = [{id:'mutation-1',action:'upsertmany',student:{},
+        students:Array.from({length:1600}, (_, n) => ({id:`row-${n}`,studentName:`Student ${n}`,photo}))}];
+    assert.equal(pending.savePendingCloudMutations(largeBatch), true);
+    assert.ok(storageValues.get('pending').length < 250000,
+        '1,600 pending photos must not fill localStorage');
+    const storedBatch = JSON.parse(storageValues.get('pending'))[0];
+    assert.equal(storedBatch.students[1599].photo, '');
+    assert.equal(storedBatch.students[1599].photoCacheRequired, true);
+    await pending.hydrateMutationPhotos({student:{},students:[storedBatch.students[1599]]});
+    assert.equal(storedBatch.students[1599].photo, photo);
+
+    const queued = vm.createContext({
+        normalizeCloudStudent:student => student, pendingStudentKey:student => student.id || student.studentCode || '',
+        normText:value => String(value || '').trim(), studentFullName:student => student.studentName || '',
+        normalizeStudentIdentity:student => student
+    });
+    vm.runInContext(section('    function mergeQueuedStudent(', '    function applyPendingMutationsToStudents('), queued);
+    const rows = [];
+    queued.mergeQueuedStudent(rows, {id:'phone-1',studentCode:'9022607001',studentName:'First'});
+    queued.mergeQueuedStudent(rows, {id:'phone-2',studentCode:'9022607001',studentName:'Second'});
+    assert.equal(rows.length, 2, 'two phones with the same provisional code remain separate records');
 
     const editPhoto = vm.createContext({
         GOOGLE_SHEET_PROVIDER:'google', getCloudProvider:() => 'google', hasGoogleScriptUrl:() => true,
