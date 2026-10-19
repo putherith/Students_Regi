@@ -3226,47 +3226,60 @@
         @media (min-width: 861px) { .actions-toggle-btn { display: inline-flex; } }
         @media (max-width: 860px) { .app > .topbar-actions { display: none; } }
 
-        .class-report {
+        .report-view {
             margin: 0 0 18px;
+            padding: 20px;
             border: 1px solid var(--border);
             border-radius: 16px;
             background: var(--surface);
             box-shadow: var(--shadow-sm);
-            overflow: hidden;
         }
-        .class-report > summary {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 18px;
-            color: var(--text);
-            font-weight: 700;
-            cursor: pointer;
-            list-style: none;
-        }
-        .class-report > summary::-webkit-details-marker { display: none; }
-        .class-report > summary ion-icon { color: var(--primary); font-size: 21px; }
-        .class-report > summary .report-chevron { margin-left: auto; transition: transform .2s ease; }
-        .class-report:not([open]) > summary .report-chevron { transform: rotate(-90deg); }
-        .class-report-body { padding: 0 18px 18px; }
+        .report-view[hidden] { display: none !important; }
+        body.report-page .admin-overview,
+        body.report-page .metrics,
+        body.report-page .main-layout,
+        body.report-page .class-browser-panel,
+        body.report-page .history-panel { display: none !important; }
+        .report-view-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:18px; }
+        .report-view-header h1 { color:var(--text); font-size:1.45rem; line-height:1.5; }
+        .report-view-header p { color:var(--muted); font-size:.87rem; }
+        .report-mode-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; padding:5px; border-radius:12px; background:var(--surface-2); }
+        .report-mode-tabs button { min-height:40px; padding:8px 14px; border:0; border-radius:9px; background:transparent; color:var(--text-2); font:inherit; font-weight:700; }
+        .report-mode-tabs button[aria-pressed="true"] { background:var(--primary); color:#fff; box-shadow:var(--shadow-sm); }
+        .class-report-body { padding:0; }
         .class-report-tools { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin: 0 0 14px; }
         .class-report-tools label { display: flex; flex-direction: column; gap: 5px; min-width: 190px; font-size: .82rem; font-weight: 700; }
         .class-report-tools select { min-height: 38px; padding: 5px 9px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; }
         .class-report-summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
         .class-report-summary span { padding: 7px 11px; border-radius: 999px; background: var(--primary-soft); color: var(--primary); font-size: .83rem; font-weight: 700; }
         .class-report-table-wrap { overflow-x: auto; }
-        .class-report table { width: 100%; border-collapse: collapse; }
-        .class-report th, .class-report td { padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
-        .class-report th { background: var(--surface-2); font-size: .8rem; }
-        .class-report td { font-size: .85rem; }
-        .class-report tfoot td { font-weight: 700; background: var(--surface-2); }
-        .class-report h3 { margin: 18px 0 8px; font-size: 1rem; }
+        .class-report-table-wrap > table { width:100%; border-collapse:collapse; }
+        .class-report-table-wrap > table th, .class-report-table-wrap > table td { padding:9px 10px; border-bottom:1px solid var(--border); text-align:left; white-space:nowrap; }
+        .class-report-table-wrap > table th { background:var(--surface-2); font-size:.8rem; }
+        .class-report-table-wrap > table td { font-size:.85rem; }
+        .class-report-table-wrap > table tfoot td { font-weight:700; background:var(--surface-2); }
+        .report-view h3 { margin:18px 0 8px; font-size:1rem; }
         .class-report-empty { padding: 12px; color: var(--muted); }
+        .roster-preview { margin-top:16px; overflow-x:auto; border-radius:10px; background:var(--surface-2); }
+        .school-roster-page { box-sizing:border-box; width:100%; min-width:900px; max-width:1050px; min-height:1200px; margin:0 auto 18px; padding:22px 22px 18px; background:#fff; color:#111; box-shadow:var(--shadow-sm); font-family:"Khmer OS Siemreap","Siemreap",sans-serif; }
+        .roster-document-header { display:grid; grid-template-columns:1fr 1fr; gap:14px; min-height:92px; font-size:12px; line-height:1.65; }
+        .roster-document-header .kingdom { text-align:center; font-weight:700; }
+        .roster-document-header .school-lines { font-weight:700; }
+        .roster-document-title { margin:0 0 8px; text-align:center; font-size:14px; font-weight:700; }
+        .roster-table { width:100%; table-layout:fixed; border-collapse:collapse; }
+        .roster-table th,.roster-table td { box-sizing:border-box; height:18px; padding:1px 2px; border:1px solid #1f2937; color:#111; font-size:9px; line-height:1.2; overflow:hidden; white-space:nowrap; text-overflow:clip; }
+        .roster-table th { height:38px; text-align:center; font-weight:700; white-space:normal; }
+        .roster-table .roster-center { text-align:center; }
+        .roster-document-footer { display:flex; justify-content:space-between; gap:20px; padding-top:6px; font-size:11px; line-height:1.6; }
+        .roster-signatures { display:grid; grid-template-columns:1fr 1fr; gap:30px; margin-top:8px; text-align:center; font-size:11px; }
+        .roster-signatures strong { display:block; margin-top:18px; }
         @media (max-width: 860px) {
-            .class-report { margin-bottom: 12px; }
-            .class-report-body { padding: 0 12px 12px; }
+            .report-view { margin:0 -8px 12px; padding:14px 10px; border-radius:12px; }
+            .report-view-header { flex-direction:column; gap:8px; }
+            .report-view-header h1 { font-size:1.15rem; }
+            .mobile-tabs { grid-template-columns:repeat(4,minmax(0,1fr)); }
+            .mobile-tab-btn { font-size:.72rem; }
             .class-report-tools .btn { flex: 1 1 auto; }
-            body.mobile-form-view .class-report { display: none; }
         }
     </style>
 </head>
@@ -3308,7 +3321,7 @@
                 <button class="btn btn-ghost" type="button" data-sidebar-view="form"><ion-icon name="person-add-outline" aria-hidden="true"></ion-icon><span>បញ្ចូលសិស្សថ្មី</span></button>
                 <button class="btn btn-ghost" type="button" data-sidebar-view="list"><ion-icon name="search-outline" aria-hidden="true"></ion-icon><span>បញ្ជី និងស្វែងរក</span></button>
                 <button class="btn btn-ghost" type="button" data-sidebar-view="classes"><ion-icon name="school-outline" aria-hidden="true"></ion-icon><span>សិស្សតាមថ្នាក់</span></button>
-                <button class="btn btn-ghost" type="button" data-sidebar-view="report"><ion-icon name="bar-chart-outline" aria-hidden="true"></ion-icon><span>របាយការណ៍តាមថ្នាក់</span></button>
+                <button class="btn btn-ghost" type="button" data-sidebar-view="report"><ion-icon name="bar-chart-outline" aria-hidden="true"></ion-icon><span>របាយការណ៍</span></button>
             </div>
 
             <!-- Sync group -->
@@ -3456,16 +3469,22 @@
         </div>
     </section>
 
-    <!-- ======================== CLASS REPORT ======================== -->
-    <details id="class-report-panel" class="class-report" open>
-        <summary>
-            <ion-icon name="bar-chart-outline" aria-hidden="true"></ion-icon>
-            <span>របាយការណ៍ និងស្ថិតិសិស្សតាមថ្នាក់</span>
-            <ion-icon class="report-chevron" name="chevron-down-outline" aria-hidden="true"></ion-icon>
-        </summary>
+    <!-- App-only reports: derived from the loaded roster, with no Sheet writes. -->
+    <section id="report-view" class="report-view" hidden aria-labelledby="report-view-title">
+        <div class="report-view-header">
+            <div>
+                <h1 id="report-view-title">របាយការណ៍ និងស្ថិតិសិស្ស</h1>
+                <p>ស្ថិតិតាមថ្នាក់ ឬតាមកម្រិតថ្នាក់ និងបញ្ជីឈ្មោះសម្រាប់បោះពុម្ព</p>
+            </div>
+            <button id="report-back-btn" class="btn btn-ghost" type="button"><ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon> ត្រឡប់ទៅបញ្ជី</button>
+        </div>
+        <div class="report-mode-tabs" role="group" aria-label="ប្រភេទរបាយការណ៍">
+            <button id="report-mode-class" type="button" aria-pressed="true">តាមថ្នាក់</button>
+            <button id="report-mode-grade" type="button" aria-pressed="false">តាមកម្រិតថ្នាក់</button>
+        </div>
         <div class="class-report-body">
             <div class="class-report-tools">
-                <label for="class-report-select">ជ្រើសថ្នាក់
+                <label for="class-report-select"><span id="report-filter-label">ជ្រើសថ្នាក់</span>
                     <select id="class-report-select"><option value="">ថ្នាក់ទាំងអស់</option></select>
                 </label>
                 <button id="print-class-report-btn" class="btn btn-secondary" type="button"><ion-icon name="print-outline" aria-hidden="true"></ion-icon> បោះពុម្ពរបាយការណ៍</button>
@@ -3475,7 +3494,7 @@
             <div id="class-report-table" class="class-report-table-wrap"></div>
             <div id="class-report-roster"></div>
         </div>
-    </details>
+    </section>
 
     <!-- ======================== MOBILE TABS ======================== -->
     <div class="mobile-tabs" aria-label="Mobile view tabs">
@@ -3490,6 +3509,10 @@
         <button id="tab-classes-btn" class="mobile-tab-btn" type="button">
             <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
             <span>តាមថ្នាក់</span>
+        </button>
+        <button id="tab-report-btn" class="mobile-tab-btn" type="button">
+            <ion-icon name="bar-chart-outline" aria-hidden="true"></ion-icon>
+            <span>របាយការណ៍</span>
         </button>
     </div>
 
@@ -3986,7 +4009,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.45</span>
+        <span class="footer-version">កំណែ 2.1.46</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4929,7 +4952,11 @@
         maleStudents: document.getElementById("male-students"),
         femaleStudents: document.getElementById("female-students"),
         lastSync: document.getElementById("last-sync"),
-        classReportPanel: document.getElementById("class-report-panel"),
+        reportView: document.getElementById("report-view"),
+        reportBackBtn: document.getElementById("report-back-btn"),
+        reportModeClassBtn: document.getElementById("report-mode-class"),
+        reportModeGradeBtn: document.getElementById("report-mode-grade"),
+        reportFilterLabel: document.getElementById("report-filter-label"),
         classReportSelect: document.getElementById("class-report-select"),
         classReportSummary: document.getElementById("class-report-summary"),
         classReportTable: document.getElementById("class-report-table"),
@@ -5017,6 +5044,7 @@
         tabListBtn: document.getElementById("tab-list-btn"),
         tabFormBtn: document.getElementById("tab-form-btn"),
         tabClassesBtn: document.getElementById("tab-classes-btn"),
+        tabReportBtn: document.getElementById("tab-report-btn"),
         openClassBrowserBtn: document.getElementById("open-class-browser-btn"),
         classBrowserPanel: document.getElementById("class-browser-panel"),
         classBrowserContent: document.getElementById("class-browser-content"),
@@ -8032,9 +8060,25 @@
         document.body.classList.remove("mobile-editing");
     }
 
+    function openReportView() {
+        closeMobileEditPanel();
+        document.body.classList.remove("mobile-form-view", "class-browser-view");
+        document.body.classList.add("report-page");
+        els.reportView.hidden = false;
+        els.tabListBtn?.classList.remove("active");
+        els.tabFormBtn?.classList.remove("active");
+        els.tabClassesBtn?.classList.remove("active");
+        els.tabReportBtn?.classList.add("active");
+        renderClassReport();
+        window.scrollTo({ top:0, behavior:isMobileView() ? "auto" : "smooth" });
+    }
+
     function setActiveTab(tab, options = {}) {
         if (!els.mainLayout) return;
         closeMobileEditPanel();
+        document.body.classList.remove("report-page");
+        els.reportView.hidden = true;
+        els.tabReportBtn?.classList.remove("active");
         const isForm = tab === "form";
         const isClasses = tab === "classes";
         document.body.classList.toggle("mobile-form-view", isForm);
@@ -8311,6 +8355,8 @@
         renderClassReport();
     }
 
+    let reportMode = "class";
+
     function classReportGroups() {
         const groups = new Map();
         allStudents.forEach(student => {
@@ -8326,7 +8372,26 @@
             a.key === "unassigned" ? 1 : b.key === "unassigned" ? -1 : compareKhmer(a.name, b.name, { numeric:true }));
     }
 
-    function selectedClassReport(groups=classReportGroups()) {
+    function gradeReportGroups() {
+        const groups = new Map();
+        classReportGroups().forEach(classGroup => {
+            const grade = classGrade(classGroup.name);
+            const key = grade ? `grade:${grade}` : "grade:unknown";
+            if (!groups.has(key)) groups.set(key, {
+                key, name:grade ? `ថ្នាក់ទី ${grade}` : "មិនកំណត់កម្រិត",
+                students:[], male:0, female:0, classCount:0
+            });
+            const group = groups.get(key);
+            group.students.push(...classGroup.students);
+            group.male += classGroup.male;
+            group.female += classGroup.female;
+            if (classGroup.key !== "unassigned") group.classCount++;
+        });
+        return [...groups.values()].sort((a, b) =>
+            a.key === "grade:unknown" ? 1 : b.key === "grade:unknown" ? -1 : Number(a.key.slice(6)) - Number(b.key.slice(6)));
+    }
+
+    function selectedClassReport(groups=reportMode === "grade" ? gradeReportGroups() : classReportGroups()) {
         const selected = els.classReportSelect?.value || "";
         const group = groups.find(item => item.key === selected);
         return { groups, selected:group || null, rows:group ? [group] : groups };
@@ -8336,33 +8401,96 @@
         const total = rows.reduce((sum, group) => sum + group.students.length, 0);
         const male = rows.reduce((sum, group) => sum + group.male, 0);
         const female = rows.reduce((sum, group) => sum + group.female, 0);
-        return `<table><thead><tr><th>ល.រ</th><th>ថ្នាក់</th><th>សរុប</th><th>ប្រុស</th><th>ស្រី</th><th>មិនកំណត់ភេទ</th><th>ភាគរយសរុប</th></tr></thead>
-            <tbody>${rows.map((group, index) => `<tr><td>${index + 1}</td><td>${esc(group.name)}</td><td>${group.students.length}</td><td>${group.male}</td><td>${group.female}</td><td>${group.students.length - group.male - group.female}</td><td>${total ? (group.students.length / total * 100).toFixed(1) : "0.0"}%</td></tr>`).join("")}</tbody>
-            <tfoot><tr><td colspan="2">សរុប</td><td>${total}</td><td>${male}</td><td>${female}</td><td>${total - male - female}</td><td>100%</td></tr></tfoot></table>`;
+        const grades = reportMode === "grade";
+        const countClasses = rows.reduce((sum, group) => sum + (group.classCount || 0), 0);
+        return `<table><thead><tr><th>ល.រ</th><th>${grades ? "កម្រិតថ្នាក់" : "ថ្នាក់"}</th>${grades ? "<th>ចំនួនថ្នាក់</th>" : ""}<th>សរុប</th><th>ប្រុស</th><th>ស្រី</th><th>មិនកំណត់ភេទ</th><th>ភាគរយសរុប</th></tr></thead>
+            <tbody>${rows.map((group, index) => `<tr><td>${index + 1}</td><td>${esc(group.name)}</td>${grades ? `<td>${group.classCount}</td>` : ""}<td>${group.students.length}</td><td>${group.male}</td><td>${group.female}</td><td>${group.students.length - group.male - group.female}</td><td>${total ? (group.students.length / total * 100).toFixed(1) : "0.0"}%</td></tr>`).join("")}</tbody>
+            <tfoot><tr><td colspan="2">សរុប</td>${grades ? `<td>${countClasses}</td>` : ""}<td>${total}</td><td>${male}</td><td>${female}</td><td>${total - male - female}</td><td>${total ? "100%" : "0%"}</td></tr></tfoot></table>`;
+    }
+
+    function reportShortDate(value) {
+        const match = String(normDate(value) || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        return match ? `${match[3]}/${match[2]}/${match[1]}` : String(value || "");
+    }
+
+    function classRosterDocumentHtml(group) {
+        const students = [...group.students].sort((a, b) =>
+            compareKhmer(studentVisibleId(a) || "", studentVisibleId(b) || "", { numeric:true }) ||
+            compareKhmer(studentFullName(a), studentFullName(b)));
+        const pages = Math.max(1, Math.ceil(students.length / 90));
+        const academicYear = `${toKhmerDigits(appSettings.academicYearStart)}-${toKhmerDigits(appSettings.academicYearStart + 1)}`;
+        const classLabel = group.key === "unassigned" ? "មិនទាន់កំណត់ថ្នាក់" : `ថ្នាក់ទី ${group.name}`;
+        const teacher = appSettings.classTeachers[group.name] || "................................";
+        const principal = appSettings.principalName || "................................";
+        const columns = [3.5, 9, 12, 4.5, 10, 11];
+        const colgroup = `<colgroup>${[...columns, ...columns].map(width => `<col style="width:${width}%">`).join("")}</colgroup>`;
+        const headings = `<th>ល.រ</th><th>អត្តលេខ</th><th>គោត្តនាម និងនាម</th><th>ភេទ</th><th>ថ្ងៃខែឆ្នាំកំណើត</th><th>សាលាមកពី</th>`;
+        const cells = index => {
+            const student = students[index];
+            if (!student) return "<td></td>".repeat(6);
+            return `<td class="roster-center">${index + 1}</td><td class="roster-center">${esc(studentVisibleId(student) || "")}</td><td>${esc(studentFullName(student) || "")}</td><td class="roster-center">${esc(student.gender || "")}</td><td class="roster-center">${esc(reportShortDate(student.dob))}</td><td>${esc(student.fromSchool || "")}</td>`;
+        };
+        return Array.from({ length:pages }, (_, page) => {
+            const start = page * 90;
+            const rows = Array.from({ length:45 }, (_, row) =>
+                `<tr>${cells(start + row)}${cells(start + 45 + row)}</tr>`).join("");
+            return `<section class="school-roster-page">
+                <div class="roster-document-header">
+                    <div class="school-lines">ក្រសួងអប់រំ យុវជន និងកីឡា<br>មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ<br>វិទ្យាល័យសុខអានព្រៃមេលង<br>ថ្នាក់ ${esc(group.name)}</div>
+                    <div class="kingdom">ព្រះរាជាណាចក្រកម្ពុជា<br>ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
+                </div>
+                <h1 class="roster-document-title">បញ្ជីឈ្មោះសិស្ស ${esc(classLabel)} ឆ្នាំសិក្សា ${academicYear}</h1>
+                <table class="roster-table">${colgroup}<thead><tr>${headings}${headings}</tr></thead><tbody>${rows}</tbody></table>
+                <div class="roster-document-footer"><span>សរុប ${students.length} នាក់ · ប្រុស ${group.male} នាក់ · ស្រី ${group.female} នាក់</span><span>ទំព័រ ${page + 1}/${pages} · ថ្ងៃទី ${esc(formatDate(appSettings.issueDate))}</span></div>
+                <div class="roster-signatures"><div>បានឃើញ និងឯកភាព<br>នាយកសាលា<strong>${esc(principal)}</strong></div><div>គ្រូបន្ទុកថ្នាក់<strong>${esc(teacher)}</strong></div></div>
+            </section>`;
+        }).join("");
     }
 
     function classReportRosterHtml(group) {
-        if (!group) return "";
-        return `<h3>បញ្ជីសិស្សថ្នាក់ ${esc(group.name)}</h3><div class="class-report-table-wrap"><table>
-            <thead><tr><th>ល.រ</th><th>អត្តលេខ</th><th>ឈ្មោះសិស្ស</th><th>ភេទ</th><th>ប្រភេទថ្នាក់</th></tr></thead>
-            <tbody>${group.students.map((student, index) => `<tr><td>${index + 1}</td><td>${esc(studentVisibleId(student) || "–")}</td><td>${esc(studentFullName(student) || "–")}</td><td>${esc(student.gender || "–")}</td><td>${esc(student.classTrack || "–")}</td></tr>`).join("")}</tbody>
-            </table></div>`;
+        return group ? `<h3>បញ្ជីឈ្មោះសិស្សថ្នាក់ ${esc(group.name)}</h3><div class="roster-preview">${classRosterDocumentHtml(group)}</div>` : "";
+    }
+
+    function classRosterPrintCss() {
+        return `<style>
+            @page { size:A4 portrait; margin:7mm; }
+            body { color:#111; }
+            .school-roster-page { box-sizing:border-box; width:196mm; min-width:0; max-width:none; height:283mm; min-height:0; margin:0; padding:0; box-shadow:none; break-after:page; page-break-after:always; font-family:"Khmer OS Siemreap","Siemreap",sans-serif; }
+            .school-roster-page:last-child { break-after:auto; page-break-after:auto; }
+            .roster-document-header { display:grid; grid-template-columns:1fr 1fr; min-height:29mm; gap:3mm; font-size:8pt; line-height:1.5; }
+            .roster-document-header .kingdom { text-align:center; font-weight:700; }
+            .roster-document-header .school-lines { font-weight:700; }
+            h1.roster-document-title { margin:0 0 2mm; text-align:center; font-size:9pt; line-height:1.45; }
+            .roster-table { width:100%; table-layout:fixed; border-collapse:collapse; }
+            .roster-table th,.roster-table td { box-sizing:border-box; height:4.25mm; padding:.35mm .5mm; border:.2mm solid #111; color:#111; font-size:6.3pt; line-height:1.05; overflow:hidden; white-space:nowrap; }
+            .roster-table th { height:8mm; text-align:center; font-size:6.1pt; font-weight:700; white-space:normal; }
+            .roster-table .roster-center { text-align:center; }
+            .roster-document-footer { display:flex; justify-content:space-between; gap:4mm; padding-top:1mm; font-size:7.5pt; }
+            .roster-signatures { display:grid; grid-template-columns:1fr 1fr; gap:8mm; margin-top:3mm; text-align:center; font-size:7.5pt; }
+            .roster-signatures strong { display:block; margin-top:7mm; }
+            @media screen { body { padding:12px; background:#e7ebf1; } .school-roster-page { margin:0 auto 14px; padding:7mm; width:210mm; height:297mm; background:#fff; box-shadow:0 4px 18px #0002; } }
+        </style>`;
     }
 
     function renderClassReport() {
-        if (!els.classReportSelect) return;
-        const groups = classReportGroups();
+        if (!els.classReportSelect || els.reportView.hidden) return;
+        const groups = reportMode === "grade" ? gradeReportGroups() : classReportGroups();
         const previous = els.classReportSelect.value;
-        els.classReportSelect.replaceChildren(new Option("ថ្នាក់ទាំងអស់", ""));
+        els.reportModeClassBtn.setAttribute("aria-pressed", String(reportMode === "class"));
+        els.reportModeGradeBtn.setAttribute("aria-pressed", String(reportMode === "grade"));
+        els.reportFilterLabel.textContent = reportMode === "grade" ? "ជ្រើសកម្រិតថ្នាក់" : "ជ្រើសថ្នាក់";
+        els.classReportSelect.replaceChildren(new Option(reportMode === "grade" ? "គ្រប់កម្រិតថ្នាក់" : "ថ្នាក់ទាំងអស់", ""));
         groups.forEach(group => els.classReportSelect.add(new Option(`${group.name} (${group.students.length})`, group.key)));
         els.classReportSelect.value = groups.some(group => group.key === previous) ? previous : "";
         const { selected, rows } = selectedClassReport(groups);
         const total = rows.reduce((sum, group) => sum + group.students.length, 0);
         const male = rows.reduce((sum, group) => sum + group.male, 0);
         const female = rows.reduce((sum, group) => sum + group.female, 0);
-        els.classReportSummary.innerHTML = `<span>ថ្នាក់ ${rows.length}</span><span>សិស្ស ${total}</span><span>ប្រុស ${male}</span><span>ស្រី ${female}</span><span>មិនកំណត់ភេទ ${total - male - female}</span>`;
+        const count = reportMode === "grade" ? rows.reduce((sum, group) => sum + group.classCount, 0) : rows.length;
+        els.classReportSummary.innerHTML = `<span>${reportMode === "grade" ? "កម្រិតថ្នាក់" : "ថ្នាក់"} ${rows.length}</span>${reportMode === "grade" ? `<span>ចំនួនថ្នាក់ ${count}</span>` : ""}<span>សិស្ស ${total}</span><span>ប្រុស ${male}</span><span>ស្រី ${female}</span><span>មិនកំណត់ភេទ ${total - male - female}</span>`;
         els.classReportTable.innerHTML = rows.length ? classReportTableHtml(rows) : '<p class="class-report-empty">មិនទាន់មានទិន្នន័យសិស្ស</p>';
-        els.classReportRoster.innerHTML = classReportRosterHtml(selected);
+        els.classReportRoster.innerHTML = reportMode === "class" ? classReportRosterHtml(selected) : "";
+        els.printClassReportBtn.innerHTML = `<ion-icon name="print-outline" aria-hidden="true"></ion-icon> ${reportMode === "class" && selected ? "បោះពុម្ពបញ្ជីឈ្មោះ" : "បោះពុម្ពរបាយការណ៍"}`;
         els.printClassReportBtn.disabled = !rows.length;
         els.downloadClassReportBtn.disabled = !rows.length;
     }
@@ -8370,27 +8498,33 @@
     function printClassReport() {
         const { selected, rows } = selectedClassReport();
         if (!rows.length) return;
-        const title = selected ? `របាយការណ៍សិស្សថ្នាក់ ${selected.name}` : "របាយការណ៍ស្ថិតិសិស្សតាមថ្នាក់";
+        if (reportMode === "class" && selected) {
+            printWindow(`បញ្ជីឈ្មោះសិស្សថ្នាក់ ${selected.name}`, classRosterPrintCss() + classRosterDocumentHtml(selected));
+            return;
+        }
+        const title = reportMode === "grade" ? "របាយការណ៍ស្ថិតិសិស្សតាមកម្រិតថ្នាក់" : "របាយការណ៍ស្ថិតិសិស្សតាមថ្នាក់";
         printWindow(title, `<h1>${esc(title)}</h1><p class="meta">វិទ្យាល័យសុខអានព្រៃមេលង · ${esc(new Date().toLocaleDateString("km-KH"))}</p>
-            ${classReportTableHtml(rows)}${classReportRosterHtml(selected)}`);
+            <div class="class-report-table-wrap">${classReportTableHtml(rows)}</div>`);
     }
 
     function downloadClassReport() {
         const { selected, rows } = selectedClassReport();
         if (!rows.length) return;
         const total = rows.reduce((sum, group) => sum + group.students.length, 0);
-        const lines = [["ថ្នាក់", "សរុប", "ប្រុស", "ស្រី", "មិនកំណត់ភេទ"]];
-        rows.forEach(group => lines.push([group.name, group.students.length, group.male, group.female, group.students.length - group.male - group.female]));
-        lines.push(["សរុប", total, rows.reduce((sum, group) => sum + group.male, 0), rows.reduce((sum, group) => sum + group.female, 0), rows.reduce((sum, group) => sum + group.students.length - group.male - group.female, 0)]);
-        if (selected) {
-            lines.push([], ["ល.រ", "អត្តលេខ", "ឈ្មោះសិស្ស", "ភេទ", "ប្រភេទថ្នាក់"]);
-            selected.students.forEach((student, index) => lines.push([index + 1, studentVisibleId(student), studentFullName(student), student.gender, student.classTrack]));
+        const grades = reportMode === "grade";
+        const lines = [[grades ? "កម្រិតថ្នាក់" : "ថ្នាក់", ...(grades ? ["ចំនួនថ្នាក់"] : []), "សរុប", "ប្រុស", "ស្រី", "មិនកំណត់ភេទ"]];
+        rows.forEach(group => lines.push([group.name, ...(grades ? [group.classCount] : []), group.students.length, group.male, group.female, group.students.length - group.male - group.female]));
+        lines.push(["សរុប", ...(grades ? [rows.reduce((sum, group) => sum + group.classCount, 0)] : []), total, rows.reduce((sum, group) => sum + group.male, 0), rows.reduce((sum, group) => sum + group.female, 0), rows.reduce((sum, group) => sum + group.students.length - group.male - group.female, 0)]);
+        if (reportMode === "class" && selected) {
+            lines.push([], ["ល.រ", "អត្តលេខ", "គោត្តនាម និងនាម", "ភេទ", "ថ្ងៃខែឆ្នាំកំណើត", "សាលាមកពី"]);
+            [...selected.students].sort((a, b) => compareKhmer(studentVisibleId(a) || "", studentVisibleId(b) || "", { numeric:true }))
+                .forEach((student, index) => lines.push([index + 1, studentVisibleId(student), studentFullName(student), student.gender, reportShortDate(student.dob), student.fromSchool]));
         }
         const blob = new Blob(["\uFEFF" + lines.map(row => row.map(csvVal).join(",")).join("\r\n")], { type:"text/csv;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = selected ? `class-report-${selected.name.replace(/[\\/:*?"<>|]/g, "-")}.csv` : "class-report-all.csv";
+        link.download = selected ? `student-report-${selected.name.replace(/[\\/:*?"<>|]/g, "-")}.csv` : `student-report-${reportMode}.csv`;
         document.body.append(link);
         link.click();
         link.remove();
@@ -9792,7 +9926,6 @@
             return;
         }
         setActionsOpen(localStorage.getItem("studentSidebarOpen") !== "0", false);
-        if (isMobileView() && els.classReportPanel) els.classReportPanel.open = false;
         els.actionsToggleBtn?.addEventListener("click", () =>
             setActionsOpen(els.appTopbar?.classList.contains("actions-collapsed")));
         document.getElementById("app-actions")?.addEventListener("click", event => {
@@ -9810,8 +9943,7 @@
                 setActiveTab("classes", { scroll:false });
                 els.classBrowserPanel.scrollIntoView({ behavior:"smooth", block:"start" });
             } else if (view === "report") {
-                els.classReportPanel.open = true;
-                els.classReportPanel.scrollIntoView({ behavior:"smooth", block:"start" });
+                openReportView();
             }
         });
         updateStudentCodeHint();
@@ -9904,6 +10036,8 @@
         });
         els.downloadPhotosBtn?.addEventListener("click",downloadAllStudentPhotos);
         els.downloadCsvBtn.addEventListener("click",downloadCSV);
+        els.reportModeClassBtn?.addEventListener("click", () => { reportMode = "class"; renderClassReport(); });
+        els.reportModeGradeBtn?.addEventListener("click", () => { reportMode = "grade"; renderClassReport(); });
         els.classReportSelect?.addEventListener("change",renderClassReport);
         els.printClassReportBtn?.addEventListener("click",printClassReport);
         els.downloadClassReportBtn?.addEventListener("click",downloadClassReport);
@@ -9956,6 +10090,8 @@
         els.tabListBtn?.addEventListener("click", () => setActiveTab("list"));
         els.tabFormBtn?.addEventListener("click", () => setActiveTab("form"));
         els.tabClassesBtn?.addEventListener("click", () => { selectedClassName = null; setActiveTab("classes"); });
+        els.tabReportBtn?.addEventListener("click", openReportView);
+        els.reportBackBtn?.addEventListener("click", () => setActiveTab("list"));
         els.openClassBrowserBtn?.addEventListener("click", () => { selectedClassName = null; setActiveTab("classes"); });
         els.classBrowserCloseBtn?.addEventListener("click", () => setActiveTab("list"));
         els.classBrowserBackBtn?.addEventListener("click", () => {
@@ -10035,6 +10171,7 @@
                 if(els.appSettingsModal.classList.contains("is-open")){closeAppSettings();return;}
                 if(els.phoneCameraModal?.classList.contains("is-open")){closePhoneCameraModal();return;}
                 if(els.mobileActionsSheet?.classList.contains("is-open")){closeMobileActions();return;}
+                if(document.body.classList.contains("report-page")){setActiveTab("list");return;}
                 if(document.body.classList.contains("class-browser-view")){
                     if(selectedClassName !== null){selectedClassName=null;renderClassBrowser();}
                     else setActiveTab("list");
