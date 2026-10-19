@@ -3267,10 +3267,11 @@
         .roster-document-header .school-lines { font-weight:700; }
         .roster-document-title { margin:0 0 8px; text-align:center; font-size:14px; font-weight:700; }
         .roster-table { width:100%; table-layout:fixed; border-collapse:collapse; }
-        .roster-table th,.roster-table td { box-sizing:border-box; height:18px; padding:1px 2px; border:1px solid #1f2937; color:#111; font-size:9px; line-height:1.2; overflow:hidden; white-space:nowrap; text-overflow:clip; }
+        .roster-table th,.roster-table td { box-sizing:border-box; height:21px; padding:1px 2px; border:1px solid #1f2937; color:#111; font-size:9px; line-height:1.2; overflow:hidden; white-space:nowrap; text-overflow:clip; }
         .roster-table th { height:38px; text-align:center; font-weight:700; white-space:normal; }
         .roster-table .roster-center { text-align:center; }
-        .roster-document-footer { display:flex; justify-content:space-between; gap:20px; padding-top:6px; font-size:11px; line-height:1.6; }
+        .roster-document-footer { display:grid; grid-template-columns:1fr 1fr; gap:20px; padding-top:6px; font-size:11px; line-height:1.6; }
+        .roster-document-footer .roster-page-number { margin-left:8px; }
         .roster-signatures { display:grid; grid-template-columns:1fr 1fr; gap:30px; margin-top:8px; text-align:center; font-size:11px; }
         .roster-signatures strong { display:block; margin-top:18px; }
         @media (max-width: 860px) {
@@ -4009,7 +4010,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.46</span>
+        <span class="footer-version">កំណែ 2.1.47</span>
     </footer>
 
 </main><!-- end .app -->
@@ -8422,7 +8423,7 @@
         const classLabel = group.key === "unassigned" ? "មិនទាន់កំណត់ថ្នាក់" : `ថ្នាក់ទី ${group.name}`;
         const teacher = appSettings.classTeachers[group.name] || "................................";
         const principal = appSettings.principalName || "................................";
-        const columns = [3.5, 9, 12, 4.5, 10, 11];
+        const columns = [3.5, 9, 12, 3.5, 10.5, 11.5];
         const colgroup = `<colgroup>${[...columns, ...columns].map(width => `<col style="width:${width}%">`).join("")}</colgroup>`;
         const headings = `<th>ល.រ</th><th>អត្តលេខ</th><th>គោត្តនាម និងនាម</th><th>ភេទ</th><th>ថ្ងៃខែឆ្នាំកំណើត</th><th>សាលាមកពី</th>`;
         const cells = index => {
@@ -8441,8 +8442,8 @@
                 </div>
                 <h1 class="roster-document-title">បញ្ជីឈ្មោះសិស្ស ${esc(classLabel)} ឆ្នាំសិក្សា ${academicYear}</h1>
                 <table class="roster-table">${colgroup}<thead><tr>${headings}${headings}</tr></thead><tbody>${rows}</tbody></table>
-                <div class="roster-document-footer"><span>សរុប ${students.length} នាក់ · ប្រុស ${group.male} នាក់ · ស្រី ${group.female} នាក់</span><span>ទំព័រ ${page + 1}/${pages} · ថ្ងៃទី ${esc(formatDate(appSettings.issueDate))}</span></div>
-                <div class="roster-signatures"><div>បានឃើញ និងឯកភាព<br>នាយកសាលា<strong>${esc(principal)}</strong></div><div>គ្រូបន្ទុកថ្នាក់<strong>${esc(teacher)}</strong></div></div>
+                <div class="roster-document-footer"><span>* បញ្ជីនេះមានសិស្សសរុប ${students.length} នាក់ ស្រី ${group.female} នាក់${pages > 1 ? `<span class="roster-page-number">(ទំព័រ ${page + 1}/${pages})</span>` : ""}</span><span class="roster-date">ថ្ងៃទី ........ ខែ ................ ឆ្នាំ ${toKhmerDigits(String(appSettings.issueDate || "").slice(0, 4) || new Date().getFullYear())}</span></div>
+                <div class="roster-signatures"><div>បានឃើញ និងឯកភាព<br>គ្រូបន្ទុកថ្នាក់<strong>${esc(teacher)}</strong></div><div>នាយកសាលា<strong>${esc(principal)}</strong></div></div>
             </section>`;
         }).join("");
     }
@@ -8453,19 +8454,20 @@
 
     function classRosterPrintCss() {
         return `<style>
-            @page { size:A4 portrait; margin:7mm; }
+            @page { size:A4 portrait; margin:6mm; }
             body { color:#111; }
-            .school-roster-page { box-sizing:border-box; width:196mm; min-width:0; max-width:none; height:283mm; min-height:0; margin:0; padding:0; box-shadow:none; break-after:page; page-break-after:always; font-family:"Khmer OS Siemreap","Siemreap",sans-serif; }
+            .school-roster-page { box-sizing:border-box; width:198mm; min-width:0; max-width:none; height:284mm; min-height:0; margin:0; padding:0; box-shadow:none; break-after:page; page-break-after:always; font-family:"Khmer OS Siemreap","Siemreap",sans-serif; }
             .school-roster-page:last-child { break-after:auto; page-break-after:auto; }
-            .roster-document-header { display:grid; grid-template-columns:1fr 1fr; min-height:29mm; gap:3mm; font-size:8pt; line-height:1.5; }
+            .roster-document-header { display:grid; grid-template-columns:1fr 1fr; min-height:27mm; gap:3mm; font-size:8pt; line-height:1.45; }
             .roster-document-header .kingdom { text-align:center; font-weight:700; }
             .roster-document-header .school-lines { font-weight:700; }
-            h1.roster-document-title { margin:0 0 2mm; text-align:center; font-size:9pt; line-height:1.45; }
+            h1.roster-document-title { margin:0 0 1.5mm; text-align:center; font-size:9pt; line-height:1.45; }
             .roster-table { width:100%; table-layout:fixed; border-collapse:collapse; }
-            .roster-table th,.roster-table td { box-sizing:border-box; height:4.25mm; padding:.35mm .5mm; border:.2mm solid #111; color:#111; font-size:6.3pt; line-height:1.05; overflow:hidden; white-space:nowrap; }
+            .roster-table th,.roster-table td { box-sizing:border-box; height:4.8mm; padding:.25mm .45mm; border:.2mm solid #111; color:#111; font-size:6.3pt; line-height:1.05; overflow:hidden; white-space:nowrap; }
             .roster-table th { height:8mm; text-align:center; font-size:6.1pt; font-weight:700; white-space:normal; }
             .roster-table .roster-center { text-align:center; }
-            .roster-document-footer { display:flex; justify-content:space-between; gap:4mm; padding-top:1mm; font-size:7.5pt; }
+            .roster-document-footer { display:grid; grid-template-columns:1fr 1fr; gap:4mm; padding-top:1mm; font-size:7.5pt; }
+            .roster-document-footer .roster-date { text-align:center; }
             .roster-signatures { display:grid; grid-template-columns:1fr 1fr; gap:8mm; margin-top:3mm; text-align:center; font-size:7.5pt; }
             .roster-signatures strong { display:block; margin-top:7mm; }
             @media screen { body { padding:12px; background:#e7ebf1; } .school-roster-page { margin:0 auto 14px; padding:7mm; width:210mm; height:297mm; background:#fff; box-shadow:0 4px 18px #0002; } }
@@ -8490,7 +8492,7 @@
         els.classReportSummary.innerHTML = `<span>${reportMode === "grade" ? "កម្រិតថ្នាក់" : "ថ្នាក់"} ${rows.length}</span>${reportMode === "grade" ? `<span>ចំនួនថ្នាក់ ${count}</span>` : ""}<span>សិស្ស ${total}</span><span>ប្រុស ${male}</span><span>ស្រី ${female}</span><span>មិនកំណត់ភេទ ${total - male - female}</span>`;
         els.classReportTable.innerHTML = rows.length ? classReportTableHtml(rows) : '<p class="class-report-empty">មិនទាន់មានទិន្នន័យសិស្ស</p>';
         els.classReportRoster.innerHTML = reportMode === "class" ? classReportRosterHtml(selected) : "";
-        els.printClassReportBtn.innerHTML = `<ion-icon name="print-outline" aria-hidden="true"></ion-icon> ${reportMode === "class" && selected ? "បោះពុម្ពបញ្ជីឈ្មោះ" : "បោះពុម្ពរបាយការណ៍"}`;
+        els.printClassReportBtn.innerHTML = `<ion-icon name="print-outline" aria-hidden="true"></ion-icon> ${reportMode === "class" ? "បោះពុម្ពបញ្ជីឈ្មោះ" : "បោះពុម្ពរបាយការណ៍"}`;
         els.printClassReportBtn.disabled = !rows.length;
         els.downloadClassReportBtn.disabled = !rows.length;
     }
@@ -8498,8 +8500,9 @@
     function printClassReport() {
         const { selected, rows } = selectedClassReport();
         if (!rows.length) return;
-        if (reportMode === "class" && selected) {
-            printWindow(`បញ្ជីឈ្មោះសិស្សថ្នាក់ ${selected.name}`, classRosterPrintCss() + classRosterDocumentHtml(selected));
+        if (reportMode === "class") {
+            printWindow(selected ? `បញ្ជីឈ្មោះសិស្សថ្នាក់ ${selected.name}` : "បញ្ជីឈ្មោះសិស្សតាមថ្នាក់",
+                classRosterPrintCss() + (selected ? [selected] : rows).map(classRosterDocumentHtml).join(""));
             return;
         }
         const title = reportMode === "grade" ? "របាយការណ៍ស្ថិតិសិស្សតាមកម្រិតថ្នាក់" : "របាយការណ៍ស្ថិតិសិស្សតាមថ្នាក់";
