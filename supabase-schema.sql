@@ -10,6 +10,7 @@ create table if not exists public.students (
   gender text,
   dob text,
   class_name text,
+  class_track text,
   from_school text,
   pob_village text,
   pob_commune text,
@@ -37,6 +38,7 @@ create table if not exists public.students (
 );
 
 alter table public.students
+  add column if not exists class_track text,
   add column if not exists photo text,
   add column if not exists student_surname text,
   add column if not exists student_given_name text,

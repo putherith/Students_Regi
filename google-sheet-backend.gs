@@ -41,7 +41,8 @@ const HEADERS = [
   "motherPhone",
   "fatherDob",
   "motherDob",
-  "guardianDob"
+  "guardianDob",
+  "classTrack"
 ];
 
 const HEADER_LABELS = {
@@ -51,6 +52,7 @@ const HEADER_LABELS = {
   gender: "ភេទ",
   dob: "ថ្ងៃខែឆ្នាំកំណើត",
   className: "ថ្នាក់",
+  classTrack: "ប្រភេទថ្នាក់",
   fromSchool: "សាលា",
   pobVillage: "ភូមិកំណើត",
   pobCommune: "ឃុំ/សង្កាត់កំណើត",
@@ -86,6 +88,7 @@ const VIEW_FIELDS = [
   "gender",
   "dob",
   "className",
+  "classTrack",
   "fromSchool",
   "contact",
   "fatherName",
@@ -113,8 +116,30 @@ const VIEW_FIELDS = [
 const HEADER_ROW = HEADERS.map(function(key) { return HEADER_LABELS[key] || key; });
 const VIEW_HEADER_ROW = VIEW_FIELDS.map(function(key) { return HEADER_LABELS[key] || key; });
 
-const STUDENT_COLUMN_WIDTHS = [90, 95, 170, 60, 105, 80, 165, 115, 135, 135, 135, 120, 130, 130, 125, 150, 150, 150, 100, 145, 145, 120, 120, 125, 125, 145, 105, 125, 125, 135, 135, 150];
-const VIEW_COLUMN_WIDTHS = [95, 120, 120, 60, 105, 80, 165, 120, 130, 135, 125, 130, 135, 125, 145, 150, 115, 135, 135, 135, 125, 150, 150, 150, 100, 125, 125, 105];
+// Direct edits in the Students tab do not pass through the App's save endpoint.
+// Assign the same server-side code as soon as a name and class are entered.
+function onEdit(e) {
+  try {
+    const range = e && e.range;
+    const sheet = range && range.getSheet();
+    if (!sheet || sheet.getName() !== SHEET_NAME || range.getRow() < 2) return;
+    const firstColumn = range.getColumn();
+    const lastColumn = firstColumn + range.getNumColumns() - 1;
+    const identityColumns = [2, 3, 6, 22, 23];
+    if (!identityColumns.some(function(column) { return column >= firstColumn && column <= lastColumn; })) return;
+    const firstRow = range.getRow();
+    const lastRow = firstRow + range.getNumRows() - 1;
+    const count = withWriteLock_(function() {
+      return assignMissingStudentCodes_(sheet, firstRow, lastRow);
+    });
+    if (count) touchRevision_(DATA_REVISION_PROPERTY);
+  } catch (err) {
+    console.error("Automatic student-code assignment failed:", err);
+  }
+}
+
+const STUDENT_COLUMN_WIDTHS = [90, 95, 170, 60, 105, 80, 165, 115, 135, 135, 135, 120, 130, 130, 125, 150, 150, 150, 100, 145, 145, 120, 120, 125, 125, 145, 105, 125, 125, 135, 135, 150, 165];
+const VIEW_COLUMN_WIDTHS = [95, 120, 120, 60, 105, 80, 165, 165, 120, 130, 135, 125, 130, 135, 125, 145, 150, 115, 135, 135, 135, 125, 150, 150, 150, 100, 125, 125, 105];
 const CLASS_TAB_COLORS = ["#0f766e", "#2563eb", "#7c3aed", "#15803d", "#b45309", "#be123c", "#0891b2", "#4f46e5"];
 
 function doGet(e) {
@@ -166,6 +191,7 @@ function doGet(e) {
         hasPhoto: !!photo.trim(), photoLength: photo.length }, e);
     }
     if (action === "list") {
+      ensureMissingStudentCodes_();
       return output_({
         ok: true,
         students: readStudents_(),
@@ -175,9 +201,10 @@ function doGet(e) {
       }, e);
     }
     if (action === "listpage") {
+      const requestedOffset = Number((e && e.parameter && e.parameter.offset) || 0);
+      if (!Number.isFinite(requestedOffset) || requestedOffset <= 0) ensureMissingStudentCodes_();
       const sheet = getStudentsSheet_();
       const total = Math.max(0, sheet.getLastRow() - 1);
-      const requestedOffset = Number((e && e.parameter && e.parameter.offset) || 0);
       const offset = Number.isFinite(requestedOffset) ? Math.min(total, Math.max(0, Math.floor(requestedOffset))) : 0;
       // Phone connections are much more reliable when the initial list contains
       // text only. Photos are returned later for students visible on screen.
@@ -237,6 +264,7 @@ function doGet(e) {
       return output_({ ok:true, students:students, revision:getRevision_(DATA_REVISION_PROPERTY) }, e);
     }
     if (action === "identities") {
+      ensureMissingStudentCodes_();
       const sheet = getStudentsSheet_();
       const count = Math.max(0, sheet.getLastRow() - 1);
       const left = count ? sheet.getRange(2, 1, count, 3).getDisplayValues() : [];
@@ -480,6 +508,67 @@ function readStudents_() {
     .map(rowToStudent_);
 }
 
+function ensureMissingStudentCodes_() {
+  const count = withWriteLock_(function() {
+    const sheet = getStudentsSheet_();
+    return assignMissingStudentCodes_(sheet, 2, sheet.getLastRow());
+  });
+  if (count) touchRevision_(DATA_REVISION_PROPERTY);
+  return count;
+}
+
+function assignMissingStudentCodes_(sheet, firstRow, lastRow) {
+  const sheetLastRow = sheet.getLastRow();
+  const rowCount = Math.max(0, sheetLastRow - 1);
+  if (!rowCount) return 0;
+  const start = Math.max(2, Number(firstRow) || 2);
+  const end = Math.min(sheetLastRow, Number(lastRow) || sheetLastRow);
+  if (end < start) return 0;
+
+  // Read only identity, names and timestamps. Never load photo cells just to
+  // assign IDs; those cells can contain large embedded images.
+  const identities = sheet.getRange(2, 1, rowCount, 6).getDisplayValues();
+  const splitNames = sheet.getRange(2, HEADERS.indexOf("studentSurname") + 1, rowCount, 2).getDisplayValues();
+  const timestamps = sheet.getRange(2, HEADERS.indexOf("createdAt") + 1, rowCount, 2).getValues();
+  const usedCodes = identities.map(function(row) { return String(row[1] || "").trim(); }).filter(Boolean);
+  const usedSet = new Set(usedCodes);
+  const academicYear = studentCodeAcademicYear_();
+  const updates = [];
+
+  for (let rowNumber = start; rowNumber <= end; rowNumber++) {
+    const index = rowNumber - 2;
+    const identity = identities[index] || [];
+    if (String(identity[1] || "").trim()) continue;
+    const name = String(identity[2] || [splitNames[index] && splitNames[index][0], splitNames[index] && splitNames[index][1]].filter(Boolean).join(" ")).trim();
+    const className = String(identity[5] || "").trim();
+    if (!name || !studentCodeGrade_(className)) continue;
+
+    const studentCode = allocateStudentCode_(className, "", Array.from(usedSet), academicYear);
+    if (!studentCode) continue;
+    usedSet.add(studentCode);
+    const timestamp = new Date().toISOString();
+    const savedTimestamps = timestamps[index] || [];
+    updates.push({
+      rowNumber:rowNumber,
+      identity:[String(identity[0] || Utilities.getUuid()), studentCode],
+      timestamps:[savedTimestamps[0] || timestamp, timestamp]
+    });
+  }
+
+  // Write adjacent records together for large paste operations.
+  for (let i = 0; i < updates.length;) {
+    let next = i + 1;
+    while (next < updates.length && updates[next].rowNumber === updates[next - 1].rowNumber + 1) next++;
+    const group = updates.slice(i, next);
+    const first = group[0].rowNumber;
+    sheet.getRange(first, 1, group.length, 2).setValues(group.map(function(item) { return item.identity; }));
+    sheet.getRange(first, HEADERS.indexOf("createdAt") + 1, group.length, 2)
+      .setValues(group.map(function(item) { return item.timestamps; }));
+    i = next;
+  }
+  return updates.length;
+}
+
 function rowToStudent_(row) {
   const student = {};
   HEADERS.forEach(function(key, i) {
@@ -515,6 +604,8 @@ function replaceStudents_(students) {
 }
 
 function mergeStudents_(incomingStudents) {
+  const sheet = getStudentsSheet_();
+  assignMissingStudentCodes_(sheet, 2, sheet.getLastRow());
   const students = readStudents_();
   incomingStudents.forEach(function(incoming) {
     const student = normalizeIncomingStudent_(incoming);
@@ -542,6 +633,7 @@ function upsertStudent_(student) {
   const key = String(student.id || student.studentCode || "").trim();
   if (!key) throw new Error("Student record ID is required");
   const sheet = getStudentsSheet_();
+  assignMissingStudentCodes_(sheet, 2, sheet.getLastRow());
   const lastRow = sheet.getLastRow();
   const identityRows = lastRow >= 2 ? sheet.getRange(2, 1, lastRow - 1, 3).getDisplayValues() : [];
   const matchingIndex = identityRows.findIndex(function(row) { return row[0] === key; });
@@ -632,7 +724,7 @@ function mergeStudentRecord_(existing, incoming) {
   const merged = Object.assign({}, existing || {}, incoming || {});
   // Never let a text-only edit or an offline retry with no cached image clear a photo
   // that already exists in the shared Sheet.
-  ["studentName", "studentSurname", "studentGivenName", "photo"].forEach(function(field) {
+  ["studentName", "studentSurname", "studentGivenName", "photo", "classTrack"].forEach(function(field) {
     if (!String((incoming && incoming[field]) || "").trim() && String((existing && existing[field]) || "").trim()) {
       merged[field] = existing[field];
     }

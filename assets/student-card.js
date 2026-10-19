@@ -14,8 +14,8 @@
     const blank = "........................";
     function render(students, settings, logoUrl, academicYear, schoolEmblemUrl = logoUrl) {
         const date = /^(\d{4})-(\d{2})-(\d{2})$/.exec(settings.issueDate || "");
-        const artworkScaleX = 74.24 * 96 / 25.4 / 584;
-        const artworkScaleY = 99.24 * 96 / 25.4 / 608;
+        const artworkScaleX = 94.24 * 96 / 25.4 / 584;
+        const artworkScaleY = 119.24 * 96 / 25.4 / 608;
         const dateDay = date ? khmer(Number(date[3])) : "................";
         const dateMonth = date ? khmer(Number(date[2])) : "................";
         const dateYear = date ? khmer(date[1]) : "................";
@@ -59,28 +59,24 @@
                     <div class="regulations-school-name">វិទ្យាល័យសុខអានព្រៃមេលង</div>
                     <div class="regulations-sections">
                     <section class="regulations-do"><h2>ផ្នែកទី១៖ ត្រូវធ្វើ</h2><ol>
-                      <li>មកសាលាមុន ១៥ នាទី ដើម្បីចូលរួមគោរពទង់ជាតិ និងចៀសវាងការមកយឺត។</li>
-                      <li>មករៀនឱ្យទាន់ពេលវេលា។</li>
-                      <li>អនុវត្តកម្មវិធីសិក្សាឱ្យបានខ្ជាប់ខ្ជួន ស្របតាមគោលការណ៍ និងបទបញ្ជារបស់សាលា។</li>
-                      <li>ប្រើពាក្យសម្ដីសមរម្យ និងគោរពគ្នាទៅវិញទៅមក។</li>
-                      <li>ប្រកាន់ខ្ជាប់នូវសាមគ្គីភាព ស្រឡាញ់គ្នា និងជួយគ្នាទៅវិញទៅមក។</li>
-                      <li>គោរពលោកគ្រូ អ្នកគ្រូ បុគ្គលិកសាលា និងចេះជួយមិត្តភក្ដិ។</li>
-                      <li>ថែរក្សាទ្រព្យសម្បត្តិ និងសម្ភារៈរបស់សាលា។</li>
+                      <li>មកសាលាមុន ១៥ នាទី ដើម្បីគោរពទង់ជាតិ និងចូលរៀនទាន់ពេល។</li>
+                      <li>ខិតខំរៀន និងអនុវត្តបទបញ្ជាសាលា។</li>
+                      <li>និយាយសមរម្យ គោរពគ្រូ បុគ្គលិក និងមិត្តភក្ដិ។</li>
+                      <li>រក្សាសាមគ្គីភាព ជួយគ្នា និងថែទ្រព្យសម្បត្តិសាលា។</li>
                     </ol></section>
                     <section class="regulations-dont"><h2>ផ្នែកទី២៖ មិនត្រូវធ្វើ</h2><ol>
-                      <li>មិនត្រូវអវត្តមានពីការសិក្សាដោយគ្មានការជូនដំណឹង ឬការអនុញ្ញាតពីប្រធានថ្នាក់ឡើយ។</li>
-                      <li>មិនត្រូវប្រើទូរសព្ទក្នុងពេលសិក្សាឡើយ លើកលែងតែមានការអនុញ្ញាតពីលោកគ្រូ ឬអ្នកគ្រូ។</li>
-                      <li>មិនត្រូវប្រើពាក្យអសុរោះ ឬប្រព្រឹត្តអំពើបៀតបៀនអ្នកដទៃឡើយ។</li>
-                      <li>មិនត្រូវលេងល្បែងស៊ីសង ឬប្រព្រឹត្តអំពើអសីលធម៌ឡើយ។</li>
-                      <li>មិនត្រូវពាក់គ្រឿងអលង្ការមានតម្លៃ ឬនាំយកវត្ថុដែលអាចបង្កហានិភ័យមកសាលាឡើយ។</li>
-                      <li>មិនត្រូវបំផ្លាញសម្ភារៈសាលា ឬសរសេរលើតុ និងជញ្ជាំងឡើយ។</li>
-                      <li>មិនត្រូវជក់បារី ឬបារីអេឡិចត្រូនិក (Vape) ផឹកគ្រឿងស្រវឹង ប្រើប្រាស់គ្រឿងញៀន ឬកាន់កាប់អាវុធ និងគ្រឿងផ្ទុះឡើយ។</li>
-                      <li>មិនត្រូវបញ្ចេញ ឬចែកចាយរូបភាពខុសសីលធម៌ និងប្រព្រឹត្តអំពើដែលប៉ះពាល់ដល់កិត្តិយសរបស់សាលាឡើយ។</li>
+                      <li>មិនអវត្តមានដោយគ្មានដំណឹង ឬការអនុញ្ញាតពីប្រធានថ្នាក់។</li>
+                      <li>មិនប្រើទូរសព្ទក្នុងម៉ោងរៀន លើកលែងគ្រូអនុញ្ញាត។</li>
+                      <li>មិនជេរប្រមាថ បៀតបៀន លេងល្បែងស៊ីសង ឬប្រព្រឹត្តអសីលធម៌។</li>
+                      <li>មិននាំគ្រឿងអលង្ការថ្លៃ ឬវត្ថុគ្រោះថ្នាក់មកសាលា។</li>
+                      <li>មិនបំផ្លាញសម្ភារៈ ឬសរសេរលើតុ និងជញ្ជាំង។</li>
+                      <li>ហាមបារី បារីអេឡិចត្រូនិក (Vape) គ្រឿងស្រវឹង គ្រឿងញៀន អាវុធ និងគ្រឿងផ្ទុះ។</li>
+                      <li>មិនបង្ហោះ ឬចែកចាយរូបភាពខុសសីលធម៌ដែលប៉ះពាល់កិត្តិយសសាលា។</li>
                     </ol></section>
                     <section class="regulations-discipline"><h2>ផ្នែកទី៣៖ វិធានការវិន័យ</h2><ol>
-                      <li><strong>កម្រិតទី១៖</strong> អប់រំ ណែនាំ និងព្រមានដោយផ្ទាល់មាត់។</li>
-                      <li><strong>កម្រិតទី២៖</strong> កត់ត្រាកំហុស អញ្ជើញអាណាព្យាបាលមកជួប និងធ្វើកិច្ចសន្យា។</li>
-                      <li><strong>កម្រិតទី៣៖</strong> ផ្អាកការសិក្សាជាបណ្ដោះអាសន្ន ឬបញ្ជូនទៅគណៈគ្រប់គ្រងសាលា ឬ ទៅអាជ្ញាធរមានសមត្ថកិច្ច ដើម្បីចាត់វិធានការវិន័យយ៉ាងម៉ឺងម៉ាត់ ស្របតាមបទបញ្ជារបស់សាលា។</li>
+                      <li><strong>កម្រិតទី១៖</strong> អប់រំណែនាំ និងព្រមានផ្ទាល់មាត់។</li>
+                      <li><strong>កម្រិតទី២៖</strong> កត់ត្រាកំហុស អញ្ជើញអាណាព្យាបាល និងធ្វើកិច្ចសន្យា។</li>
+                      <li><strong>កម្រិតទី៣៖</strong> ផ្អាកការសិក្សាបណ្ដោះអាសន្ន ឬបញ្ជូនទៅគណៈគ្រប់គ្រងសាលា ឬអាជ្ញាធរ តាមបទបញ្ជាសាលា។</li>
                     </ol></section>
                     </div>
                   </div>
@@ -92,24 +88,24 @@
         return `<style>
           @page { size:A4 portrait; margin:8mm; }
           body { background:#fff; }
-          .cards-grid { box-sizing:border-box; width:194mm; height:281mm; display:grid; grid-template-columns:repeat(2,75mm); grid-template-rows:repeat(2,100mm); gap:4mm; justify-content:center; align-content:center; break-after:page; page-break-after:always; }
+          .cards-grid { box-sizing:border-box; width:194mm; height:281mm; display:grid; grid-template-columns:repeat(2,95mm); grid-template-rows:repeat(2,120mm); gap:4mm 2mm; justify-content:center; align-content:center; break-after:page; page-break-after:always; }
           .cards-grid.card-back-page { direction:ltr; }
           .cards-grid:last-child { break-after:auto; page-break-after:auto; }
-          .certificate-student-card { position:relative; width:75mm; height:100mm; border:.38mm solid #1717ff; background:#fff; box-sizing:border-box; overflow:hidden; break-inside:avoid; page-break-inside:avoid; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
-          .certificate-student-card-back { border-color:transparent; padding:2mm 2.5mm; display:flex; isolation:isolate; color:#111; font:7.6px/1.4 "Khmer OS Siemreap","Siemreap",sans-serif; }
-          .regulations-watermark { position:absolute; z-index:0; width:61mm; height:61mm; left:50%; top:52%; transform:translate(-50%,-50%); object-fit:contain; opacity:.075; pointer-events:none; }
+          .certificate-student-card { position:relative; width:95mm; height:120mm; border:.38mm solid #1717ff; background:#fff; box-sizing:border-box; overflow:hidden; break-inside:avoid; page-break-inside:avoid; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+          .certificate-student-card-back { border-color:transparent; padding:3mm 3.5mm; display:flex; isolation:isolate; color:#111; font:11px/1.55 "Khmer OS Siemreap","Siemreap",sans-serif; }
+          .regulations-watermark { position:absolute; z-index:0; width:78mm; height:78mm; left:50%; top:52%; transform:translate(-50%,-50%); object-fit:contain; opacity:.075; pointer-events:none; }
           .regulations-content { position:relative; z-index:1; flex:1; min-height:0; display:flex; flex-direction:column; }
-          .regulations-heading { color:#204e78; text-align:center; font:11px/1.35 "Khmer OS Muol Light","Khmer OS Moul","Moul",serif; }
-          .regulations-school-name { margin:.15mm 0 .75mm; text-align:center; color:#234c8c; font:7.5px/1.3 "Khmer OS Siemreap","Siemreap",sans-serif; font-weight:bold; }
-          .regulations-sections { flex:1; display:flex; flex-direction:column; gap:1.8mm; }
+          .regulations-heading { color:#204e78; text-align:center; font:16px/1.4 "Khmer OS Muol Light","Khmer OS Moul","Moul",serif; }
+          .regulations-school-name { margin:.3mm 0 1.5mm; text-align:center; color:#234c8c; font:11px/1.4 "Khmer OS Siemreap","Siemreap",sans-serif; font-weight:bold; }
+          .regulations-sections { flex:1; display:flex; flex-direction:column; gap:2.5mm; }
           .regulations-sections section { margin:0; }
-          .regulations-sections h2 { margin:0; padding:.22mm .6mm; color:#fff; font:700 8px/1.3 "Khmer OS Siemreap","Siemreap",sans-serif; }
+          .regulations-sections h2 { margin:0; padding:.5mm 1mm; color:#fff; font:700 11px/1.4 "Khmer OS Siemreap","Siemreap",sans-serif; }
           .regulations-do h2 { background:#20517d; }
           .regulations-dont h2 { background:#c70000; }
           .regulations-discipline h2 { background:#8a6900; }
-          .regulations-sections ol { margin:.7mm 0 0; padding-left:4mm; display:grid; gap:.25mm; }
-          .regulations-sections li { padding-left:.15mm; font:7.6px/1.4 "Khmer OS Siemreap","Siemreap",sans-serif; }
-          .regulations-sections li::marker { font-family:Arial,sans-serif; font-size:7.6px; }
+          .regulations-sections ol { margin:1mm 0 0; padding-left:5mm; display:grid; gap:.4mm; }
+          .regulations-sections li { padding-left:.25mm; font:11px/1.55 "Khmer OS Siemreap","Siemreap",sans-serif; }
+          .regulations-sections li::marker { font-family:Arial,sans-serif; font-size:10px; }
           .reference-artwork { --card-body:"Khmer OS Siemreap","KhmerOSSiemreap","Siemreap",sans-serif; --card-heading:"Khmer OS Muol Light","Khmer OS Moul","Moul",serif; position:relative; width:584px; height:608px; transform-origin:top left; transform:scale(${artworkScaleX.toFixed(9)},${artworkScaleY.toFixed(9)}); color:#102932; font:18px/1.65 var(--card-body); }
           .reference-artwork * { box-sizing:border-box; }
           .reference-artwork strong { color:#1111ff; font-weight:400; }
@@ -130,10 +126,10 @@
           .current-address { top:325px; }
           .contacts-line { top:359px; grid-template-columns:153px 120px 146px 99px; }
           .latin-value { font-family:Arial,sans-serif; font-size:16px !important; font-weight:700 !important; }
-          .reference-photo-box { position:absolute; left:17px; top:388px; width:142px; height:180px; border:2px solid #5585ff; display:grid; grid-template-rows:33px minmax(0,1fr); }
+          .reference-photo-box { position:absolute; left:17px; top:388px; width:134px; height:180px; border:2px solid #5585ff; display:grid; grid-template-rows:33px minmax(0,1fr); }
           .card-id-code { border-bottom:2px solid #5585ff; color:#152932; text-align:center; font:bold 16px/31px "Times New Roman",serif; white-space:nowrap; }
           .card-photo-slot { position:relative; min-height:0; display:grid; place-items:center; overflow:hidden; background:#1999fe; color:#111; font:16px Arial,sans-serif; }
-          /* The card artwork is scaled non-uniformly for print. Filling this near-square
+          /* The card artwork is scaled non-uniformly for print. Filling this slot
              slot compensates for that scale, so the final photo stays 3:4 and uncropped. */
           .card-photo-slot img { position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:fill; }
           .family-line { position:absolute; left:163px; width:410px; display:grid; grid-template-columns:138px 126px 130px; column-gap:8px; align-items:center; min-height:32px; }
@@ -144,7 +140,7 @@
           .reference-solar-date span { flex:1; text-align:center; border-bottom:1px dotted #263238; }
           .reference-principal { position:absolute; top:537px; left:274px; width:188px; text-align:center; font:18px/1.7 var(--card-heading); }
           .reference-principal strong { display:block; font:18px/1.7 var(--card-body); white-space:nowrap; }
-          @media print { .cards-grid { gap:4mm; } }
+          @media print { .cards-grid { gap:4mm 2mm; } }
         </style>${pages.join("")}`;
     }
     function photoBackgroundSample(ctx, width, height) {

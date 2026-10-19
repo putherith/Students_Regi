@@ -3116,53 +3116,157 @@
             .form-panel .photo-actions { width: 100%; }
         }
 
-        /* Keep the school identity and tool groups in one compact desktop header. */
+        /* Desktop: one collapsible navigation rail on the left. */
         @media (min-width: 861px) {
+            .app { max-width: none; }
+            body.sidebar-open .app { padding-left: 252px; }
             .topbar {
-                display: grid;
-                grid-template-columns: minmax(280px, 330px) minmax(0, 1fr);
+                min-height: 76px;
                 align-items: center;
-                column-gap: 20px;
-                padding: 12px 20px;
+                flex-wrap: nowrap;
+                padding: 10px 20px;
             }
-
-            .topbar .brand {
-                min-width: 0;
-                width: 100%;
+            body.sidebar-open .topbar { margin-left: -252px; }
+            .topbar .brand { width: auto; }
+            .topbar .status-pill { flex-shrink: 0; }
+            .app > .topbar-actions {
+                position: fixed;
+                z-index: 29;
+                top: 76px;
+                bottom: 0;
+                left: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                flex-wrap: nowrap;
+                width: 232px;
+                min-width: 232px;
+                gap: 0;
+                padding: 10px 9px 18px;
+                overflow-x: hidden;
+                overflow-y: auto;
+                border-top: 1px solid rgba(255, 255, 255, .12);
+                border-right: 1px solid rgba(255, 255, 255, .2);
+                background: linear-gradient(180deg, #173e73, #102f59);
+                box-shadow: 5px 0 18px rgba(8, 30, 62, .16);
             }
-
-            .topbar-actions {
-                min-width: 0;
-                width: 100%;
-                padding: 0;
-                border: 0;
-                justify-content: flex-end;
-                align-content: center;
-                gap: 7px 8px;
-            }
-
-            .topbar .action-group {
+            .app > .topbar-actions .action-group {
                 position: relative;
-                flex: 0 0 auto;
-                min-height: 56px;
-                padding: 17px 4px 4px;
-                align-self: center;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                min-width: 0;
+                gap: 2px;
+                padding: 25px 0 10px;
+                border: 0;
+                border-bottom: 1px solid rgba(255, 255, 255, .15);
+                border-radius: 0;
+                background: transparent;
             }
-
-            .topbar .action-group::before {
+            .app > .topbar-actions .action-group:last-child { border-bottom: 0; }
+            .app > .topbar-actions .action-group::before {
                 content: attr(data-group-label);
                 position: absolute;
-                top: 4px;
+                top: 7px;
                 left: 10px;
-                color: #d9e7fb;
-                font-size: .65rem;
-                line-height: 1;
-                white-space: nowrap;
+                color: #c7ddf6;
+                font-size: .7rem;
+                font-weight: 700;
+                line-height: 1.2;
             }
+            .app > .topbar-actions .action-group .btn {
+                width: 100%;
+                min-height: 37px;
+                height: auto;
+                padding: 5px 10px;
+                justify-content: flex-start;
+                gap: 10px;
+                text-align: left;
+            }
+            .app > .topbar-actions .btn-ghost {
+                border-color: transparent;
+                background: transparent;
+                color: #eef5ff;
+            }
+            .app > .topbar-actions .btn-ghost:hover {
+                border-color: rgba(255, 255, 255, .16);
+                color: #fff;
+            }
+            .app > .topbar-actions .btn-secondary {
+                border-color: rgba(255, 255, 255, .24);
+                background: rgba(255, 255, 255, .94);
+                color: #173f78;
+            }
+            .app > .topbar-actions .btn-primary {
+                border-color: #e4bd5e;
+                background: linear-gradient(135deg, #e6bd58, #c68e1f);
+                color: #13284b;
+            }
+            .app > .topbar-actions .btn-danger { background: #b4232a; color: #fff; }
+            .app > .topbar-actions .action-group .btn span { display: inline; }
+            .app > .topbar-actions .action-group .btn:hover {
+                background: rgba(255, 255, 255, .15);
+            }
+            .topbar.actions-collapsed + .topbar-actions { display: none; }
+        }
+        .actions-toggle-btn {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            min-height: 38px;
+            padding: 0 14px;
+            border: 1px solid rgba(255, 255, 255, .35);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .12);
+            color: #fff;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        @media (min-width: 861px) { .actions-toggle-btn { display: inline-flex; } }
+        @media (max-width: 860px) { .app > .topbar-actions { display: none; } }
 
-            .topbar .action-group .btn { height: 34px; }
-            .topbar .status-pill,
-            .topbar .theme-btn { align-self: center; }
+        .class-report {
+            margin: 0 0 18px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--surface);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+        .class-report > summary {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 18px;
+            color: var(--text);
+            font-weight: 700;
+            cursor: pointer;
+            list-style: none;
+        }
+        .class-report > summary::-webkit-details-marker { display: none; }
+        .class-report > summary ion-icon { color: var(--primary); font-size: 21px; }
+        .class-report > summary .report-chevron { margin-left: auto; transition: transform .2s ease; }
+        .class-report:not([open]) > summary .report-chevron { transform: rotate(-90deg); }
+        .class-report-body { padding: 0 18px 18px; }
+        .class-report-tools { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin: 0 0 14px; }
+        .class-report-tools label { display: flex; flex-direction: column; gap: 5px; min-width: 190px; font-size: .82rem; font-weight: 700; }
+        .class-report-tools select { min-height: 38px; padding: 5px 9px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; }
+        .class-report-summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+        .class-report-summary span { padding: 7px 11px; border-radius: 999px; background: var(--primary-soft); color: var(--primary); font-size: .83rem; font-weight: 700; }
+        .class-report-table-wrap { overflow-x: auto; }
+        .class-report table { width: 100%; border-collapse: collapse; }
+        .class-report th, .class-report td { padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+        .class-report th { background: var(--surface-2); font-size: .8rem; }
+        .class-report td { font-size: .85rem; }
+        .class-report tfoot td { font-weight: 700; background: var(--surface-2); }
+        .class-report h3 { margin: 18px 0 8px; font-size: 1rem; }
+        .class-report-empty { padding: 12px; color: var(--muted); }
+        @media (max-width: 860px) {
+            .class-report { margin-bottom: 12px; }
+            .class-report-body { padding: 0 12px 12px; }
+            .class-report-tools .btn { flex: 1 1 auto; }
+            body.mobile-form-view .class-report { display: none; }
         }
     </style>
 </head>
@@ -3170,7 +3274,11 @@
 <main class="app">
 
     <!-- ======================== TOPBAR ======================== -->
-    <header class="topbar">
+    <header class="topbar actions-collapsed" id="app-topbar">
+        <button id="actions-toggle-btn" class="actions-toggle-btn" type="button" aria-controls="app-actions" aria-expanded="false">
+            <ion-icon name="menu-outline" aria-hidden="true"></ion-icon>
+            <span>បង្ហាញម៉ឺនុយ</span>
+        </button>
         <div class="brand">
             <div class="brand-mark">
                 <img src="./assets/moeys-logo.png" alt="និមិត្តសញ្ញាក្រសួងអប់រំ យុវជន និងកីឡា">
@@ -3182,11 +3290,25 @@
             </div>
         </div>
 
-        <nav class="topbar-actions" aria-label="ទង់ប្រតិបត្តិ">
-            <!-- Connection status -->
-            <div id="connection-status" class="status-pill" role="status" aria-live="polite">
-                <span class="status-dot"></span>
-                <span id="connection-text">កំពុងភ្ជាប់...</span>
+        <div id="connection-status" class="status-pill" role="status" aria-live="polite">
+            <span class="status-dot"></span>
+            <span id="connection-text">កំពុងភ្ជាប់...</span>
+        </div>
+        <button id="theme-toggle" class="theme-btn" type="button" aria-label="Toggle dark mode">
+            <ion-icon class="icon-sun" name="sunny-outline"></ion-icon>
+            <ion-icon class="icon-moon" name="moon-outline"></ion-icon>
+        </button>
+        <button id="mobile-menu-btn" class="btn btn-ghost mobile-menu-btn" type="button" title="More actions" aria-label="More actions">
+            <ion-icon name="ellipsis-vertical-outline" aria-hidden="true"></ion-icon>
+        </button>
+    </header>
+
+    <nav class="topbar-actions" id="app-actions" aria-label="មុខងារកម្មវិធី">
+            <div class="action-group" data-group-label="ការងារប្រចាំថ្ងៃ" aria-label="ការងារប្រចាំថ្ងៃ">
+                <button class="btn btn-ghost" type="button" data-sidebar-view="form"><ion-icon name="person-add-outline" aria-hidden="true"></ion-icon><span>បញ្ចូលសិស្សថ្មី</span></button>
+                <button class="btn btn-ghost" type="button" data-sidebar-view="list"><ion-icon name="search-outline" aria-hidden="true"></ion-icon><span>បញ្ជី និងស្វែងរក</span></button>
+                <button class="btn btn-ghost" type="button" data-sidebar-view="classes"><ion-icon name="school-outline" aria-hidden="true"></ion-icon><span>សិស្សតាមថ្នាក់</span></button>
+                <button class="btn btn-ghost" type="button" data-sidebar-view="report"><ion-icon name="bar-chart-outline" aria-hidden="true"></ion-icon><span>របាយការណ៍តាមថ្នាក់</span></button>
             </div>
 
             <!-- Sync group -->
@@ -3263,18 +3385,7 @@
                 </button>
             </div>
 
-            <!-- Mobile menu -->
-            <button id="mobile-menu-btn" class="btn btn-ghost mobile-menu-btn" type="button" title="More actions" aria-label="More actions">
-                <ion-icon name="ellipsis-vertical-outline" aria-hidden="true"></ion-icon>
-            </button>
-
-            <!-- Theme toggle -->
-            <button id="theme-toggle" class="theme-btn" type="button" aria-label="Toggle dark mode">
-                <ion-icon class="icon-sun" name="sunny-outline"></ion-icon>
-                <ion-icon class="icon-moon" name="moon-outline"></ion-icon>
-            </button>
-        </nav>
-    </header>
+    </nav>
 
     <!-- ======================== ADMINISTRATION OVERVIEW ======================== -->
     <section class="admin-overview" aria-labelledby="admin-overview-title">
@@ -3344,6 +3455,27 @@
             </div>
         </div>
     </section>
+
+    <!-- ======================== CLASS REPORT ======================== -->
+    <details id="class-report-panel" class="class-report" open>
+        <summary>
+            <ion-icon name="bar-chart-outline" aria-hidden="true"></ion-icon>
+            <span>របាយការណ៍ និងស្ថិតិសិស្សតាមថ្នាក់</span>
+            <ion-icon class="report-chevron" name="chevron-down-outline" aria-hidden="true"></ion-icon>
+        </summary>
+        <div class="class-report-body">
+            <div class="class-report-tools">
+                <label for="class-report-select">ជ្រើសថ្នាក់
+                    <select id="class-report-select"><option value="">ថ្នាក់ទាំងអស់</option></select>
+                </label>
+                <button id="print-class-report-btn" class="btn btn-secondary" type="button"><ion-icon name="print-outline" aria-hidden="true"></ion-icon> បោះពុម្ពរបាយការណ៍</button>
+                <button id="download-class-report-btn" class="btn btn-ghost" type="button"><ion-icon name="download-outline" aria-hidden="true"></ion-icon> ទាញ CSV</button>
+            </div>
+            <div id="class-report-summary" class="class-report-summary" aria-live="polite"></div>
+            <div id="class-report-table" class="class-report-table-wrap"></div>
+            <div id="class-report-roster"></div>
+        </div>
+    </details>
 
     <!-- ======================== MOBILE TABS ======================== -->
     <div class="mobile-tabs" aria-label="Mobile view tabs">
@@ -3663,6 +3795,15 @@
                                     <label for="className">ថ្នាក់</label>
                                     <input id="className" name="className" type="text" placeholder="ឧ. 7A">
                                 </div>
+                                <div class="field">
+                                    <label for="classTrack">ប្រភេទថ្នាក់</label>
+                                    <select id="classTrack" name="classTrack">
+                                        <option value="">ជ្រើសរើសប្រភេទថ្នាក់</option>
+                                        <option value="ថ្នាក់វិទ្យាសាស្ត្រ">ថ្នាក់វិទ្យាសាស្ត្រ</option>
+                                        <option value="ថ្នាក់វិទ្យាសាស្ត្រសង្គម">ថ្នាក់វិទ្យាសាស្ត្រសង្គម</option>
+                                        <option value="គន្លងអាជីព">គន្លងអាជីព</option>
+                                    </select>
+                                </div>
                                 <div class="field field-full">
                                     <label for="contact" class="required">លេខទូរស័ព្ទ</label>
                                     <input id="contact" name="contact" type="tel" required placeholder="0xx-xxx-xxx">
@@ -3845,7 +3986,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.41</span>
+        <span class="footer-version">កំណែ 2.1.45</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4256,6 +4397,7 @@
         gender: "gender",
         dob: "dob",
         className: "class_name",
+        classTrack: "class_track",
         fromSchool: "from_school",
         pobVillage: "pob_village",
         pobCommune: "pob_commune",
@@ -4282,7 +4424,7 @@
         updatedAt: "updated_at"
     };
     const SUPABASE_OPTIONAL_COLUMNS = new Set([
-        "photo", "student_surname", "student_given_name", "father_dob", "father_occupation", "mother_dob", "mother_occupation", "guardian_name", "guardian_dob", "application_number", "father_phone", "mother_phone"
+        "photo", "student_surname", "student_given_name", "father_dob", "father_occupation", "mother_dob", "mother_occupation", "guardian_name", "guardian_dob", "application_number", "father_phone", "mother_phone", "class_track"
     ]);
 
     // ===================== LOCAL STORAGE DB HANDLERS =====================
@@ -4779,12 +4921,21 @@
 
     // ===================== ELEMENT REFS =====================
     const els = {
+        appTopbar: document.getElementById("app-topbar"),
+        actionsToggleBtn: document.getElementById("actions-toggle-btn"),
         status: document.getElementById("connection-status"),
         statusText: document.getElementById("connection-text"),
         totalStudents: document.getElementById("total-students"),
         maleStudents: document.getElementById("male-students"),
         femaleStudents: document.getElementById("female-students"),
         lastSync: document.getElementById("last-sync"),
+        classReportPanel: document.getElementById("class-report-panel"),
+        classReportSelect: document.getElementById("class-report-select"),
+        classReportSummary: document.getElementById("class-report-summary"),
+        classReportTable: document.getElementById("class-report-table"),
+        classReportRoster: document.getElementById("class-report-roster"),
+        printClassReportBtn: document.getElementById("print-class-report-btn"),
+        downloadClassReportBtn: document.getElementById("download-class-report-btn"),
         loadSheetBtn: document.getElementById("load-sheet-btn"),
         backupNowBtn: document.getElementById("backup-now-btn"),
         registrationForm: document.getElementById("registration-form"),
@@ -4952,13 +5103,13 @@
         "studentCode","studentSurname","studentGivenName","dob","fatherName","fatherDob","fatherOccupation","fatherPhone","motherName","motherDob","motherOccupation","motherPhone","guardianName","guardianDob",
         "pobProvince","pobDistrict","pobCommune","pobVillage",
         "currentProvince","currentDistrict","currentCommune","currentVillage",
-        "fromSchool","className","contact","applicationNumber"
+        "fromSchool","className","classTrack","contact","applicationNumber"
     ];
 
     const STUDENT_TEMPLATE_TOP_HEADERS = [
         "អត្តលេខ", "គោត្តនាម", "នាមខ្លួន", "ភេទ", "ថ្ងៃកំណើត", "ថ្នាក់", "សាលា",
         "ទីកន្លែងកំណើត", "", "", "", "លេខទូរស័ព្ទ", "ឈ្មោះឪពុក", "ថ្ងៃកំណើតឪពុក", "មុខរបរឪពុក", "ឈ្មោះម្តាយ", "ថ្ងៃកំណើតម្តាយ", "មុខរបរម្តាយ", "ឈ្មោះអាណាព្យាបាល", "ថ្ងៃកំណើតអាណាព្យាបាល",
-        "អាសយដ្ឋានបច្ចុប្បន្ន", "", "", "", "លេខទូរសព្ទឪពុក", "លេខទូរសព្ទម្តាយ", "លេខពាក្យ"
+        "អាសយដ្ឋានបច្ចុប្បន្ន", "", "", "", "លេខទូរសព្ទឪពុក", "លេខទូរសព្ទម្តាយ", "លេខពាក្យ", "ប្រភេទថ្នាក់"
     ];
     const STUDENT_TEMPLATE_SUB_HEADERS = [
         "", "", "", "", "", "", "", "ភូមិ", "ឃុំ/សង្កាត់", "ស្រុក/ខណ្ឌ", "ខេត្ត/ក្រុង",
@@ -4970,16 +5121,16 @@
         "ទីកន្លែងកំណើត - ស្រុក/ខណ្ឌ", "ទីកន្លែងកំណើត - ខេត្ត/ក្រុង",
         "លេខទូរស័ព្ទ", "ឈ្មោះឪពុក", "ថ្ងៃកំណើតឪពុក", "មុខរបរឪពុក", "ឈ្មោះម្តាយ", "ថ្ងៃកំណើតម្តាយ", "មុខរបរម្តាយ", "ឈ្មោះអាណាព្យាបាល", "ថ្ងៃកំណើតអាណាព្យាបាល",
         "អាសយដ្ឋានបច្ចុប្បន្ន - ភូមិ", "អាសយដ្ឋានបច្ចុប្បន្ន - ឃុំ/សង្កាត់",
-        "អាសយដ្ឋានបច្ចុប្បន្ន - ស្រុក/ខណ្ឌ", "អាសយដ្ឋានបច្ចុប្បន្ន - ខេត្ត/ក្រុង", "លេខទូរសព្ទឪពុក", "លេខទូរសព្ទម្តាយ", "លេខពាក្យ"
+        "អាសយដ្ឋានបច្ចុប្បន្ន - ស្រុក/ខណ្ឌ", "អាសយដ្ឋានបច្ចុប្បន្ន - ខេត្ត/ក្រុង", "លេខទូរសព្ទឪពុក", "លេខទូរសព្ទម្តាយ", "លេខពាក្យ", "ប្រភេទថ្នាក់"
     ];
     const STUDENT_IMPORT_FIELDS = [
         "studentCode", "studentSurname", "studentGivenName", "gender", "dob", "className", "fromSchool",
         "pobVillage", "pobCommune", "pobDistrict", "pobProvince",
         "contact", "fatherName", "fatherDob", "fatherOccupation", "motherName", "motherDob", "motherOccupation", "guardianName", "guardianDob",
-        "currentVillage", "currentCommune", "currentDistrict", "currentProvince", "fatherPhone", "motherPhone", "applicationNumber"
+        "currentVillage", "currentCommune", "currentDistrict", "currentProvince", "fatherPhone", "motherPhone", "applicationNumber", "classTrack"
     ];
     const STUDENT_DATA_FIELDS = [
-        "studentName", "gender", "dob", "className", "fromSchool",
+        "studentName", "gender", "dob", "className", "classTrack", "fromSchool",
         "pobVillage", "pobCommune", "pobDistrict", "pobProvince",
         "contact", "fatherName", "fatherOccupation", "motherName", "motherOccupation", "guardianName",
         "currentVillage", "currentCommune", "currentDistrict", "currentProvince", "applicationNumber", "photo"
@@ -4988,16 +5139,16 @@
         "", "ហ៊ុន", "ណារ", "ប្រុស", "15/ឧសភា/2010", "7A", "សាលាបឋមសិក្សាព្រៃខ្លា",
         "ព្រៃមេលងខាងជើង", "ព្រៃខ្លា", "ស្រុកកោះអណ្តែត", "ខេត្តតាកែវ",
         "012345678", "ហ៊ុន សក្កដា", "10/មករា/1980", "កសិករ", "គង់ សុភី", "22/កក្កដា/1985", "អាជីវករ", "ហ៊ុន សក្កដា", "10/មករា/1980",
-        "ព្រៃមេលងខាងជើង", "ព្រៃខ្លា", "ស្រុកកោះអណ្តែត", "ខេត្តតាកែវ", "", "", "001/2026"
+        "ព្រៃមេលងខាងជើង", "ព្រៃខ្លា", "ស្រុកកោះអណ្តែត", "ខេត្តតាកែវ", "", "", "001/2026", "ថ្នាក់វិទ្យាសាស្ត្រ"
     ];
-    const STUDENT_TEMPLATE_MERGES = [0,1,2,3,4,5,6,11,12,13,14,15,16,17,18,19,24,25,26]
+    const STUDENT_TEMPLATE_MERGES = [0,1,2,3,4,5,6,11,12,13,14,15,16,17,18,19,24,25,26,27]
         .map(c => ({ s:{r:3,c}, e:{r:4,c} }))
         .concat([{s:{r:3,c:7},e:{r:3,c:10}}, {s:{r:3,c:20},e:{r:3,c:23}}]);
     const STUDENT_TEMPLATE_COLS = [
         {wch:15}, {wch:16}, {wch:16}, {wch:10}, {wch:15}, {wch:10}, {wch:22},
         {wch:16}, {wch:16}, {wch:16}, {wch:16}, {wch:15},
         {wch:18}, {wch:16}, {wch:16}, {wch:18}, {wch:16}, {wch:16}, {wch:20}, {wch:16},
-        {wch:16}, {wch:16}, {wch:16}, {wch:16}, {wch:18}, {wch:18}, {wch:14}
+        {wch:16}, {wch:16}, {wch:16}, {wch:16}, {wch:18}, {wch:18}, {wch:14}, {wch:24}
     ];
 
     // ===================== UTILITY =====================
@@ -5216,7 +5367,7 @@
             studentVisibleId(s), s.studentSurname, s.studentGivenName, s.gender, formatDate(s.dob), s.className, s.fromSchool,
             s.pobVillage, s.pobCommune, s.pobDistrict, s.pobProvince,
             s.contact, s.fatherName, formatDate(s.fatherDob), s.fatherOccupation, s.motherName, formatDate(s.motherDob), s.motherOccupation, s.guardianName, formatDate(s.guardianDob),
-            s.currentVillage, s.currentCommune, s.currentDistrict, s.currentProvince, s.fatherPhone, s.motherPhone, s.applicationNumber
+            s.currentVillage, s.currentCommune, s.currentDistrict, s.currentProvince, s.fatherPhone, s.motherPhone, s.applicationNumber, s.classTrack
         ];
     }
 
@@ -6231,7 +6382,7 @@
     function normalizeCloudStudent(item={}, idx=0) {
         const raw = item.student && typeof item.student === "object" ? { ...item.student } : { ...item };
         const textFields = [
-            "studentCode","studentId","studentName","studentSurname","studentGivenName","gender","className","fromSchool",
+            "studentCode","studentId","studentName","studentSurname","studentGivenName","gender","className","classTrack","fromSchool",
             "pobVillage","pobCommune","pobDistrict","pobProvince","contact","fatherName","fatherOccupation","fatherPhone",
             "motherName","motherOccupation","motherPhone","guardianName","currentVillage","currentCommune","currentDistrict",
             "currentProvince","applicationNumber"
@@ -7839,6 +7990,7 @@
             currentVillage: currentGroup.village.value,
             fromSchool: els.fromSchool.value,
             className: getValue("className"),
+            classTrack: getValue("classTrack"),
             contact: getValue("contact"),
             applicationNumber: getValue("applicationNumber"),
             photo: getValue("studentPhotoData")
@@ -8156,6 +8308,93 @@
         els.lastSync.textContent = formatTime();
         els.deleteAllBtn.disabled = totalStudentsCount === 0;
         setCloudControlsLoading(googleSheetLoadsInFlight > 0);
+        renderClassReport();
+    }
+
+    function classReportGroups() {
+        const groups = new Map();
+        allStudents.forEach(student => {
+            const className = String(student.className || "").trim();
+            const key = className ? `class:${className}` : "unassigned";
+            if (!groups.has(key)) groups.set(key, { key, name:className || "មិនទាន់មានថ្នាក់", students:[], male:0, female:0 });
+            const group = groups.get(key);
+            group.students.push(student);
+            if (student.gender === "ប្រុស") group.male++;
+            else if (student.gender === "ស្រី") group.female++;
+        });
+        return [...groups.values()].sort((a, b) =>
+            a.key === "unassigned" ? 1 : b.key === "unassigned" ? -1 : compareKhmer(a.name, b.name, { numeric:true }));
+    }
+
+    function selectedClassReport(groups=classReportGroups()) {
+        const selected = els.classReportSelect?.value || "";
+        const group = groups.find(item => item.key === selected);
+        return { groups, selected:group || null, rows:group ? [group] : groups };
+    }
+
+    function classReportTableHtml(rows) {
+        const total = rows.reduce((sum, group) => sum + group.students.length, 0);
+        const male = rows.reduce((sum, group) => sum + group.male, 0);
+        const female = rows.reduce((sum, group) => sum + group.female, 0);
+        return `<table><thead><tr><th>ល.រ</th><th>ថ្នាក់</th><th>សរុប</th><th>ប្រុស</th><th>ស្រី</th><th>មិនកំណត់ភេទ</th><th>ភាគរយសរុប</th></tr></thead>
+            <tbody>${rows.map((group, index) => `<tr><td>${index + 1}</td><td>${esc(group.name)}</td><td>${group.students.length}</td><td>${group.male}</td><td>${group.female}</td><td>${group.students.length - group.male - group.female}</td><td>${total ? (group.students.length / total * 100).toFixed(1) : "0.0"}%</td></tr>`).join("")}</tbody>
+            <tfoot><tr><td colspan="2">សរុប</td><td>${total}</td><td>${male}</td><td>${female}</td><td>${total - male - female}</td><td>100%</td></tr></tfoot></table>`;
+    }
+
+    function classReportRosterHtml(group) {
+        if (!group) return "";
+        return `<h3>បញ្ជីសិស្សថ្នាក់ ${esc(group.name)}</h3><div class="class-report-table-wrap"><table>
+            <thead><tr><th>ល.រ</th><th>អត្តលេខ</th><th>ឈ្មោះសិស្ស</th><th>ភេទ</th><th>ប្រភេទថ្នាក់</th></tr></thead>
+            <tbody>${group.students.map((student, index) => `<tr><td>${index + 1}</td><td>${esc(studentVisibleId(student) || "–")}</td><td>${esc(studentFullName(student) || "–")}</td><td>${esc(student.gender || "–")}</td><td>${esc(student.classTrack || "–")}</td></tr>`).join("")}</tbody>
+            </table></div>`;
+    }
+
+    function renderClassReport() {
+        if (!els.classReportSelect) return;
+        const groups = classReportGroups();
+        const previous = els.classReportSelect.value;
+        els.classReportSelect.replaceChildren(new Option("ថ្នាក់ទាំងអស់", ""));
+        groups.forEach(group => els.classReportSelect.add(new Option(`${group.name} (${group.students.length})`, group.key)));
+        els.classReportSelect.value = groups.some(group => group.key === previous) ? previous : "";
+        const { selected, rows } = selectedClassReport(groups);
+        const total = rows.reduce((sum, group) => sum + group.students.length, 0);
+        const male = rows.reduce((sum, group) => sum + group.male, 0);
+        const female = rows.reduce((sum, group) => sum + group.female, 0);
+        els.classReportSummary.innerHTML = `<span>ថ្នាក់ ${rows.length}</span><span>សិស្ស ${total}</span><span>ប្រុស ${male}</span><span>ស្រី ${female}</span><span>មិនកំណត់ភេទ ${total - male - female}</span>`;
+        els.classReportTable.innerHTML = rows.length ? classReportTableHtml(rows) : '<p class="class-report-empty">មិនទាន់មានទិន្នន័យសិស្ស</p>';
+        els.classReportRoster.innerHTML = classReportRosterHtml(selected);
+        els.printClassReportBtn.disabled = !rows.length;
+        els.downloadClassReportBtn.disabled = !rows.length;
+    }
+
+    function printClassReport() {
+        const { selected, rows } = selectedClassReport();
+        if (!rows.length) return;
+        const title = selected ? `របាយការណ៍សិស្សថ្នាក់ ${selected.name}` : "របាយការណ៍ស្ថិតិសិស្សតាមថ្នាក់";
+        printWindow(title, `<h1>${esc(title)}</h1><p class="meta">វិទ្យាល័យសុខអានព្រៃមេលង · ${esc(new Date().toLocaleDateString("km-KH"))}</p>
+            ${classReportTableHtml(rows)}${classReportRosterHtml(selected)}`);
+    }
+
+    function downloadClassReport() {
+        const { selected, rows } = selectedClassReport();
+        if (!rows.length) return;
+        const total = rows.reduce((sum, group) => sum + group.students.length, 0);
+        const lines = [["ថ្នាក់", "សរុប", "ប្រុស", "ស្រី", "មិនកំណត់ភេទ"]];
+        rows.forEach(group => lines.push([group.name, group.students.length, group.male, group.female, group.students.length - group.male - group.female]));
+        lines.push(["សរុប", total, rows.reduce((sum, group) => sum + group.male, 0), rows.reduce((sum, group) => sum + group.female, 0), rows.reduce((sum, group) => sum + group.students.length - group.male - group.female, 0)]);
+        if (selected) {
+            lines.push([], ["ល.រ", "អត្តលេខ", "ឈ្មោះសិស្ស", "ភេទ", "ប្រភេទថ្នាក់"]);
+            selected.students.forEach((student, index) => lines.push([index + 1, studentVisibleId(student), studentFullName(student), student.gender, student.classTrack]));
+        }
+        const blob = new Blob(["\uFEFF" + lines.map(row => row.map(csvVal).join(",")).join("\r\n")], { type:"text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = selected ? `class-report-${selected.name.replace(/[\\/:*?"<>|]/g, "-")}.csv` : "class-report-all.csv";
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
     // ===================== FILTERS =====================
@@ -9133,6 +9372,7 @@
         address:["អាសយដ្ឋាន","address"],
         fromSchool:["សាលា","មកពីសាលា","fromSchool","school"],
         className:["ថ្នាក់","ថ្នាក់រៀន","ថ្នាក់ទី","កម្រិតថ្នាក់","កំរិតថ្នាក់","ក្រុមថ្នាក់","className","class name","class","grade","grade level","level"],
+        classTrack:["ប្រភេទថ្នាក់","classTrack","class track","class type","study track"],
         contact:["ទំនាក់ទំនង","លេខទូរស័ព្ទ","ទូរស័ព្ទ","contact","phone","phone number"],
         applicationNumber:["លេខពាក្យ","លេខពាក្យសុំ","applicationNumber","application number","form number"]
     };
@@ -9190,7 +9430,7 @@
             guardianName:guardian, guardianDob:normDate(readImportVal(row,"guardianDob")),
             pobProvince:r("pobProvince"),pobDistrict:r("pobDistrict"),pobCommune:r("pobCommune"),pobVillage:r("pobVillage"),
             currentProvince:r("currentProvince"),currentDistrict:r("currentDistrict"),currentCommune:r("currentCommune"),currentVillage:r("currentVillage")||addr,
-            fromSchool:r("fromSchool"),className:r("className"),contact:r("contact"),applicationNumber:r("applicationNumber")
+            fromSchool:r("fromSchool"),className:r("className"),contact:r("contact"),applicationNumber:r("applicationNumber"),classTrack:r("classTrack")
         };
     }
     function parseCSV(text) {
@@ -9534,12 +9774,46 @@
         if(btn.classList.contains("delete-btn")) openDeleteModal(id);
     }
 
+    function setActionsOpen(open, persist=true) {
+        els.appTopbar?.classList.toggle("actions-collapsed", !open);
+        document.body.classList.toggle("sidebar-open", open);
+        els.actionsToggleBtn?.setAttribute("aria-expanded", String(open));
+        const label = els.actionsToggleBtn?.querySelector("span");
+        if (label) label.textContent = open ? "លាក់ម៉ឺនុយ" : "បង្ហាញម៉ឺនុយ";
+        const icon = els.actionsToggleBtn?.querySelector("ion-icon");
+        if (icon) icon.setAttribute("name", open ? "chevron-back-outline" : "menu-outline");
+        if (persist) localStorage.setItem("studentSidebarOpen", open ? "1" : "0");
+    }
+
     function init(){
         const phoneCameraSession = phoneCameraSessionFromHash();
         if (phoneCameraSession) {
             initWebPhoneCaptureMode(phoneCameraSession);
             return;
         }
+        setActionsOpen(localStorage.getItem("studentSidebarOpen") !== "0", false);
+        if (isMobileView() && els.classReportPanel) els.classReportPanel.open = false;
+        els.actionsToggleBtn?.addEventListener("click", () =>
+            setActionsOpen(els.appTopbar?.classList.contains("actions-collapsed")));
+        document.getElementById("app-actions")?.addEventListener("click", event => {
+            const view = event.target.closest("[data-sidebar-view]")?.dataset.sidebarView;
+            if (!view) return;
+            if (view === "form") {
+                setActiveTab("form", { scroll:false });
+                els.formPanel.scrollIntoView({ behavior:"smooth", block:"start" });
+            } else if (view === "list") {
+                setActiveTab("list", { scroll:false });
+                els.searchInput.closest(".list-panel")?.scrollIntoView({ behavior:"smooth", block:"start" });
+                els.searchInput.focus({ preventScroll:true });
+            } else if (view === "classes") {
+                selectedClassName = null;
+                setActiveTab("classes", { scroll:false });
+                els.classBrowserPanel.scrollIntoView({ behavior:"smooth", block:"start" });
+            } else if (view === "report") {
+                els.classReportPanel.open = true;
+                els.classReportPanel.scrollIntoView({ behavior:"smooth", block:"start" });
+            }
+        });
         updateStudentCodeHint();
         enhanceChoiceInputs();
         // Address
@@ -9630,6 +9904,9 @@
         });
         els.downloadPhotosBtn?.addEventListener("click",downloadAllStudentPhotos);
         els.downloadCsvBtn.addEventListener("click",downloadCSV);
+        els.classReportSelect?.addEventListener("change",renderClassReport);
+        els.printClassReportBtn?.addEventListener("click",printClassReport);
+        els.downloadClassReportBtn?.addEventListener("click",downloadClassReport);
         els.deleteAllBtn.addEventListener("click",openDeleteAllModal);
 
         // Backup
@@ -9751,6 +10028,7 @@
         // Keyboard shortcuts
         document.addEventListener("keydown",e=>{
             if(e.key==="Escape"){
+                if(els.appTopbar && !els.appTopbar.classList.contains("actions-collapsed")) { setActionsOpen(false); return; }
                 if(els.deleteModal.classList.contains("is-open")){closeDeleteModal();return;}
                 if(els.deleteAllModal.classList.contains("is-open")){closeDeleteAllModal();return;}
                 if(els.sheetModal.classList.contains("is-open")){closeSheetModal();return;}
