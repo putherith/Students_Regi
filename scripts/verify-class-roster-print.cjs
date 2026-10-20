@@ -46,7 +46,10 @@ assert.equal((twoPages.match(/class="school-roster-page"/g) || []).length, 2);
 assert.match(twoPages, /សិស្ស 91/);
 assert.match(twoPages, /ទំព័រ 2\/2/);
 assert.match(context.classRosterPrintCss(), /size:A4 portrait/);
-assert.match(html, /function printStudentNameList\(\)[\s\S]*?printAdminRosters\(groups\)/);
+assert.match(html, /function printStudentNameList\(\) \{\s*reportMode = "class";\s*openReportView\(\)/);
+assert.match(html, /id="class-report-select"/);
+assert.match(html, /id="download-class-roster-btn"/);
+assert.match(onePage, /width:16%/);
 assert.match(html, /function fitRosterText\(root\)/);
 
 const downloadStart = html.indexOf('    function rosterDownloadName(groups, extension) {');
@@ -88,6 +91,7 @@ context.downloadClassRosterHtml();
 downloadedBlob.text().then(downloadedHtml => {
     assert.match(downloadedHtml, /<html lang="km">/);
     assert.match(downloadedHtml, /<table class="roster-table">/);
+    assert.match(downloadedHtml, /size:A4 portrait/);
     assert.match(downloadedHtml, /<script>function fitRosterText/);
     assert.equal((downloadedHtml.match(/class="school-roster-page"/g) || []).length, 1);
     const downloadedScript = downloadedHtml.match(/<script>([\s\S]*?)<\/script>/);
