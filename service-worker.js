@@ -1,4 +1,4 @@
-const CACHE_NAME = "students-registration-web-v2.1.54";
+const CACHE_NAME = "students-registration-web-v2.1.55";
 const APP_SHELL = [
   "./",
   "./index.html",

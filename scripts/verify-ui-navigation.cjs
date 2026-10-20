@@ -19,6 +19,9 @@ assert.match(settings, /id="app-settings-title"[^>]*tabindex="-1"/);
 assert.doesNotMatch(html, /class="admin-overview-actions"/, 'Duplicate dashboard shortcuts removed');
 assert.doesNotMatch(html, /id="(?:m-)?print-name-list-btn"/, 'Class roster shortcut is not duplicated outside Reports');
 assert.match(html, /function setSidebarActiveView\(view\)/);
+assert.match(html, /id="clear-filters-btn"[^>]*hidden/);
+assert.match(html, /id="active-filter-count"[^>]*hidden/);
+assert.match(html, /id="toggle-filters-btn"[^>]*aria-controls="toolbar-filters"[^>]*aria-expanded="false"/);
 assert.match(html, /@media \(min-width: 861px\) \{[\s\S]*?\.main-layout\.show-list \.form-panel,\s*\.main-layout\.show-form \.list-panel \{ display:none; \}/,
     'Desktop shows one primary work panel at a time');
 const editSource = html.slice(html.indexOf('    async function loadStudentIntoForm(id) {'), html.indexOf('    function setSaving(', html.indexOf('    async function loadStudentIntoForm(id) {')));
@@ -65,4 +68,23 @@ assert.deepEqual(rows.map(row => row.hidden), [true, false]);
 els.teacherSettingsSearch.value = '';
 vm.runInNewContext(`${filterSource}\nfilterTeacherSettings()`, { els });
 assert.deepEqual(rows.map(row => row.hidden), [false, false]);
+
+const listFilterSource = html.slice(html.indexOf('    function hasActiveFilters() {'), html.indexOf('    async function refreshMissingPhotoCodes(', html.indexOf('    function hasActiveFilters() {')));
+const filterControls = {
+    searchInput:{ value:'សិស្ស' }, genderFilter:{ value:'ប្រុស' }, classFilter:{ value:'7A' },
+    schoolFilter:{ value:'' }, photoFilter:{ value:'' },
+    activeFilterCount:{ hidden:true, textContent:'' }, clearFiltersBtn:{ hidden:true },
+    toggleFiltersBtn:{ getAttribute:() => 'false', setAttribute:() => {} }
+};
+let resets = 0; let refreshes = 0;
+const filtersContext = vm.createContext({ els:filterControls, resetPagination:() => { resets++; }, applyFilters:() => { refreshes++; } });
+vm.runInContext(listFilterSource, filtersContext);
+filtersContext.updateFilterUi();
+assert.equal(filterControls.activeFilterCount.textContent, '2');
+assert.equal(filterControls.clearFiltersBtn.hidden, false);
+filtersContext.clearAllListFilters();
+assert.deepEqual([filterControls.searchInput.value, filterControls.genderFilter.value, filterControls.classFilter.value], ['', '', '']);
+assert.equal(resets, 1);
+assert.equal(refreshes, 1);
+assert.match(html, /មិនមានសិស្សត្រូវនឹងការស្វែងរក ឬតម្រងនេះ/);
 console.log('Navigation and Settings: focused desktop views, grouped controls, searchable teachers without dropping saved rows, scripts parse');

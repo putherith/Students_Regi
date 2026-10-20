@@ -893,6 +893,11 @@
             flex-wrap: wrap;
         }
 
+        .filter-count { display:grid; min-width:19px; height:19px; padding:0 4px; place-items:center; border-radius:999px; background:var(--primary); color:#fff; font-size:.7rem; line-height:1; }
+        .filter-count[hidden], .clear-filters-btn[hidden] { display:none !important; }
+        .clear-filters-btn { min-height:38px; padding:0 11px; white-space:nowrap; }
+        .empty .clear-empty-filters-btn { margin-top:12px; }
+
         .photo-filter-status { color: var(--muted); font-size: .82rem; }
 
         /* ========================
@@ -1776,7 +1781,7 @@
                 top: 111px;
                 z-index: 20;
                 display: grid;
-                grid-template-columns: minmax(0, 1fr) auto;
+                grid-template-columns: minmax(0, 1fr) auto auto;
                 gap: 8px;
                 padding: 10px 12px;
                 border-bottom: 1px solid var(--border);
@@ -1795,8 +1800,11 @@
                 font-size: 16px;
             }
 
-            .filters-toggle-btn { display: inline-flex; width: 44px; height: 44px; padding: 0; }
+            .filters-toggle-btn { position:relative; display: inline-flex; width: 44px; height: 44px; padding: 0; }
             .filters-toggle-btn span { display: none; }
+            .filters-toggle-btn .filter-count { position:absolute; top:-5px; right:-5px; display:grid; }
+            .clear-filters-btn { width:44px; min-height:44px; padding:0; }
+            .clear-filters-btn span { display:none; }
 
             .toolbar-filters-pane {
                 display: none;
@@ -3882,7 +3890,7 @@
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">បញ្ជីសិស្ស</h2>
-                    <p id="result-summary" class="panel-sub">កំពុងផ្ទុកទិន្នន័យ...</p>
+                    <p id="result-summary" class="panel-sub" role="status" aria-live="polite">កំពុងផ្ទុកទិន្នន័យ...</p>
                 </div>
             </div>
 
@@ -3892,9 +3900,13 @@
                     <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
                     <input id="search-input" type="search" placeholder="ស្វែងរកឈ្មោះ លេខពាក្យ លេខសិស្ស ទូរស័ព្ទ..." aria-label="ស្វែងរកតាមឈ្មោះ លេខពាក្យ លេខសិស្ស ឬទូរស័ព្ទ">
                 </div>
-                <button id="toggle-filters-btn" class="filters-toggle-btn" type="button" title="Filters" aria-label="Filters">
+                <button id="toggle-filters-btn" class="filters-toggle-btn" type="button" title="តម្រង" aria-label="បង្ហាញតម្រង" aria-controls="toolbar-filters" aria-expanded="false">
                     <ion-icon name="funnel-outline" aria-hidden="true"></ion-icon>
                     <span>តម្រង</span>
+                    <span id="active-filter-count" class="filter-count" aria-hidden="true" hidden></span>
+                </button>
+                <button id="clear-filters-btn" class="btn btn-ghost clear-filters-btn" type="button" aria-label="សម្អាតតម្រង" hidden>
+                    <ion-icon name="close-circle-outline" aria-hidden="true"></ion-icon><span>សម្អាតតម្រង</span>
                 </button>
                 <div id="toolbar-filters" class="toolbar-filters-pane">
                     <select id="gender-filter" aria-label="តម្រងភេទ">
@@ -4026,7 +4038,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.54</span>
+        <span class="footer-version">កំណែ 2.1.55</span>
     </footer>
 
 </main><!-- end .app -->
@@ -5017,6 +5029,8 @@
         studentList: document.getElementById("student-list"),
         studentCards: document.getElementById("student-cards"),
         resultSummary: document.getElementById("result-summary"),
+        clearFiltersBtn: document.getElementById("clear-filters-btn"),
+        activeFilterCount: document.getElementById("active-filter-count"),
         searchInput: document.getElementById("search-input"),
         genderFilter: document.getElementById("gender-filter"),
         classFilter: document.getElementById("class-filter"),
@@ -8828,6 +8842,24 @@
 
     function hasActiveFilters() { return Boolean(els.searchInput.value.trim()||els.genderFilter.value||els.classFilter.value||els.schoolFilter.value||els.photoFilter.value); }
 
+    function updateFilterUi() {
+        const selectedCount = [els.genderFilter, els.classFilter, els.schoolFilter, els.photoFilter]
+            .filter(input => Boolean(input.value)).length;
+        const active = hasActiveFilters();
+        els.activeFilterCount.hidden = selectedCount === 0;
+        els.activeFilterCount.textContent = String(selectedCount);
+        els.clearFiltersBtn.hidden = !active;
+        const expanded = els.toggleFiltersBtn.getAttribute("aria-expanded") === "true";
+        els.toggleFiltersBtn.setAttribute("aria-label", `${expanded ? "លាក់" : "បង្ហាញ"}តម្រង${selectedCount ? ` (${selectedCount} កំពុងប្រើ)` : ""}`);
+    }
+
+    function clearAllListFilters() {
+        els.searchInput.value = "";
+        [els.genderFilter, els.classFilter, els.schoolFilter, els.photoFilter].forEach(input => { input.value = ""; });
+        resetPagination();
+        applyFilters();
+    }
+
     async function refreshMissingPhotoCodes({ force=false }={}) {
         if (els.photoFilter.value !== "missing") return;
         if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl()) { applyFilters(); return; }
@@ -8965,19 +8997,23 @@
     }
 
     function renderStudentViews() {
-        const modeText = isShowAll() ? `${visibleStudents.length} / ${allStudents.length} នាក់ (ទាំងអស់)` : `${visibleStudents.length} / ${allStudents.length} នាក់ ក្នុងទំព័រនេះ`;
-        els.resultSummary.textContent = modeText;
+        els.resultSummary.textContent = hasActiveFilters()
+            ? `លទ្ធផល ${filteredStudents.length} នាក់ ក្នុងទិន្នន័យ ${allStudents.length} នាក់`
+            : `បង្ហាញសិស្ស ${allStudents.length} នាក់`;
+        updateFilterUi();
         updatePager();
 
         if (visibleStudents.length === 0) {
+            const emptyMessage = hasActiveFilters() ? "មិនមានសិស្សត្រូវនឹងការស្វែងរក ឬតម្រងនេះ" : "មិនទាន់មានទិន្នន័យសិស្ស";
+            const emptyAction = hasActiveFilters() ? '<button class="btn btn-secondary clear-empty-filters-btn" type="button">បង្ហាញសិស្សទាំងអស់</button>' : "";
             els.studentList.innerHTML = `
                 <tr><td colspan="23">
                     <div class="empty">
                         <ion-icon name="person-outline"></ion-icon>
-                        <p>មិនមានទិន្នន័យ</p>
+                        <p>${emptyMessage}</p>${emptyAction}
                     </div>
                 </td></tr>`;
-            els.studentCards.innerHTML = `<div class="empty"><ion-icon name="person-outline"></ion-icon><p>មិនមានទិន្នន័យ</p></div>`;
+            els.studentCards.innerHTML = `<div class="empty"><ion-icon name="person-outline"></ion-icon><p>${emptyMessage}</p>${emptyAction}</div>`;
             return;
         }
 
@@ -10079,6 +10115,7 @@
         const photo = e.target.closest(".view-photo-img");
         if (photo?.dataset.id) { openStudentPhotoViewer(photo.dataset.id); return; }
         const btn=e.target.closest("button");if(!btn) return;
+        if(btn.classList.contains("clear-empty-filters-btn")) { clearAllListFilters(); return; }
         const id=btn.dataset.id;
         if(btn.classList.contains("view-photo-btn")) { openStudentPhotoViewer(id); return; }
         if(btn.classList.contains("print-student-btn")) printStudent(id);
@@ -10195,6 +10232,7 @@
             if (els.photoFilter.value === "missing") void refreshMissingPhotoCodes({ force:true });
             else applyFilters();
         });
+        els.clearFiltersBtn.addEventListener("click",clearAllListFilters);
         document.getElementById("className").addEventListener("input", updateStudentCodeHint);
 
         // Table actions
@@ -10300,8 +10338,10 @@
             if (!isMobileView()) closeMobileEditPanel();
         });
         els.toggleFiltersBtn?.addEventListener("click", () => {
-            els.toolbarFilters?.classList.toggle("is-open");
-            els.toggleFiltersBtn.classList.toggle("active");
+            const expanded = els.toolbarFilters?.classList.toggle("is-open");
+            els.toggleFiltersBtn.classList.toggle("active",Boolean(expanded));
+            els.toggleFiltersBtn.setAttribute("aria-expanded",String(Boolean(expanded)));
+            updateFilterUi();
         });
 
         function closeMobileActions() {
