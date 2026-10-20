@@ -11,7 +11,14 @@ assert.ok(sidebar && mobileMenu && settings, 'Navigation and settings sections e
 
 assert.equal((sidebar.match(/data-sidebar-view="(?:form|list|classes|report)"/g) || []).length, 4);
 assert.equal((sidebar.match(/<details class="action-group advanced-actions"/g) || []).length, 1);
-assert.equal((mobileMenu.match(/<details class="mobile-action-group"/g) || []).length, 2);
+assert.equal((mobileMenu.match(/<details class="mobile-action-group(?: mobile-danger-group)?"/g) || []).length, 3);
+assert.match(mobileMenu, /id="mobile-actions-close-btn"[^>]*aria-label="បិទម៉ឺនុយសកម្មភាព"/);
+assert.match(mobileMenu, /<details class="mobile-action-group mobile-danger-group">[\s\S]*?id="m-delete-all-btn"/);
+assert.doesNotMatch(mobileMenu.slice(mobileMenu.indexOf('បោះពុម្ព និងនាំចេញ'), mobileMenu.indexOf('mobile-danger-group')), /id="m-delete-all-btn"/,
+    'Delete-all is not part of print and export');
+assert.match(sidebar, /<div class="advanced-danger-zone">[\s\S]*?id="delete-all-btn"/);
+assert.match(html, /id="mobile-menu-btn"[^>]*aria-controls="mobile-actions-sheet"[^>]*aria-expanded="false"/);
+assert.match(mobileMenu, /id="mobile-actions-sheet"[^>]*aria-hidden="true" inert/);
 assert.doesNotMatch(sidebar, /id="sheet-settings-btn"/, 'Storage is no longer a duplicate top-level desktop action');
 assert.doesNotMatch(mobileMenu, /id="m-sheet-settings-btn"/, 'Storage is no longer a duplicate top-level mobile action');
 assert.match(settings, /id="sheet-settings-btn"[^>]*class="settings-storage-link"/);
@@ -105,6 +112,25 @@ assert.equal(storageEls.appSettingsModal.classList.contains('is-open'), true);
 assert.equal(storageEls.sheetModal.classList.contains('is-open'), false);
 assert.equal(draft.value, 'unsaved principal name', 'Storage round-trip preserves unsaved school settings');
 assert.equal(storageEls.sheetSettingsBtn.focused, true);
+
+const closeMenuSource = html.slice(html.indexOf('        function closeMobileActions() {'), html.indexOf('        els.mobileMenuBtn?.addEventListener("click", () => {', html.indexOf('        function closeMobileActions() {')));
+const menuOverlay = { classList:classList() };
+const menuGroup = { open:true };
+const menuSheet = { classList:classList(), inert:false, attributes:{}, querySelectorAll:() => [menuGroup], setAttribute(name, value) { this.attributes[name] = value; } };
+const menuTrigger = { attributes:{}, setAttribute(name, value) { this.attributes[name] = value; }, focus() { this.focused = true; } };
+const body = { classList:classList() };
+menuSheet.classList.add('is-open');
+menuOverlay.classList.add('is-open');
+body.classList.add('mobile-actions-open');
+const menuContext = vm.createContext({ els:{ mobileActionsSheet:menuSheet, mobileActionsOverlay:menuOverlay, mobileMenuBtn:menuTrigger }, document:{ body } });
+vm.runInContext(closeMenuSource, menuContext);
+menuContext.closeMobileActions();
+assert.equal(menuSheet.inert, true);
+assert.equal(menuSheet.attributes['aria-hidden'], 'true');
+assert.equal(menuTrigger.attributes['aria-expanded'], 'false');
+assert.equal(menuTrigger.focused, true);
+assert.equal(menuGroup.open, false);
+assert.equal(body.classList.contains('mobile-actions-open'), false);
 assert.doesNotMatch(saveSource, /querySelectorAll\("input\[data-class-name\]:not\(\[hidden\]\)"\)/);
 const rows = [
     { hidden:false, querySelector:() => ({ dataset:{ className:'7A' }, value:'គ្រូ សុខ' }) },
@@ -139,4 +165,4 @@ assert.deepEqual([filterControls.searchInput.value, filterControls.genderFilter.
 assert.equal(resets, 1);
 assert.equal(refreshes, 1);
 assert.match(html, /មិនមានសិស្សត្រូវនឹងការស្វែងរក ឬតម្រងនេះ/);
-console.log('Navigation and Settings: one Settings entry, storage round-trip preserves draft, searchable teachers without dropping saved rows, scripts parse');
+console.log('Navigation and Settings: safe mobile actions, one Settings entry, storage draft preserved, scripts parse');

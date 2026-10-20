@@ -1560,10 +1560,15 @@
         }
 
         .sheet-header {
-            padding: 0 18px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 0 12px 10px 18px;
             border-bottom: 1px solid var(--border);
-            text-align: center;
         }
+        .sheet-close-btn { display:grid; flex:0 0 40px; width:40px; height:40px; place-items:center; border:1px solid var(--border); border-radius:10px; background:var(--surface-2); color:var(--text); font:inherit; cursor:pointer; }
+        .sheet-close-btn:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
 
         .sheet-title {
             font-size: 1rem;
@@ -1587,6 +1592,11 @@
         .mobile-action-group-content { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:0 8px 8px; }
         .mobile-action-group:not([open]) .mobile-action-group-content { display:none; }
         .mobile-action-group-content .sheet-menu-item { min-width:0; text-align:center; line-height:1.35; }
+        .mobile-danger-group { border-color:var(--red); }
+        .mobile-danger-group summary, .mobile-danger-group summary ion-icon { color:var(--red); }
+        .mobile-danger-group .mobile-action-group-content { grid-template-columns:1fr; }
+        .mobile-danger-note { margin:0; padding:0 10px 9px; color:var(--muted); font-size:.77rem; line-height:1.5; }
+        body.mobile-actions-open { overflow:hidden; }
 
         .sheet-menu-item {
             min-height: 76px;
@@ -3196,7 +3206,8 @@
             .app > .topbar-actions .advanced-actions summary:focus-visible { background:rgba(255,255,255,.15); outline:none; }
             .app > .topbar-actions .advanced-actions summary ion-icon { width:17px; height:17px; }
             .app > .topbar-actions .advanced-label { margin:11px 10px 5px; color:#c7ddf6; font-size:.69rem; font-weight:700; }
-            .app > .topbar-actions .advanced-actions .btn-danger { margin-top:13px; }
+            .app > .topbar-actions .advanced-danger-zone { margin-top:13px; padding-top:8px; border-top:1px solid rgba(255,255,255,.18); }
+            .app > .topbar-actions .advanced-danger-note { margin:0 10px 8px; color:#f3d5d7; font-size:.72rem; line-height:1.45; }
             .app > .topbar-actions details.advanced-actions:not([open]) > :not(summary) { display:none !important; }
             .app > .topbar-actions .action-group::before {
                 content: attr(data-group-label);
@@ -3359,7 +3370,7 @@
             <ion-icon class="icon-sun" name="sunny-outline"></ion-icon>
             <ion-icon class="icon-moon" name="moon-outline"></ion-icon>
         </button>
-        <button id="mobile-menu-btn" class="btn btn-ghost mobile-menu-btn" type="button" title="More actions" aria-label="More actions">
+        <button id="mobile-menu-btn" class="btn btn-ghost mobile-menu-btn" type="button" title="សកម្មភាពបន្ថែម" aria-label="បើកម៉ឺនុយសកម្មភាព" aria-controls="mobile-actions-sheet" aria-expanded="false">
             <ion-icon name="ellipsis-vertical-outline" aria-hidden="true"></ion-icon>
         </button>
     </header>
@@ -3431,10 +3442,14 @@
                     <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
                     <span>ទាញ CSV</span>
                 </button>
-                <button id="delete-all-btn" class="btn btn-danger" type="button" title="Delete all student records">
-                    <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
-                    <span>លុបទាំងអស់</span>
-                </button>
+                <div class="advanced-danger-zone">
+                    <p class="advanced-label">សកម្មភាពប្រុងប្រយ័ត្ន</p>
+                    <p class="advanced-danger-note">ប្រើតែពេលត្រូវសម្អាតទិន្នន័យសិស្សទាំងអស់។</p>
+                    <button id="delete-all-btn" class="btn btn-danger" type="button" title="លុបទិន្នន័យសិស្សទាំងអស់">
+                        <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+                        <span>លុបទាំងអស់</span>
+                    </button>
+                </div>
             </details>
 
     </nav>
@@ -4038,7 +4053,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.57</span>
+        <span class="footer-version">កំណែ 2.1.58</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4327,10 +4342,11 @@
 
 <!-- ======================== MOBILE ACTIONS SHEET ======================== -->
 <div id="mobile-actions-overlay" class="mobile-actions-overlay"></div>
-<div id="mobile-actions-sheet" class="mobile-actions-sheet" role="dialog" aria-modal="true" aria-labelledby="mobile-actions-title">
+<div id="mobile-actions-sheet" class="mobile-actions-sheet" role="dialog" aria-modal="true" aria-labelledby="mobile-actions-title" aria-hidden="true" inert>
     <div class="sheet-handle"></div>
     <div class="sheet-header">
         <h3 id="mobile-actions-title" class="sheet-title">ម៉ឺនុយសកម្មភាព</h3>
+        <button id="mobile-actions-close-btn" class="sheet-close-btn" type="button" aria-label="បិទម៉ឺនុយសកម្មភាព"><ion-icon name="close-outline" aria-hidden="true"></ion-icon></button>
     </div>
     <div class="sheet-body">
         <button id="m-app-settings-btn" class="sheet-menu-item" type="button">
@@ -4385,10 +4401,16 @@
             <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
             <span>ទាញ CSV</span>
         </button>
-        <button id="m-delete-all-btn" class="sheet-menu-item danger-item" type="button">
-            <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
-            <span>លុបទាំងអស់</span>
-        </button>
+            </div>
+        </details>
+        <details class="mobile-action-group mobile-danger-group">
+            <summary><ion-icon name="warning-outline" aria-hidden="true"></ion-icon> សកម្មភាពប្រុងប្រយ័ត្ន</summary>
+            <p class="mobile-danger-note">ការលុបទាំងអស់ត្រូវបញ្ជាក់ម្ដងទៀត មុនអនុវត្ត។</p>
+            <div class="mobile-action-group-content">
+                <button id="m-delete-all-btn" class="sheet-menu-item danger-item" type="button">
+                    <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+                    <span>លុបទិន្នន័យសិស្សទាំងអស់</span>
+                </button>
             </div>
         </details>
     </div>
@@ -5113,6 +5135,7 @@
         mobileMenuBtn: document.getElementById("mobile-menu-btn"),
         mobileActionsOverlay: document.getElementById("mobile-actions-overlay"),
         mobileActionsSheet: document.getElementById("mobile-actions-sheet"),
+        mobileActionsCloseBtn: document.getElementById("mobile-actions-close-btn"),
         tabListBtn: document.getElementById("tab-list-btn"),
         tabFormBtn: document.getElementById("tab-form-btn"),
         tabClassesBtn: document.getElementById("tab-classes-btn"),
@@ -10401,15 +10424,30 @@
         });
 
         function closeMobileActions() {
+            if (els.mobileActionsSheet?.classList.contains("is-open")) els.mobileMenuBtn?.focus({ preventScroll:true });
             els.mobileActionsOverlay?.classList.remove("is-open");
             els.mobileActionsSheet?.classList.remove("is-open");
             els.mobileActionsSheet?.querySelectorAll("details").forEach(group => { group.open = false; });
+            if (els.mobileActionsSheet) {
+                els.mobileActionsSheet.inert = true;
+                els.mobileActionsSheet.setAttribute("aria-hidden", "true");
+            }
+            els.mobileMenuBtn?.setAttribute("aria-expanded", "false");
+            document.body.classList.remove("mobile-actions-open");
         }
 
         els.mobileMenuBtn?.addEventListener("click", () => {
+            if (els.mobileActionsSheet) {
+                els.mobileActionsSheet.inert = false;
+                els.mobileActionsSheet.setAttribute("aria-hidden", "false");
+            }
             els.mobileActionsOverlay?.classList.add("is-open");
             els.mobileActionsSheet?.classList.add("is-open");
+            els.mobileMenuBtn.setAttribute("aria-expanded", "true");
+            document.body.classList.add("mobile-actions-open");
+            els.mobileActionsCloseBtn?.focus({ preventScroll:true });
         });
+        els.mobileActionsCloseBtn?.addEventListener("click", closeMobileActions);
         els.mobileActionsOverlay?.addEventListener("click", closeMobileActions);
 
         const mobileMenuActions = {
