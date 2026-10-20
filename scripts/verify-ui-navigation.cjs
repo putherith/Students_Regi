@@ -15,6 +15,7 @@ assert.equal((mobileMenu.match(/<details class="mobile-action-group"/g) || []).l
 assert.match(settings, /<section class="settings-section" aria-labelledby="settings-card-heading"/);
 assert.match(settings, /<section class="settings-section" aria-labelledby="settings-contact-heading"/);
 assert.match(settings, /<details id="teacher-settings-section" class="settings-collapsible">[\s\S]*?<input id="teacher-settings-search"[\s\S]*?<div id="teacher-settings-list"/);
+assert.match(settings, /id="app-settings-title"[^>]*tabindex="-1"/);
 assert.doesNotMatch(html, /class="admin-overview-actions"/, 'Duplicate dashboard shortcuts removed');
 assert.doesNotMatch(html, /id="(?:m-)?print-name-list-btn"/, 'Class roster shortcut is not duplicated outside Reports');
 assert.match(html, /function setSidebarActiveView\(view\)/);
@@ -26,6 +27,11 @@ assert.match(editSource, /if \(isMobileView\(\)\) \{\s*openMobileEditPanel\(\);\
 const submitSource = html.slice(html.indexOf('    async function handleFormSubmit(e) {'), html.indexOf('    function openDeleteModal(', html.indexOf('    async function handleFormSubmit(e) {')));
 assert.match(submitSource, /if \(isMobileView\(\) \|\| editingId\) setActiveTab\("list", \{ scroll: !editingId \}\)/,
     'Editing returns to the list after save');
+const escapeSource = html.slice(html.indexOf('        document.addEventListener("keydown",e=>{'), html.indexOf('        // Local Offline Setup', html.indexOf('        document.addEventListener("keydown",e=>{')));
+assert.ok(escapeSource.indexOf('els.appSettingsModal.classList.contains("is-open")') < escapeSource.indexOf('setActionsOpen(false)'),
+    'Escape closes Settings before collapsing the sidebar');
+assert.match(escapeSource, /if\(els\.editingId\.value\)\{resetForm\(\);if\(!isMobileView\(\)\)setActiveTab\("list"\);return;\}/,
+    'Escape returns from desktop edit to the list');
 
 for (const id of [
     'app-settings-btn', 'sheet-settings-btn', 'load-sheet-btn', 'backup-now-btn',

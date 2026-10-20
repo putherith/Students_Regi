@@ -4026,7 +4026,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.53</span>
+        <span class="footer-version">កំណែ 2.1.54</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4163,7 +4163,7 @@
             <div class="modal-icon modal-icon-primary" aria-hidden="true">
                 <ion-icon name="settings-outline"></ion-icon>
             </div>
-            <h2 id="app-settings-title" class="modal-title">ការកំណត់សាលា និងកាតសិស្ស</h2>
+            <h2 id="app-settings-title" class="modal-title" tabindex="-1">ការកំណត់សាលា និងកាតសិស្ស</h2>
             <p class="modal-desc">កំណត់ព័ត៌មានសាលា កាលបរិច្ឆេទ និងគ្រូបន្ទុកតាមថ្នាក់។</p>
             <section class="settings-section" aria-labelledby="settings-card-heading">
                 <h3 id="settings-card-heading">កាត និងឆ្នាំសិក្សា</h3>
@@ -4228,7 +4228,7 @@
             <div class="modal-icon modal-icon-primary" aria-hidden="true">
                 <ion-icon name="grid-outline"></ion-icon>
             </div>
-            <h2 id="sheet-title" class="modal-title">ភ្ជាប់ឃ្លាំងទិន្នន័យ</h2>
+            <h2 id="sheet-title" class="modal-title" tabindex="-1">ភ្ជាប់ឃ្លាំងទិន្នន័យ</h2>
             <p class="modal-desc">
                 ជ្រើសរើស Supabase ឬ Google Sheet ដើម្បីឱ្យ computer និង phone ប្រើទិន្នន័យតែមួយ។
             </p>
@@ -5643,10 +5643,12 @@
         renderTeacherSettings();
         els.appSettingsModal.classList.add("is-open");
         els.appSettingsModal.querySelector(".modal-body")?.scrollTo(0, 0);
+        document.getElementById("app-settings-title")?.focus({ preventScroll:true });
     }
 
     function closeAppSettings() {
         els.appSettingsModal.classList.remove("is-open");
+        (isMobileView() ? els.mobileMenuBtn : els.appSettingsBtn)?.focus({ preventScroll:true });
     }
 
     async function syncAppSettingsToGoogleSheet() {
@@ -5870,11 +5872,16 @@
         updateStorageFieldsVisibility();
         els.sheetModal.classList.add("is-open");
         setTimeout(() => {
+            if (!els.sheetModal.classList.contains("is-open")) return;
+            if (isMobileView()) { document.getElementById("sheet-title")?.focus({ preventScroll:true }); return; }
             if (els.storageProviderSelect.value === SUPABASE_PROVIDER) els.supabaseUrlInput.focus();
             else els.sheetAccessKeyInput.focus();
         }, 0);
     }
-    function closeSheetModal() { els.sheetModal.classList.remove("is-open"); }
+    function closeSheetModal() {
+        els.sheetModal.classList.remove("is-open");
+        (isMobileView() ? els.mobileMenuBtn : els.sheetSettingsBtn)?.focus({ preventScroll:true });
+    }
 
     function clearCloudSettings(provider=getCloudProvider()) {
         if (provider === SUPABASE_PROVIDER) {
@@ -10344,7 +10351,7 @@
         // Keyboard shortcuts
         document.addEventListener("keydown",e=>{
             if(e.key==="Escape"){
-                if(els.appTopbar && !els.appTopbar.classList.contains("actions-collapsed")) { setActionsOpen(false); return; }
+                if(els.cardExportDialog?.open) return;
                 if(els.deleteModal.classList.contains("is-open")){closeDeleteModal();return;}
                 if(els.deleteAllModal.classList.contains("is-open")){closeDeleteAllModal();return;}
                 if(els.sheetModal.classList.contains("is-open")){closeSheetModal();return;}
@@ -10357,7 +10364,8 @@
                     else setActiveTab("list");
                     return;
                 }
-                if(els.editingId.value){resetForm();return;}
+                if(els.editingId.value){resetForm();if(!isMobileView())setActiveTab("list");return;}
+                if(!isMobileView() && els.appTopbar && !els.appTopbar.classList.contains("actions-collapsed")) setActionsOpen(false);
             }
             if(e.ctrlKey&&e.key==="Enter"&&document.activeElement&&els.registrationForm.contains(document.activeElement)){
                 els.registrationForm.requestSubmit();
