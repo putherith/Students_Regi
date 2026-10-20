@@ -12,6 +12,9 @@ assert.ok(sidebar && mobileMenu && settings, 'Navigation and settings sections e
 assert.equal((sidebar.match(/data-sidebar-view="(?:form|list|classes|report)"/g) || []).length, 4);
 assert.equal((sidebar.match(/<details class="action-group advanced-actions"/g) || []).length, 1);
 assert.equal((mobileMenu.match(/<details class="mobile-action-group"/g) || []).length, 2);
+assert.doesNotMatch(sidebar, /id="sheet-settings-btn"/, 'Storage is no longer a duplicate top-level desktop action');
+assert.doesNotMatch(mobileMenu, /id="m-sheet-settings-btn"/, 'Storage is no longer a duplicate top-level mobile action');
+assert.match(settings, /id="sheet-settings-btn"[^>]*class="settings-storage-link"/);
 for (const [name, panel] of [['card', 'settings-card-panel'], ['school', 'settings-school-panel'], ['teachers', 'teacher-settings-section']]) {
     assert.match(settings, new RegExp(`id="settings-${name}-tab"[^>]*role="tab"[^>]*data-settings-tab="${name}"[^>]*aria-controls="${panel}"`));
     assert.match(settings, new RegExp(`id="${panel}"[^>]*role="tabpanel"`));
@@ -40,7 +43,7 @@ assert.match(escapeSource, /if\(els\.editingId\.value\)\{resetForm\(\);if\(!isMo
     'Escape returns from desktop edit to the list');
 
 for (const id of [
-    'app-settings-btn', 'sheet-settings-btn', 'load-sheet-btn', 'backup-now-btn',
+    'app-settings-btn', 'load-sheet-btn', 'backup-now-btn',
     'recover-photos-btn', 'download-template-btn', 'import-file-btn',
     'print-list-btn', 'print-photo-list-btn',
     'print-card-list-btn', 'download-photos-btn', 'download-csv-btn', 'delete-all-btn'
@@ -72,6 +75,36 @@ assert.deepEqual([tabEls.settingsCardPanel.hidden, tabEls.settingsSchoolPanel.hi
 const saveSource = html.slice(html.indexOf('    async function saveAppSettings() {'), html.indexOf('    // ===================== STATUS', html.indexOf('    async function saveAppSettings() {')));
 assert.match(saveSource, /querySelectorAll\("input\[data-class-name\]"\)/, 'Saving reads every teacher input, including search-hidden rows');
 assert.match(saveSource, /if \(!els\.academicYearStartInput\.checkValidity\(\)\) \{\s*selectSettingsTab\("card"\)/, 'Invalid academic year opens its visible tab');
+
+const storageSource = html.slice(html.indexOf('    function openSheetModal() {'), html.indexOf('    function clearCloudSettings(', html.indexOf('    function openSheetModal() {')));
+const classList = () => {
+    const values = new Set();
+    return { add:value => values.add(value), remove:value => values.delete(value), contains:value => values.has(value) };
+};
+const draft = { value:'unsaved principal name' };
+const storageEls = {
+    appSettingsModal:{ classList:classList() }, sheetModal:{ classList:classList() },
+    storageProviderSelect:{ value:'' }, supabaseUrlInput:{ value:'' }, supabaseKeyInput:{ value:'' },
+    sheetUrlInput:{ value:'' }, sheetAccessKeyInput:{ value:'' },
+    settingsStorageStatus:{ textContent:'' }, sheetSettingsBtn:{ focus() { this.focused = true; } },
+    appSettingsBtn:{ focus() {} }, mobileMenuBtn:{ focus() {} }, principalNameInput:draft
+};
+storageEls.appSettingsModal.classList.add('is-open');
+const storageContext = vm.createContext({
+    els:storageEls, storageReturnToSettings:false, getCloudProvider:() => 'google-sheet',
+    getSupabaseUrl:() => '', getSupabaseAnonKey:() => '', getGoogleScriptUrl:() => 'https://example.test/exec',
+    getGoogleSheetAccessKey:() => '', currentStorageName:() => 'Google Sheet',
+    updateStorageFieldsVisibility:() => {}, setTimeout:() => {}, isMobileView:() => false
+});
+vm.runInContext(storageSource, storageContext);
+storageContext.openSheetModal();
+assert.equal(storageEls.appSettingsModal.classList.contains('is-open'), false);
+assert.equal(storageEls.sheetModal.classList.contains('is-open'), true);
+storageContext.closeSheetModal();
+assert.equal(storageEls.appSettingsModal.classList.contains('is-open'), true);
+assert.equal(storageEls.sheetModal.classList.contains('is-open'), false);
+assert.equal(draft.value, 'unsaved principal name', 'Storage round-trip preserves unsaved school settings');
+assert.equal(storageEls.sheetSettingsBtn.focused, true);
 assert.doesNotMatch(saveSource, /querySelectorAll\("input\[data-class-name\]:not\(\[hidden\]\)"\)/);
 const rows = [
     { hidden:false, querySelector:() => ({ dataset:{ className:'7A' }, value:'គ្រូ សុខ' }) },
@@ -106,4 +139,4 @@ assert.deepEqual([filterControls.searchInput.value, filterControls.genderFilter.
 assert.equal(resets, 1);
 assert.equal(refreshes, 1);
 assert.match(html, /មិនមានសិស្សត្រូវនឹងការស្វែងរក ឬតម្រងនេះ/);
-console.log('Navigation and Settings: focused desktop views, accessible settings tabs, searchable teachers without dropping saved rows, scripts parse');
+console.log('Navigation and Settings: one Settings entry, storage round-trip preserves draft, searchable teachers without dropping saved rows, scripts parse');
