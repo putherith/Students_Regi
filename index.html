@@ -3105,6 +3105,18 @@
         /* Desktop: one collapsible navigation rail on the left. */
         @media (min-width: 861px) {
             .app { max-width: none; }
+            .main-layout { display:block; }
+            .main-layout.show-list .form-panel,
+            .main-layout.show-form .list-panel { display:none; }
+            .main-layout.show-form .form-panel { position:relative; width:min(100%,920px); margin:0 auto; overflow:visible; }
+            .main-layout.show-form .form-panel > .panel-header { border-radius:16px 16px 0 0; }
+            .main-layout.show-form .form-body { max-height:none; overflow:visible; padding-bottom:0; }
+            .main-layout.show-form .form-save-bar { position:sticky; bottom:0; z-index:5; border-radius:0 0 16px 16px; }
+            .main-layout.show-form ~ .history-panel { display:none; }
+            body.mobile-form-view .admin-overview,
+            body.mobile-form-view .metrics,
+            body.class-browser-view .admin-overview,
+            body.class-browser-view .metrics { display:none; }
             body.sidebar-open .app { padding-left: 252px; }
             .topbar {
                 min-height: 76px;
@@ -4014,7 +4026,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.52</span>
+        <span class="footer-version">កំណែ 2.1.53</span>
     </footer>
 
 </main><!-- end .app -->
@@ -8081,6 +8093,10 @@
 
     function setEditMode(id) {
         els.editingId.value = id || "";
+        const sidebarFormLabel = document.querySelector('#app-actions [data-sidebar-view="form"] span');
+        if (sidebarFormLabel) sidebarFormLabel.textContent = id ? "កែសម្រួលសិស្ស" : "បញ្ចូលសិស្សថ្មី";
+        const mobileFormLabel = els.tabFormBtn?.querySelector("span");
+        if (mobileFormLabel) mobileFormLabel.textContent = id ? "កែសម្រួល" : "ចុះឈ្មោះថ្មី";
         if (id) {
             els.formTitle.textContent = "កែសម្រួលសិស្ស";
             els.formSubtitle.textContent = "កំពុងកែព័ត៌មានសិស្សដែលបានជ្រើស";
@@ -8201,6 +8217,7 @@
         if (isMobileView()) {
             openMobileEditPanel();
         } else {
+            setActiveTab("form", { scroll:false });
             els.formPanel.scrollIntoView({ behavior:"smooth", block:"start" });
         }
         // Recheck even an existing portrait: the Sheet may now have a blank cell.
@@ -8319,7 +8336,7 @@
             }
             resetForm();
             await refreshStudents({ reset: !editingId, source:"memory" });
-            if (isMobileView()) setActiveTab("list", { scroll: !editingId });
+            if (isMobileView() || editingId) setActiveTab("list", { scroll: !editingId });
         } catch(e) {
             console.error("Save error:", e);
             showToast(e?.message || "រក្សាទុកមិនបាន","error");
@@ -10123,7 +10140,11 @@
             });
         });
         els.registrationForm.addEventListener("submit",handleFormSubmit);
-        els.clearBtn.addEventListener("click",resetForm);
+        els.clearBtn.addEventListener("click",()=>{
+            const wasEditing = Boolean(els.editingId.value);
+            resetForm();
+            if (wasEditing && !isMobileView()) setActiveTab("list");
+        });
         document.querySelectorAll(".guardian-copy-btn").forEach(button => {
             button.addEventListener("click", () => copyParentToGuardian(button.dataset.guardianSource));
         });

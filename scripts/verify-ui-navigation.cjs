@@ -18,6 +18,14 @@ assert.match(settings, /<details id="teacher-settings-section" class="settings-c
 assert.doesNotMatch(html, /class="admin-overview-actions"/, 'Duplicate dashboard shortcuts removed');
 assert.doesNotMatch(html, /id="(?:m-)?print-name-list-btn"/, 'Class roster shortcut is not duplicated outside Reports');
 assert.match(html, /function setSidebarActiveView\(view\)/);
+assert.match(html, /@media \(min-width: 861px\) \{[\s\S]*?\.main-layout\.show-list \.form-panel,\s*\.main-layout\.show-form \.list-panel \{ display:none; \}/,
+    'Desktop shows one primary work panel at a time');
+const editSource = html.slice(html.indexOf('    async function loadStudentIntoForm(id) {'), html.indexOf('    function setSaving(', html.indexOf('    async function loadStudentIntoForm(id) {')));
+assert.match(editSource, /if \(isMobileView\(\)\) \{\s*openMobileEditPanel\(\);\s*\} else \{\s*setActiveTab\("form", \{ scroll:false \}\)/,
+    'Editing from desktop list opens the form view');
+const submitSource = html.slice(html.indexOf('    async function handleFormSubmit(e) {'), html.indexOf('    function openDeleteModal(', html.indexOf('    async function handleFormSubmit(e) {')));
+assert.match(submitSource, /if \(isMobileView\(\) \|\| editingId\) setActiveTab\("list", \{ scroll: !editingId \}\)/,
+    'Editing returns to the list after save');
 
 for (const id of [
     'app-settings-btn', 'sheet-settings-btn', 'load-sheet-btn', 'backup-now-btn',
@@ -51,4 +59,4 @@ assert.deepEqual(rows.map(row => row.hidden), [true, false]);
 els.teacherSettingsSearch.value = '';
 vm.runInNewContext(`${filterSource}\nfilterTeacherSettings()`, { els });
 assert.deepEqual(rows.map(row => row.hidden), [false, false]);
-console.log('Navigation and Settings: grouped controls, searchable teachers without dropping saved rows, scripts parse');
+console.log('Navigation and Settings: focused desktop views, grouped controls, searchable teachers without dropping saved rows, scripts parse');
