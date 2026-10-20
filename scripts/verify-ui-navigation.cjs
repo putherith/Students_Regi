@@ -12,9 +12,12 @@ assert.ok(sidebar && mobileMenu && settings, 'Navigation and settings sections e
 assert.equal((sidebar.match(/data-sidebar-view="(?:form|list|classes|report)"/g) || []).length, 4);
 assert.equal((sidebar.match(/<details class="action-group advanced-actions"/g) || []).length, 1);
 assert.equal((mobileMenu.match(/<details class="mobile-action-group"/g) || []).length, 2);
-assert.match(settings, /<section class="settings-section" aria-labelledby="settings-card-heading"/);
-assert.match(settings, /<section class="settings-section" aria-labelledby="settings-contact-heading"/);
-assert.match(settings, /<details id="teacher-settings-section" class="settings-collapsible">[\s\S]*?<input id="teacher-settings-search"[\s\S]*?<div id="teacher-settings-list"/);
+for (const [name, panel] of [['card', 'settings-card-panel'], ['school', 'settings-school-panel'], ['teachers', 'teacher-settings-section']]) {
+    assert.match(settings, new RegExp(`id="settings-${name}-tab"[^>]*role="tab"[^>]*data-settings-tab="${name}"[^>]*aria-controls="${panel}"`));
+    assert.match(settings, new RegExp(`id="${panel}"[^>]*role="tabpanel"`));
+}
+assert.match(settings, /id="settings-school-panel"[^>]*hidden/);
+assert.match(settings, /id="teacher-settings-section"[^>]*hidden[\s\S]*?<input id="teacher-settings-search"[\s\S]*?<div id="teacher-settings-list"/);
 assert.match(settings, /id="app-settings-title"[^>]*tabindex="-1"/);
 assert.doesNotMatch(html, /class="admin-overview-actions"/, 'Duplicate dashboard shortcuts removed');
 assert.doesNotMatch(html, /id="(?:m-)?print-name-list-btn"/, 'Class roster shortcut is not duplicated outside Reports');
@@ -51,8 +54,24 @@ assert.ok(scripts.length, 'Inline app script exists');
 scripts.forEach((source, index) => new vm.Script(source, { filename:`inline-${index}.js` }));
 
 const filterSource = html.slice(html.indexOf('    function filterTeacherSettings() {'), html.indexOf('    function openAppSettings() {'));
+const tabSource = html.slice(html.indexOf('    function selectSettingsTab(name, focus=false) {'), html.indexOf('    function openAppSettings() {'));
+const tabControl = () => ({ attributes:{}, tabIndex:-1, setAttribute(name, value) { this.attributes[name] = value; }, focus() { this.focused = true; } });
+const tabPanel = () => ({ hidden:true });
+const tabEls = {
+    settingsCardTab:tabControl(), settingsSchoolTab:tabControl(), settingsTeachersTab:tabControl(),
+    settingsCardPanel:tabPanel(), settingsSchoolPanel:tabPanel(), teacherSettingsSection:tabPanel()
+};
+const tabContext = vm.createContext({ els:tabEls });
+vm.runInContext(tabSource, tabContext);
+tabContext.selectSettingsTab('teachers', true);
+assert.deepEqual([tabEls.settingsCardPanel.hidden, tabEls.settingsSchoolPanel.hidden, tabEls.teacherSettingsSection.hidden], [true, true, false]);
+assert.equal(tabEls.settingsTeachersTab.attributes['aria-selected'], 'true');
+assert.equal(tabEls.settingsTeachersTab.focused, true);
+tabContext.selectSettingsTab('card');
+assert.deepEqual([tabEls.settingsCardPanel.hidden, tabEls.settingsSchoolPanel.hidden, tabEls.teacherSettingsSection.hidden], [false, true, true]);
 const saveSource = html.slice(html.indexOf('    async function saveAppSettings() {'), html.indexOf('    // ===================== STATUS', html.indexOf('    async function saveAppSettings() {')));
 assert.match(saveSource, /querySelectorAll\("input\[data-class-name\]"\)/, 'Saving reads every teacher input, including search-hidden rows');
+assert.match(saveSource, /if \(!els\.academicYearStartInput\.checkValidity\(\)\) \{\s*selectSettingsTab\("card"\)/, 'Invalid academic year opens its visible tab');
 assert.doesNotMatch(saveSource, /querySelectorAll\("input\[data-class-name\]:not\(\[hidden\]\)"\)/);
 const rows = [
     { hidden:false, querySelector:() => ({ dataset:{ className:'7A' }, value:'គ្រូ សុខ' }) },
@@ -87,4 +106,4 @@ assert.deepEqual([filterControls.searchInput.value, filterControls.genderFilter.
 assert.equal(resets, 1);
 assert.equal(refreshes, 1);
 assert.match(html, /មិនមានសិស្សត្រូវនឹងការស្វែងរក ឬតម្រងនេះ/);
-console.log('Navigation and Settings: focused desktop views, grouped controls, searchable teachers without dropping saved rows, scripts parse');
+console.log('Navigation and Settings: focused desktop views, accessible settings tabs, searchable teachers without dropping saved rows, scripts parse');
