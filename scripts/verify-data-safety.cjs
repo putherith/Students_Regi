@@ -168,7 +168,7 @@ async function waitFor(predicate) {
     assert.equal(storedRows[0].id, 'new');
 
     const filters = vm.createContext({hasActiveFilters:() => true, filteredStudents:[1,2,3], visibleStudents:[1], allStudents:[1,2,3,4]});
-    vm.runInContext(section('    function printableRows(', '    function printStudentNameList('), filters);
+    vm.runInContext(section('    function printableRows(', '    function toKhmerDigits('), filters);
     assert.deepEqual(Array.from(filters.printableRows()), [1,2,3]);
 
     // Cached browser portraits are unverified until the Sheet supplies them.

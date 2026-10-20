@@ -12,14 +12,17 @@ assert.ok(sidebar && mobileMenu && settings, 'Navigation and settings sections e
 assert.equal((sidebar.match(/data-sidebar-view="(?:form|list|classes|report)"/g) || []).length, 4);
 assert.equal((sidebar.match(/<details class="action-group advanced-actions"/g) || []).length, 1);
 assert.equal((mobileMenu.match(/<details class="mobile-action-group"/g) || []).length, 2);
-assert.match(settings, /<details class="settings-collapsible">[\s\S]*?<div id="teacher-settings-list"/);
+assert.match(settings, /<section class="settings-section" aria-labelledby="settings-card-heading"/);
+assert.match(settings, /<section class="settings-section" aria-labelledby="settings-contact-heading"/);
+assert.match(settings, /<details id="teacher-settings-section" class="settings-collapsible">[\s\S]*?<input id="teacher-settings-search"[\s\S]*?<div id="teacher-settings-list"/);
 assert.doesNotMatch(html, /class="admin-overview-actions"/, 'Duplicate dashboard shortcuts removed');
+assert.doesNotMatch(html, /id="(?:m-)?print-name-list-btn"/, 'Class roster shortcut is not duplicated outside Reports');
 assert.match(html, /function setSidebarActiveView\(view\)/);
 
 for (const id of [
     'app-settings-btn', 'sheet-settings-btn', 'load-sheet-btn', 'backup-now-btn',
     'recover-photos-btn', 'download-template-btn', 'import-file-btn',
-    'print-list-btn', 'print-photo-list-btn', 'print-name-list-btn',
+    'print-list-btn', 'print-photo-list-btn',
     'print-card-list-btn', 'download-photos-btn', 'download-csv-btn', 'delete-all-btn'
 ]) {
     assert.equal((sidebar.match(new RegExp(`id="${id}"`, 'g')) || []).length, 1, `${id} remains available once`);
@@ -29,4 +32,23 @@ const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
     .map(match => match[1]).filter(Boolean);
 assert.ok(scripts.length, 'Inline app script exists');
 scripts.forEach((source, index) => new vm.Script(source, { filename:`inline-${index}.js` }));
-console.log('Navigation simplified: one primary sidebar, grouped mobile tools, accessible school settings, scripts parse');
+
+const filterSource = html.slice(html.indexOf('    function filterTeacherSettings() {'), html.indexOf('    function openAppSettings() {'));
+const saveSource = html.slice(html.indexOf('    async function saveAppSettings() {'), html.indexOf('    // ===================== STATUS', html.indexOf('    async function saveAppSettings() {')));
+assert.match(saveSource, /querySelectorAll\("input\[data-class-name\]"\)/, 'Saving reads every teacher input, including search-hidden rows');
+assert.doesNotMatch(saveSource, /querySelectorAll\("input\[data-class-name\]:not\(\[hidden\]\)"\)/);
+const rows = [
+    { hidden:false, querySelector:() => ({ dataset:{ className:'7A' }, value:'គ្រូ សុខ' }) },
+    { hidden:false, querySelector:() => ({ dataset:{ className:'8B' }, value:'គ្រូ ស្រី' }) }
+];
+const els = {
+    teacherSettingsSearch:{ value:'8B' },
+    teacherSettingsList:{ querySelectorAll:() => rows },
+    teacherSettingsNoResults:{ hidden:true }
+};
+vm.runInNewContext(`${filterSource}\nfilterTeacherSettings()`, { els });
+assert.deepEqual(rows.map(row => row.hidden), [true, false]);
+els.teacherSettingsSearch.value = '';
+vm.runInNewContext(`${filterSource}\nfilterTeacherSettings()`, { els });
+assert.deepEqual(rows.map(row => row.hidden), [false, false]);
+console.log('Navigation and Settings: grouped controls, searchable teachers without dropping saved rows, scripts parse');
