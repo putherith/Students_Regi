@@ -1017,7 +1017,7 @@
             transition: opacity var(--transition);
         }
 
-        tbody tr:hover .row-actions { opacity: 1; }
+        tbody tr:hover .row-actions, tbody tr:focus-within .row-actions { opacity: 1; }
 
         /* Mobile cards */
         .cards-list {
@@ -1167,6 +1167,7 @@
         .mobile-quick-actions {
             gap: 5px;
         }
+        .student-card > .transfer-class-btn { width:100%; min-height:36px; margin-top:9px; justify-content:center; }
 
         /* ========================
            BADGES
@@ -4053,7 +4054,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.58</span>
+        <span class="footer-version">កំណែ 2.1.59</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4133,6 +4134,27 @@
                 <ion-icon name="copy-outline"></ion-icon> Copy URL
             </button>
             <button id="close-phone-camera-btn" class="btn btn-primary" type="button">បិទ</button>
+        </div>
+    </div>
+</div>
+
+<!-- ======================== TRANSFER CLASS MODAL ======================== -->
+<div id="transfer-class-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="transfer-class-title">
+    <div class="modal-dialog">
+        <div class="modal-body">
+            <div class="modal-icon modal-icon-primary" aria-hidden="true"><ion-icon name="school-outline"></ion-icon></div>
+            <h2 id="transfer-class-title" class="modal-title">ប្ដូរថ្នាក់សិស្ស</h2>
+            <p class="modal-desc"><strong id="transfer-student-name"></strong> · ថ្នាក់បច្ចុប្បន្ន <strong id="transfer-current-class"></strong></p>
+            <div class="field" style="margin-top:16px">
+                <label for="transfer-class-input">ថ្នាក់ថ្មី</label>
+                <input id="transfer-class-input" type="text" list="transfer-class-options" autocomplete="off" placeholder="ជ្រើស ឬវាយ ឧ. 8A" required>
+                <datalist id="transfer-class-options"></datalist>
+                <small class="field-help">បើប្ដូរកម្រិតថ្នាក់ អត្តលេខថ្មីនឹងត្រូវកំណត់ដោយ Server។ រូបថត និងព័ត៌មានផ្សេងនៅដដែល។</small>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancel-transfer-class-btn" class="btn btn-ghost" type="button">បោះបង់</button>
+            <button id="confirm-transfer-class-btn" class="btn btn-primary" type="button"><ion-icon name="swap-horizontal-outline" aria-hidden="true"></ion-icon> ប្ដូរថ្នាក់</button>
         </div>
     </div>
 </div>
@@ -5122,6 +5144,13 @@
         cardExportCancelBtn: document.getElementById("card-export-cancel"),
         downloadCsvBtn: document.getElementById("download-csv-btn"),
         deleteAllBtn: document.getElementById("delete-all-btn"),
+        transferClassModal: document.getElementById("transfer-class-modal"),
+        transferStudentName: document.getElementById("transfer-student-name"),
+        transferCurrentClass: document.getElementById("transfer-current-class"),
+        transferClassInput: document.getElementById("transfer-class-input"),
+        transferClassOptions: document.getElementById("transfer-class-options"),
+        confirmTransferClassBtn: document.getElementById("confirm-transfer-class-btn"),
+        cancelTransferClassBtn: document.getElementById("cancel-transfer-class-btn"),
         deleteModal: document.getElementById("delete-modal"),
         deleteStudentName: document.getElementById("delete-student-name"),
         confirmDeleteBtn: document.getElementById("confirm-delete-btn"),
@@ -5215,6 +5244,7 @@
     let hasNextPage = false;
     let isLoadingPage = false;
     let studentToDeleteId = null;
+    let studentToTransferId = null;
     let lastCloudError = "";
     let cloudSyncWarning = "";
     let studentSaveInProgress = false;
@@ -6239,6 +6269,8 @@
         } else if (action === "delete") {
             const key = encodeURIComponent(String(studentId || student.studentCode || student.id || "").trim());
             if (key) await supabaseFetch(`students?or=(id.eq.${key},student_code.eq.${key})`, { method:"DELETE", headers:{ "Prefer":"return=minimal" } });
+        } else if (action === "moveclass") {
+            throw new Error("ការប្ដូរថ្នាក់ដោយផ្ទាល់ត្រូវការ Google Sheet");
         }
         if (["upsert","upsertmany","delete","backup","replace"].includes(action)) {
             localStorage.setItem(BACKUP_TIME_STORAGE_KEY, new Date().toISOString());
@@ -6261,6 +6293,25 @@
             lastCloudError = readableCloudError(e);
             return false;
         }
+    }
+
+    function deletionStatusKeys(student={}, studentId="") {
+        return [...new Set([
+            String(student.recordId || student.id || studentId || "").trim(),
+            String(student.studentCode || "").trim()
+        ].filter(Boolean))];
+    }
+
+    async function confirmGoogleSheetDeletion(student={}, studentId="") {
+        const keys = deletionStatusKeys(student, studentId);
+        if (!keys.length) throw new Error("គ្មានអត្តសញ្ញាណសិស្សសម្រាប់ផ្ទៀងផ្ទាត់ការលុប");
+        for (let attempt=0; attempt<3; attempt++) {
+            const statuses = await Promise.all(keys.map(key =>
+                readGoogleSheetJsonp({ action:"studentstatus", studentId:key }, 12000)));
+            if (statuses.every(status => status?.ok === true && status.found === false)) return true;
+            if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 800));
+        }
+        throw new Error("Sheet មិនទាន់បញ្ជាក់ថាសិស្សត្រូវបានលុប។ សំណើនៅរង់ចាំ Sync");
     }
 
     async function syncGoogleSheet(action, student={}, studentId="", students=null) {
@@ -6311,7 +6362,30 @@
                 await refreshStudents({ source:"memory" });
             }
         }
-        if (["upsert","upsertmany","delete","backup","replace"].includes(action)) {
+        if (action === "delete") await confirmGoogleSheetDeletion(student, studentId);
+        if (action === "moveclass") {
+            const recordId = String(student.recordId || student.id || studentId || "").trim();
+            const targetClass = String(student.className || "").trim();
+            let checked = null;
+            for (let attempt=0; attempt<3; attempt++) {
+                checked = await readGoogleSheetJsonp({ action:"studentstatus", studentId:recordId }, 12000);
+                if (checked?.ok === true && checked.found && String(checked.recordId || "") === recordId
+                    && String(checked.className || "").trim() === targetClass && checked.studentCode) break;
+                if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 650));
+            }
+            if (!checked?.found || String(checked.recordId || "") !== recordId
+                || String(checked.className || "").trim() !== targetClass || !checked.studentCode) {
+                throw new Error("Sheet មិនទាន់បញ្ជាក់ថ្នាក់ថ្មី។ សំណើនៅរង់ចាំ Sync");
+            }
+            const localStudent = allStudents.find(row => String(row.id) === recordId);
+            if (localStudent) {
+                localStudent.className = targetClass;
+                localStudent.studentCode = String(checked.studentCode);
+                await saveToLocalStorage(allStudents);
+                await refreshStudents({ source:"memory" });
+            }
+        }
+        if (["upsert","upsertmany","delete","moveclass","backup","replace"].includes(action)) {
             localStorage.setItem(BACKUP_TIME_STORAGE_KEY, new Date().toISOString());
         }
         return true;
@@ -6357,7 +6431,7 @@
             id:`mutation-${Date.now()}-${Math.random().toString(36).slice(2)}`,
             action,
             studentId:String(studentId || ""),
-            student:action === "delete" ? { ...student, photo:"" } : { ...student },
+            student:["delete","moveclass"].includes(action) ? { ...student, photo:"" } : { ...student },
             students:Array.isArray(students) ? students.map(item => ({ ...item })) : null,
             createdAt:new Date().toISOString()
         };
@@ -6367,7 +6441,9 @@
         } else if (action === "upsert" && key) {
             operations = operations.filter(existing => !(existing.action === "upsert" && mutationRecordKey(existing) === key));
         } else if (action === "delete" && key) {
-            operations = operations.filter(existing => !(existing.action === "upsert" && mutationRecordKey(existing) === key));
+            operations = operations.filter(existing => !(["upsert","moveclass"].includes(existing.action) && mutationRecordKey(existing) === key));
+        } else if (action === "moveclass" && key) {
+            operations = operations.filter(existing => !(existing.action === "moveclass" && mutationRecordKey(existing) === key));
         }
         operations.push(operation);
         return savePendingCloudMutations(operations) ? operation : null;
@@ -6620,13 +6696,19 @@
                 mergeQueuedStudent(students, operation.student || {}, operation.studentId);
                 return;
             }
+            if (action === "moveclass") {
+                const recordId = String(operation.student?.recordId || operation.student?.id || operation.studentId || "").trim();
+                const student = students.find(row => String(row.recordId || row.id || "").trim() === recordId);
+                if (student) student.className = String(operation.student?.className || "").trim();
+                return;
+            }
             if (action === "delete") {
-                const wanted = String(operation.studentId || pendingStudentKey(operation.student || {})).trim();
-                const nameKey = normText(studentFullName(operation.student || {}));
+                const wanted = String(operation.student?.recordId || operation.student?.id || operation.studentId || "").trim();
+                const wantedCode = String(operation.student?.studentCode || "").trim();
                 students = students.filter(student => {
-                    const key = pendingStudentKey(student);
-                    return !((wanted && (key === wanted || student.studentCode === wanted))
-                        || (nameKey && normText(studentFullName(student)) === nameKey));
+                    const key = String(student.recordId || student.id || "").trim();
+                    return !((wanted && key === wanted)
+                        || (!key && wantedCode && String(student.studentCode || "").trim() === wantedCode));
                 });
             }
         });
@@ -8433,6 +8515,70 @@
         }
     }
 
+    function openTransferClassModal(id) {
+        const student = allStudents.find(row => row.id === id);
+        if (!student) { showToast("រកមិនឃើញសិស្ស", "error"); return; }
+        studentToTransferId = id;
+        els.transferStudentName.textContent = studentFullName(student) || "សិស្សនេះ";
+        els.transferCurrentClass.textContent = student.className || "មិនទាន់កំណត់";
+        els.transferClassInput.value = "";
+        els.transferClassOptions.replaceChildren();
+        [...new Set(allStudents.map(row => String(row.className || "").trim()).filter(Boolean))]
+            .sort((a,b) => a.localeCompare(b, "km", { numeric:true }))
+            .forEach(className => {
+                const option = document.createElement("option");
+                option.value = className;
+                els.transferClassOptions.appendChild(option);
+            });
+        els.transferClassModal.classList.add("is-open");
+        els.transferClassInput.focus();
+    }
+
+    function closeTransferClassModal() {
+        studentToTransferId = null;
+        els.transferClassModal.classList.remove("is-open");
+    }
+
+    async function handleTransferClass() {
+        const id = studentToTransferId;
+        const student = allStudents.find(row => row.id === id);
+        const targetClass = String(els.transferClassInput.value || "").trim();
+        if (!student) { closeTransferClassModal(); showToast("រកមិនឃើញសិស្ស", "error"); return; }
+        if (!classGrade(targetClass)) { showToast("សូមជ្រើសថ្នាក់ទី ៧–១២", "warning"); els.transferClassInput.focus(); return; }
+        if (targetClass === String(student.className || "").trim()) {
+            showToast("សិស្សស្ថិតនៅថ្នាក់នេះរួចហើយ", "warning"); return;
+        }
+        if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl()) {
+            closeTransferClassModal();
+            await loadStudentIntoForm(id);
+            setValue("className", targetClass);
+            updateStudentCodeHint();
+            showToast("សូមពិនិត្យព័ត៌មាន រួចចុចរក្សាទុកដើម្បីប្ដូរថ្នាក់", "warning");
+            return;
+        }
+        els.confirmTransferClassBtn.disabled = true;
+        try {
+            const oldClass = student.className || "";
+            const operation = stageCloudMutation("moveclass", {
+                id, recordId:id, studentCode:student.studentCode || "", className:targetClass,
+                updatedAt:new Date().toISOString()
+            }, id);
+            if (!operation) { showToast("មិនអាចរក្សាសំណើប្ដូរថ្នាក់បាន", "error"); return; }
+            student.className = targetClass;
+            await saveToLocalStorage(allStudents);
+            await logHistory("classChanged", studentFullName(student), { recordId:id, from:oldClass, to:targetClass });
+            closeTransferClassModal();
+            await refreshStudents({ source:"memory" });
+            void queuePendingCloudFlush({ notify:true });
+            showToast("បានប្ដូរថ្នាក់ក្នុង App · កំពុងផ្ទៀងផ្ទាត់ក្នុង Sheet");
+        } catch (error) {
+            console.error("Class transfer error:", error);
+            showToast("ប្ដូរថ្នាក់មិនបាន", "error");
+        } finally {
+            els.confirmTransferClassBtn.disabled = false;
+        }
+    }
+
     function openDeleteModal(id) {
         const s = allStudents.find(i => i.id === id);
         if (!s) return;
@@ -8450,12 +8596,19 @@
         const name = s?.studentName || "Unknown";
         els.confirmDeleteBtn.disabled = true;
         try {
+            const cloudConfigured = hasCloudStorageConfig();
+            if (cloudConfigured && !stageCloudMutation("delete", s || {studentName:name}, deletingId)) {
+                showToast("មិនអាចរក្សាសំណើលុបបាន។ ទិន្នន័យសិស្សនៅដដែល", "error");
+                return;
+            }
             allStudents = allStudents.filter(i => i.id !== deletingId);
             await saveToLocalStorage(allStudents);
             await logHistory("deleted", name, { studentId: studentDisplayId(s, deletingId), recordId: deletingId });
-            enqueueCloudMutation("delete", s||{studentName:name}, s?.id || deletingId);
+            if (cloudConfigured) void queuePendingCloudFlush({ notify:true });
             closeDeleteModal();
-            showToast("បានលុបសិស្ស");
+            showToast(cloudConfigured
+                ? "បានលាក់សិស្សក្នុង App · កំពុងបញ្ជាក់ការលុបក្នុង Sheet"
+                : "បានលុបសិស្សក្នុងឧបករណ៍នេះប៉ុណ្ណោះ", cloudConfigured ? "success" : "warning");
             if (els.editingId.value === deletingId) resetForm();
             await refreshStudents({ source:"memory" });
         } catch(e) {
@@ -9019,6 +9172,7 @@
                     <div class="class-student-actions">
                         <button class="btn btn-ghost print-student-btn" type="button" data-id="${esc(student.id)}">មើលឯកសារ</button>
                         <button class="btn btn-ghost print-student-card-btn" type="button" data-id="${esc(student.id)}">មើលកាត</button>
+                        <button class="btn btn-ghost transfer-class-btn" type="button" data-id="${esc(student.id)}">ប្ដូរថ្នាក់</button>
                     </div>
                 </div>
             </article>`;
@@ -9137,6 +9291,9 @@
                                 <button class="btn btn-icon edit-btn" type="button" title="កែ" data-id="${esc(s.id)}">
                                     <ion-icon name="create-outline"></ion-icon>
                                 </button>
+                                <button class="btn btn-icon transfer-class-btn" type="button" title="ប្ដូរថ្នាក់" aria-label="ប្ដូរថ្នាក់ ${esc(studentFullName(s))}" data-id="${esc(s.id)}">
+                                    <ion-icon name="swap-horizontal-outline" aria-hidden="true"></ion-icon>
+                                </button>
                                 <button class="btn btn-icon delete-btn" type="button" title="លុប" data-id="${esc(s.id)}" style="color:var(--red)">
                                     <ion-icon name="trash-outline"></ion-icon>
                                 </button>
@@ -9192,6 +9349,7 @@
                                 </div>
                             </div>
                         </div>
+                        <button class="btn btn-ghost transfer-class-btn" type="button" data-id="${esc(s.id)}" aria-label="ប្ដូរថ្នាក់ ${esc(studentFullName(s))}"><ion-icon name="swap-horizontal-outline" aria-hidden="true"></ion-icon> ប្ដូរថ្នាក់</button>
                     </article>`;
             }).join("");
             return `
@@ -10190,6 +10348,7 @@
             if (student) printStudentCards([student]);
         }
         if(btn.classList.contains("edit-btn")) loadStudentIntoForm(id);
+        if(btn.classList.contains("transfer-class-btn")) openTransferClassModal(id);
         if(btn.classList.contains("delete-btn")) openDeleteModal(id);
     }
 
@@ -10381,7 +10540,11 @@
         els.supabaseUrlInput.addEventListener("keydown",e=>{if(e.key==="Enter")saveSheetUrl();});
         els.supabaseKeyInput.addEventListener("keydown",e=>{if(e.key==="Enter")saveSheetUrl();});
 
-        // Delete modal
+        // Class transfer and delete modals
+        els.cancelTransferClassBtn.addEventListener("click", closeTransferClassModal);
+        els.confirmTransferClassBtn.addEventListener("click", handleTransferClass);
+        els.transferClassInput.addEventListener("keydown", event => { if (event.key === "Enter") handleTransferClass(); });
+        els.transferClassModal.addEventListener("click", event => { if (event.target === els.transferClassModal) closeTransferClassModal(); });
         els.cancelDeleteBtn.addEventListener("click",closeDeleteModal);
         els.confirmDeleteBtn.addEventListener("click",handleDeleteStudent);
         els.deleteModal.addEventListener("click",e=>{if(e.target===els.deleteModal)closeDeleteModal();});
@@ -10485,6 +10648,7 @@
         document.addEventListener("keydown",e=>{
             if(e.key==="Escape"){
                 if(els.cardExportDialog?.open) return;
+                if(els.transferClassModal.classList.contains("is-open")){closeTransferClassModal();return;}
                 if(els.deleteModal.classList.contains("is-open")){closeDeleteModal();return;}
                 if(els.deleteAllModal.classList.contains("is-open")){closeDeleteAllModal();return;}
                 if(els.sheetModal.classList.contains("is-open")){closeSheetModal();return;}

@@ -187,7 +187,8 @@ function doGet(e) {
       const row = rowNumber ? sheet.getRange(rowNumber, 1, 1, HEADERS.length).getValues()[0] : [];
       const photo = String(row[HEADERS.indexOf("photo")] || "");
       return output_({ ok: true, found: !!rowNumber, recordId:String(row[0] || ""),
-        studentCode:String(row[1] || ""), updatedAt:String(row[HEADERS.indexOf("updatedAt")] || ""),
+        studentCode:String(row[1] || ""), className:String(row[HEADERS.indexOf("className")] || ""),
+        updatedAt:String(row[HEADERS.indexOf("updatedAt")] || ""),
         hasPhoto: !!photo.trim(), photoLength: photo.length }, e);
     }
     if (action === "list") {
@@ -341,12 +342,23 @@ function doPost(e) {
       return output_({ ok: true, action: action, restored: result }, e);
     }
     if (action === "delete") {
-      const key = String(body.studentId || (body.student && (body.student.studentCode || body.student.id)) || "").trim();
-      withWriteLock_(function() {
-        deleteStudent_(key);
-        touchRevision_(DATA_REVISION_PROPERTY);
+      const deleted = withWriteLock_(function() {
+        const result = deleteStudent_({
+          recordId:body.student && (body.student.recordId || body.student.id) || body.studentId,
+          studentCode:body.student && body.student.studentCode
+        });
+        if (result) touchRevision_(DATA_REVISION_PROPERTY);
+        return result;
       });
-      return output_({ ok: true, action: action, studentId: key }, e);
+      return output_({ ok: true, action: action, deleted:deleted }, e);
+    }
+    if (action === "moveclass") {
+      const result = withWriteLock_(function() {
+        const moved = moveStudentClass_(body.studentId, body.student || {});
+        if (moved.changed) touchRevision_(DATA_REVISION_PROPERTY);
+        return moved;
+      });
+      return output_(Object.assign({ ok:true, action:action }, result), e);
     }
     if (action === "settings") {
       const settings = body.settings && typeof body.settings === "object" ? body.settings : {};
@@ -790,16 +802,57 @@ function restoreMissingPhotos_(incomingStudents) {
   return restored;
 }
 
-function deleteStudent_(key) {
-  const wanted = String(key || "").trim();
-  if (!wanted) return;
+function deleteStudent_(identity) {
+  const request = identity && typeof identity === "object" ? identity : { recordId:identity };
+  const recordId = String(request.recordId || "").trim();
+  const code = String(request.studentCode || "").trim();
+  if (!recordId && !code) throw new Error("Student record ID is required for deletion");
   const sheet = getStudentsSheet_();
   const lastRow = sheet.getLastRow();
-  if (lastRow < 2) return;
+  if (lastRow < 2) return false;
   const rows = sheet.getRange(2, 1, lastRow - 1, 2).getDisplayValues();
-  for (let i = rows.length - 1; i >= 0; i--) {
-    if (studentMatchesKey_({ id:rows[i][0], studentCode:rows[i][1] }, wanted)) sheet.deleteRow(i + 2);
+  const idMatches = recordId ? rows.map(function(row, index) { return String(row[0] || "").trim() === recordId ? index : -1; }).filter(function(index) { return index >= 0; }) : [];
+  if (idMatches.length > 1) throw new Error("Duplicate record IDs; deletion needs review");
+  let index = idMatches.length ? idMatches[0] : -1;
+  if (index < 0 && code) {
+    const codeMatches = rows.map(function(row, rowIndex) { return String(row[1] || "").trim() === code ? rowIndex : -1; }).filter(function(rowIndex) { return rowIndex >= 0; });
+    if (codeMatches.length > 1) throw new Error("Duplicate student codes; deletion needs review");
+    if (codeMatches.length) {
+      const candidate = codeMatches[0];
+      const candidateId = String(rows[candidate][0] || "").trim();
+      if (recordId && candidateId && candidateId !== recordId && candidateId !== code) {
+        throw new Error("Record ID mismatch; deletion needs review");
+      }
+      index = candidate;
+    }
   }
+  if (index < 0) return false;
+  sheet.deleteRow(index + 2);
+  return true;
+}
+
+function moveStudentClass_(recordId, change) {
+  const id = String(recordId || change.recordId || change.id || "").trim();
+  const className = String(change.className || "").trim();
+  if (!id) throw new Error("Student record ID is required for class transfer");
+  if (!studentCodeGrade_(className)) throw new Error("Class must be grade 7–12");
+  const sheet = getStudentsSheet_();
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) throw new Error("Student record not found");
+  const identities = sheet.getRange(2, 1, lastRow - 1, 2).getDisplayValues();
+  const matches = identities.map(function(row, index) { return String(row[0] || "").trim() === id ? index : -1; }).filter(function(index) { return index >= 0; });
+  if (matches.length !== 1) throw new Error(matches.length ? "Duplicate record IDs" : "Student record not found");
+  const index = matches[0];
+  const rowNumber = index + 2;
+  const oldClass = String(sheet.getRange(rowNumber, HEADERS.indexOf("className") + 1).getDisplayValue() || "").trim();
+  const oldCode = String(identities[index][1] || "").trim();
+  if (oldClass === className) return { changed:false, recordId:id, className:className, studentCode:oldCode };
+  const code = allocateStudentCode_(className, oldCode, identities.filter(function(_row, rowIndex) { return rowIndex !== index; }).map(function(row) { return row[1]; }), studentCodeAcademicYear_());
+  const updatedAt = String(change.updatedAt || new Date().toISOString());
+  sheet.getRange(rowNumber, HEADERS.indexOf("className") + 1).setValue(className);
+  sheet.getRange(rowNumber, HEADERS.indexOf("studentCode") + 1).setValue(code);
+  sheet.getRange(rowNumber, HEADERS.indexOf("updatedAt") + 1).setValue(updatedAt);
+  return { changed:true, recordId:id, className:className, studentCode:code, updatedAt:updatedAt };
 }
 
 function writeStudents_(students) {
