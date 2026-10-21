@@ -54,4 +54,6 @@ assert.throws(() => context.moveStudentClass_('duplicate', { className:'8A' }), 
 assert.match(html, /if \(action === "delete"\) await confirmGoogleSheetDeletion\(student, studentId\)/);
 assert.match(html, /if \(action === "moveclass"\)/);
 assert.match(html, /stageCloudMutation\("moveclass"/);
+assert.match(html, /if \(\["delete","moveclass"\]\.includes\(operation\.action\)\) return;/);
+assert.match(html, /student:identityOnly \?/);
 console.log('Delete and class transfer safety checks passed');

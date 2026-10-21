@@ -1244,6 +1244,11 @@
            HISTORY
         ======================== */
         .history-panel { margin-top: 14px; }
+        .history-panel > summary { cursor:pointer; list-style:none; }
+        .history-panel > summary::-webkit-details-marker { display:none; }
+        .history-panel > summary::after { content:"⌄"; margin-left:auto; color:var(--primary); font-size:1.3rem; transition:transform var(--transition); }
+        .history-panel[open] > summary::after { transform:rotate(180deg); }
+        .history-panel > summary:focus-visible { outline:2px solid var(--primary); outline-offset:-3px; }
 
         .history-list {
             padding: 14px 16px;
@@ -2029,7 +2034,7 @@
         .settings-storage-link span { display:grid; gap:1px; }
         .settings-storage-link strong { font-size:.86rem; }
         .settings-storage-link small { color:var(--muted); font-size:.73rem; }
-        .settings-tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; margin-top:14px; padding:5px; border-radius:12px; background:var(--surface-2); }
+        .settings-tabs { position:sticky; top:-18px; z-index:2; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; margin-top:14px; padding:5px; border:1px solid var(--border); border-radius:12px; background:var(--surface); box-shadow:0 4px 12px rgba(7,23,46,.08); }
         .settings-tabs button { min-width:0; min-height:42px; padding:7px 5px; border:0; border-radius:9px; background:transparent; color:var(--text-2); font:inherit; font-size:.86rem; font-weight:750; cursor:pointer; }
         .settings-tabs button[aria-selected="true"] { background:var(--primary); color:#fff; box-shadow:var(--shadow-sm); }
         .settings-tabs button:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
@@ -2082,6 +2087,7 @@
             .app-settings-modal { padding:8px; align-items:flex-end; }
             .app-settings-modal .modal-dialog { max-height:calc(100dvh - 16px); border-radius:14px; }
             .app-settings-modal .modal-body { padding:14px; }
+            .settings-tabs { top:-14px; }
             .app-settings-modal .modal-footer { padding:10px 12px calc(10px + env(safe-area-inset-bottom)); }
             .settings-section { padding:12px; }
             .teacher-setting-row { grid-template-columns:1fr; gap:4px; }
@@ -3298,6 +3304,12 @@
         .report-view-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:18px; }
         .report-view-header h1 { color:var(--text); font-size:1.45rem; line-height:1.5; }
         .report-view-header p { color:var(--muted); font-size:.87rem; }
+        .report-export-section { margin:0 0 20px; padding:16px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); }
+        .report-export-section h2 { margin:0 0 4px; color:var(--text); font-size:1rem; }
+        .report-export-section > p { margin:0 0 12px; color:var(--muted); font-size:.82rem; line-height:1.55; }
+        .report-export-actions { display:flex; flex-wrap:wrap; gap:8px; }
+        .report-export-actions .btn { min-height:40px; justify-content:center; }
+        .report-export-actions + h2 { margin-top:18px; }
         .report-mode-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; padding:5px; border-radius:12px; background:var(--surface-2); }
         .report-mode-tabs button { min-height:40px; padding:8px 14px; border:0; border-radius:9px; background:transparent; color:var(--text-2); font:inherit; font-weight:700; }
         .report-mode-tabs button[aria-pressed="true"] { background:var(--primary); color:#fff; box-shadow:var(--shadow-sm); }
@@ -3337,6 +3349,9 @@
             .report-view { margin:0 -8px 12px; padding:14px 10px; border-radius:12px; }
             .report-view-header { flex-direction:column; gap:8px; }
             .report-view-header h1 { font-size:1.15rem; }
+            .report-export-section { padding:12px; }
+            .report-export-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+            .report-export-actions .btn { min-width:0; white-space:normal; }
             .mobile-tabs { grid-template-columns:repeat(4,minmax(0,1fr)); }
             .mobile-tab-btn { font-size:.72rem; }
             .class-report-tools .btn { flex: 1 1 auto; }
@@ -3422,27 +3437,6 @@
                 </button>
                 <input id="import-file-input" class="hidden-input" type="file"
                        accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
-                <p class="advanced-label">បោះពុម្ព និងនាំចេញ</p>
-                <button id="print-list-btn" class="btn btn-ghost" type="button" title="Print Student List">
-                    <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
-                    <span>បោះពុម្ពលម្អិត</span>
-                </button>
-                <button id="print-photo-list-btn" class="btn btn-ghost" type="button" title="Print Student List With Photos">
-                    <ion-icon name="images-outline" aria-hidden="true"></ion-icon>
-                    <span>បោះពុម្ពរូបថត</span>
-                </button>
-                <button id="print-card-list-btn" class="btn btn-ghost" type="button" title="Print Student Cards">
-                    <ion-icon name="id-card-outline" aria-hidden="true"></ion-icon>
-                    <span>កាតសិស្ស</span>
-                </button>
-                <button id="download-photos-btn" class="btn btn-ghost" type="button" title="Download all student photos as ZIP">
-                    <ion-icon name="images-outline" aria-hidden="true"></ion-icon>
-                    <span>ទាញរូបថត</span>
-                </button>
-                <button id="download-csv-btn" class="btn btn-primary" type="button" title="Download CSV">
-                    <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
-                    <span>ទាញ CSV</span>
-                </button>
                 <div class="advanced-danger-zone">
                     <p class="advanced-label">សកម្មភាពប្រុងប្រយ័ត្ន</p>
                     <p class="advanced-danger-note">ប្រើតែពេលត្រូវសម្អាតទិន្នន័យសិស្សទាំងអស់។</p>
@@ -3516,6 +3510,20 @@
                 <p>ស្ថិតិតាមថ្នាក់ ឬតាមកម្រិតថ្នាក់ និងបញ្ជីឈ្មោះសម្រាប់បោះពុម្ព</p>
             </div>
             <button id="report-back-btn" class="btn btn-ghost" type="button"><ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon> ត្រឡប់ទៅបញ្ជី</button>
+        </div>
+        <div class="report-export-section" aria-labelledby="report-print-title">
+            <h2 id="report-print-title">បោះពុម្ពបញ្ជី និងកាត</h2>
+            <p>ប៊ូតុងទាំងនេះប្រើតម្រងបច្ចុប្បន្នពីផ្ទាំងបញ្ជីសិស្ស។ សម្រាប់បញ្ជីតាមថ្នាក់ សូមជ្រើសរបាយការណ៍ខាងក្រោម។</p>
+            <div class="report-export-actions">
+                <button id="print-list-btn" class="btn btn-secondary" type="button"><ion-icon name="print-outline" aria-hidden="true"></ion-icon> បញ្ជីលម្អិត</button>
+                <button id="print-photo-list-btn" class="btn btn-ghost" type="button"><ion-icon name="images-outline" aria-hidden="true"></ion-icon> បញ្ជីមានរូបថត</button>
+                <button id="print-card-list-btn" class="btn btn-ghost" type="button"><ion-icon name="id-card-outline" aria-hidden="true"></ion-icon> កាតសិស្ស</button>
+            </div>
+            <h2>ទាញយកទិន្នន័យ</h2>
+            <div class="report-export-actions">
+                <button id="download-photos-btn" class="btn btn-ghost" type="button"><ion-icon name="images-outline" aria-hidden="true"></ion-icon> រូបថត ZIP</button>
+                <button id="download-csv-btn" class="btn btn-ghost" type="button"><ion-icon name="download-outline" aria-hidden="true"></ion-icon> ទិន្នន័យ CSV</button>
+            </div>
         </div>
         <div class="report-mode-tabs" role="group" aria-label="ប្រភេទរបាយការណ៍">
             <button id="report-mode-class" type="button" aria-pressed="true">តាមថ្នាក់</button>
@@ -4037,24 +4045,24 @@
     </section>
 
     <!-- Activity History -->
-    <section class="panel history-panel" aria-label="ប្រវត្តិសកម្មភាព">
-        <div class="panel-header">
+    <details class="panel history-panel" aria-label="ប្រវត្តិសកម្មភាព">
+        <summary class="panel-header">
             <div>
                 <h2 class="panel-title">ប្រវត្តិសកម្មភាព</h2>
-                <p class="panel-sub">សកម្មភាព ២០ ចុងក្រោយ</p>
+                <p class="panel-sub">ចុចដើម្បីមើលសកម្មភាព ២០ ចុងក្រោយ</p>
             </div>
-        </div>
+        </summary>
         <div id="history-log" class="history-list" aria-live="polite">
             <p class="empty" style="padding:16px">មិនទាន់មានសកម្មភាព...</p>
         </div>
-    </section>
+    </details>
 
     <footer class="app-footer">
         <div>
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.59</span>
+        <span class="footer-version">កំណែ 2.1.61</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4397,31 +4405,6 @@
         <button id="m-import-file-btn" class="sheet-menu-item" type="button">
             <ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon>
             <span>នាំចូល</span>
-        </button>
-            </div>
-        </details>
-        <details class="mobile-action-group">
-            <summary><ion-icon name="print-outline" aria-hidden="true"></ion-icon> បោះពុម្ព និងនាំចេញ</summary>
-            <div class="mobile-action-group-content">
-        <button id="m-print-list-btn" class="sheet-menu-item" type="button">
-            <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
-            <span>បោះពុម្ពលម្អិត</span>
-        </button>
-        <button id="m-print-photo-list-btn" class="sheet-menu-item" type="button">
-            <ion-icon name="images-outline" aria-hidden="true"></ion-icon>
-            <span>បោះពុម្ពរូបថត</span>
-        </button>
-        <button id="m-print-card-list-btn" class="sheet-menu-item" type="button">
-            <ion-icon name="id-card-outline" aria-hidden="true"></ion-icon>
-            <span>កាតសិស្ស</span>
-        </button>
-        <button id="m-download-photos-btn" class="sheet-menu-item" type="button">
-            <ion-icon name="images-outline" aria-hidden="true"></ion-icon>
-            <span>ទាញរូបថតទាំងអស់</span>
-        </button>
-        <button id="m-download-csv-btn" class="sheet-menu-item" type="button">
-            <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
-            <span>ទាញ CSV</span>
         </button>
             </div>
         </details>
@@ -4969,6 +4952,9 @@
     }
 
     async function hydrateMutationPhotos(operation) {
+        // Neither deletion nor class transfer writes a portrait. Old queued
+        // mutations may still carry photoCacheRequired from a previous save.
+        if (["delete","moveclass"].includes(operation.action)) return;
         const students = [operation.student, ...(operation.students || [])].filter(Boolean);
         for (const student of students) {
             if (!student.photoCacheRequired || safePhotoSrc(student.photo)) continue;
@@ -6427,11 +6413,18 @@
 
     function stageCloudMutation(action, student={}, studentId="", students=null) {
         let operations = loadPendingCloudMutations();
+        const identityOnly = ["delete","moveclass"].includes(action);
         const operation = {
             id:`mutation-${Date.now()}-${Math.random().toString(36).slice(2)}`,
             action,
             studentId:String(studentId || ""),
-            student:["delete","moveclass"].includes(action) ? { ...student, photo:"" } : { ...student },
+            student:identityOnly ? {
+                id:student.id || student.recordId || studentId,
+                recordId:student.recordId || student.id || studentId,
+                studentCode:student.studentCode || "",
+                className:student.className || "",
+                updatedAt:student.updatedAt || ""
+            } : { ...student },
             students:Array.isArray(students) ? students.map(item => ({ ...item })) : null,
             createdAt:new Date().toISOString()
         };
@@ -10620,11 +10613,6 @@
             "m-recover-photos-btn": els.recoverPhotosBtn,
             "m-download-template-btn": els.downloadTemplateBtn,
             "m-import-file-btn": els.importFileBtn,
-            "m-print-list-btn": els.printListBtn,
-            "m-print-photo-list-btn": els.printPhotoListBtn,
-            "m-print-card-list-btn": els.printCardListBtn,
-            "m-download-photos-btn": els.downloadPhotosBtn,
-            "m-download-csv-btn": els.downloadCsvBtn,
             "m-delete-all-btn": els.deleteAllBtn
         };
 

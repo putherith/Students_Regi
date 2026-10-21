@@ -5,17 +5,18 @@ const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const sidebar = html.match(/<nav class="topbar-actions"[\s\S]*?<\/nav>/)?.[0];
+const report = html.match(/<section id="report-view"[\s\S]*?<\/section>/)?.[0];
 const mobileMenu = html.match(/<div id="mobile-actions-sheet"[\s\S]*?<dialog id="card-export-dialog"/)?.[0];
 const settings = html.match(/<div id="app-settings-modal"[\s\S]*?<div id="sheet-modal"/)?.[0];
-assert.ok(sidebar && mobileMenu && settings, 'Navigation and settings sections exist');
+assert.ok(sidebar && report && mobileMenu && settings, 'Navigation, reports and settings sections exist');
 
 assert.equal((sidebar.match(/data-sidebar-view="(?:form|list|classes|report)"/g) || []).length, 4);
 assert.equal((sidebar.match(/<details class="action-group advanced-actions"/g) || []).length, 1);
-assert.equal((mobileMenu.match(/<details class="mobile-action-group(?: mobile-danger-group)?"/g) || []).length, 3);
+assert.equal((mobileMenu.match(/<details class="mobile-action-group(?: mobile-danger-group)?"/g) || []).length, 2);
 assert.match(mobileMenu, /id="mobile-actions-close-btn"[^>]*aria-label="បិទម៉ឺនុយសកម្មភាព"/);
 assert.match(mobileMenu, /<details class="mobile-action-group mobile-danger-group">[\s\S]*?id="m-delete-all-btn"/);
-assert.doesNotMatch(mobileMenu.slice(mobileMenu.indexOf('បោះពុម្ព និងនាំចេញ'), mobileMenu.indexOf('mobile-danger-group')), /id="m-delete-all-btn"/,
-    'Delete-all is not part of print and export');
+assert.doesNotMatch(mobileMenu, /id="m-(?:print|download-photos|download-csv)/,
+    'Print and export actions live in Reports, not the mobile menu');
 assert.match(sidebar, /<div class="advanced-danger-zone">[\s\S]*?id="delete-all-btn"/);
 assert.match(html, /id="mobile-menu-btn"[^>]*aria-controls="mobile-actions-sheet"[^>]*aria-expanded="false"/);
 assert.match(mobileMenu, /id="mobile-actions-sheet"[^>]*aria-hidden="true" inert/);
@@ -29,6 +30,8 @@ for (const [name, panel] of [['card', 'settings-card-panel'], ['school', 'settin
 assert.match(settings, /id="settings-school-panel"[^>]*hidden/);
 assert.match(settings, /id="teacher-settings-section"[^>]*hidden[\s\S]*?<input id="teacher-settings-search"[\s\S]*?<div id="teacher-settings-list"/);
 assert.match(settings, /id="app-settings-title"[^>]*tabindex="-1"/);
+assert.match(html, /\.settings-tabs \{ position:sticky;/, 'Settings categories remain available while scrolling');
+assert.match(html, /<details class="panel history-panel"[\s\S]*?<summary class="panel-header">/, 'Activity history is available without cluttering the roster');
 assert.doesNotMatch(html, /class="admin-overview-actions"/, 'Duplicate dashboard shortcuts removed');
 assert.doesNotMatch(html, /id="(?:m-)?print-name-list-btn"/, 'Class roster shortcut is not duplicated outside Reports');
 assert.match(html, /function setSidebarActiveView\(view\)/);
@@ -52,10 +55,14 @@ assert.match(escapeSource, /if\(els\.editingId\.value\)\{resetForm\(\);if\(!isMo
 for (const id of [
     'app-settings-btn', 'load-sheet-btn', 'backup-now-btn',
     'recover-photos-btn', 'download-template-btn', 'import-file-btn',
-    'print-list-btn', 'print-photo-list-btn',
-    'print-card-list-btn', 'download-photos-btn', 'download-csv-btn', 'delete-all-btn'
+    'delete-all-btn'
 ]) {
     assert.equal((sidebar.match(new RegExp(`id="${id}"`, 'g')) || []).length, 1, `${id} remains available once`);
+}
+for (const id of ['print-list-btn', 'print-photo-list-btn', 'print-card-list-btn', 'download-photos-btn', 'download-csv-btn']) {
+    assert.equal((report.match(new RegExp(`id="${id}"`, 'g')) || []).length, 1, `${id} is available in Reports`);
+    assert.doesNotMatch(sidebar, new RegExp(`id="${id}"`), `${id} is not duplicated in the sidebar`);
+    assert.equal((html.match(new RegExp(`id="${id}"`, 'g')) || []).length, 1, `${id} exists once in the app`);
 }
 
 const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
