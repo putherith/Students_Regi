@@ -1,7 +1,7 @@
 {
   "name": "students-registration-kh",
   "productName": "Students Registration",
-  "version": "2.1.61",
+  "version": "2.1.62",
   "description": "Khmer student registration web app with shared cloud storage",
   "type": "module",
   "private": true,
@@ -44,7 +44,7 @@
       "README.md"
     ],
     "win": {
-      "icon": "assets/moeys-logo.png",
+      "icon": "assets/school-emblem.png",
       "target": [
         {
           "target": "nsis",

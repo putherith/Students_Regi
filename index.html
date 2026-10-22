@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ប្រព័ន្ធចុះឈ្មោះសិស្ស</title>
     <meta name="description" content="គ្រប់គ្រងបញ្ជីសិស្ស ស្វែងរក Import Print និងទាញយក CSV">
-    <meta name="theme-color" content="#123665">
+    <meta name="theme-color" content="#082f54">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ចុះឈ្មោះសិស្ស">
     <link rel="manifest" href="./manifest.webmanifest">
-    <link rel="icon" href="./assets/moeys-logo.png" type="image/png">
-    <link rel="apple-touch-icon" href="./assets/moeys-logo.png">
+    <link rel="icon" href="./assets/school-emblem.png" type="image/png">
+    <link rel="apple-touch-icon" href="./assets/school-emblem.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Siemreap&display=swap" rel="stylesheet">
@@ -3356,6 +3356,284 @@
             .mobile-tab-btn { font-size:.72rem; }
             .class-report-tools .btn { flex: 1 1 auto; }
         }
+        /* ========================
+           MODERN UI REFRESH
+        ======================== */
+        :root {
+            --bg: #edf3f8;
+            --surface: #fff;
+            --surface-2: #f6f9fd;
+            --border: #d9e4ef;
+            --border-strong: #afc4d8;
+            --primary: #12569a;
+            --primary-dark: #0b396a;
+            --primary-mid: #247ac1;
+            --primary-soft: #e6f3fc;
+            --primary-glow: rgba(15, 94, 157, .18);
+            --text: #122942;
+            --text-2: #425c74;
+            --muted: #647b91;
+            --radius: 14px;
+            --radius-lg: 20px;
+            --shadow-sm: 0 2px 8px rgba(22, 57, 91, .06), 0 12px 28px rgba(22, 57, 91, .04);
+            --shadow: 0 14px 34px rgba(22, 57, 91, .12);
+            --shadow-lg: 0 22px 54px rgba(22, 57, 91, .18);
+        }
+
+        html[data-theme="dark"] {
+            --bg: #0d1929;
+            --surface: #17283b;
+            --surface-2: #20344a;
+            --border: #314a63;
+            --border-strong: #54718e;
+            --primary: #7db7eb;
+            --primary-dark: #a4d1f5;
+            --primary-mid: #a4d1f5;
+            --primary-soft: #213f5d;
+            --primary-glow: rgba(61, 154, 219, .25);
+            --text: #ecf5fc;
+            --text-2: #c7d8e6;
+            --muted: #a3bbcf;
+            --shadow-sm: 0 3px 16px rgba(0, 0, 0, .16);
+            --shadow: 0 14px 34px rgba(0, 0, 0, .24);
+            --shadow-lg: 0 22px 54px rgba(0, 0, 0, .34);
+        }
+
+        body {
+            background: radial-gradient(ellipse at 90% -8%, rgba(65, 167, 220, .22), transparent 35rem),
+                        radial-gradient(ellipse at 5% 52%, rgba(37, 122, 193, .13), transparent 38rem),
+                        linear-gradient(155deg, #f8fbfe 0%, #edf3f8 54%, #e4f0f4 100%);
+        }
+
+        /* Decorative depth stays behind the interface and never intercepts clicks. */
+        body::before, body::after {
+            content: "";
+            position: fixed;
+            z-index: 0;
+            pointer-events: none;
+            border-radius: 50%;
+        }
+        body::before {
+            width: min(37vw, 530px);
+            aspect-ratio: 1;
+            right: -11vw;
+            top: 11vh;
+            background: radial-gradient(circle at 32% 25%, rgba(255,255,255,.94) 0%, rgba(164,224,246,.56) 27%, rgba(43,133,194,.16) 61%, transparent 75%);
+            box-shadow: inset 24px 20px 60px rgba(255,255,255,.5), -30px 35px 90px rgba(33,99,148,.08);
+        }
+        body::after {
+            width: min(24vw, 340px);
+            aspect-ratio: 1;
+            left: -10vw;
+            bottom: -10vh;
+            background: radial-gradient(circle at 35% 28%, rgba(255,255,255,.84) 0%, rgba(130,214,211,.35) 38%, rgba(17,113,151,.11) 68%, transparent 76%);
+        }
+
+        html[data-theme="dark"] body {
+            background: radial-gradient(ellipse at 94% 6%, rgba(26, 107, 160, .22), transparent 34rem),
+                        linear-gradient(155deg, #101d2d, #0c1828 62%, #14293a);
+        }
+        html[data-theme="dark"] body::before { opacity: .23; }
+        html[data-theme="dark"] body::after { opacity: .16; }
+
+        .app { position: relative; z-index: 1; max-width: 1680px; padding-bottom: 56px; }
+
+        .topbar {
+            margin-bottom: 22px;
+            padding: 12px 22px;
+            border: 0;
+            border-bottom: 3px solid #e0b656;
+            border-radius: 0 0 18px 18px;
+            background: linear-gradient(112deg, #082f54 0%, #124d80 59%, #176f91 100%);
+            box-shadow: 0 10px 28px rgba(8, 49, 86, .2);
+        }
+
+        .brand-mark { width: 48px; height: 48px; padding: 2px; border-radius: 14px; box-shadow: 0 8px 18px rgba(1, 25, 52, .22); }
+        .topbar .brand-title { color: #fff; font-size: 1.1rem; }
+        .topbar .brand-sub { color: #d4e9f8; }
+
+        .admin-overview {
+            min-height: 150px;
+            padding: clamp(22px, 3vw, 36px);
+            border: 1px solid rgba(255,255,255,.36);
+            border-left: 5px solid #dfb457;
+            background: radial-gradient(circle at 83% 6%, rgba(108,211,224,.36), transparent 26%),
+                        linear-gradient(116deg, #093a66 0%, #145a88 59%, #167e91 100%);
+            box-shadow: 0 20px 48px rgba(14, 78, 121, .19), inset 0 1px 0 rgba(255,255,255,.28);
+        }
+        .admin-overview::before {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            right: clamp(20px, 6vw, 100px);
+            top: -63px;
+            width: 245px;
+            height: 245px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 31% 26%, rgba(255,255,255,.64), rgba(152,235,239,.4) 24%, rgba(29,124,167,.38) 58%, rgba(9,54,108,.19) 73%);
+            box-shadow: inset -20px -22px 38px rgba(4,53,98,.25), 20px 24px 38px rgba(3,41,81,.28);
+        }
+        .admin-overview::after {
+            z-index: -1;
+            right: 34px;
+            bottom: -120px;
+            width: 295px;
+            height: 295px;
+            border: 1px solid rgba(255,255,255,.2);
+            box-shadow: 0 0 0 18px rgba(255,255,255,.045), 0 0 0 39px rgba(255,255,255,.03);
+        }
+        .admin-eyebrow { color: #fce3a7; }
+        .admin-overview h1 { color: #fff; font-size: clamp(1.36rem, 2vw, 1.83rem); }
+        .admin-overview p { color: #e2f2f9; font-size: .94rem; }
+
+        .metric, .panel, .admin-overview, .history-panel {
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+        .admin-overview { box-shadow: 0 20px 48px rgba(14, 78, 121, .19), inset 0 1px 0 rgba(255,255,255,.28); }
+        .metric {
+            min-width: 0;
+            padding: 18px 20px;
+            border-color: var(--border);
+            background: var(--surface);
+            box-shadow: 0 11px 25px rgba(23, 66, 99, .08), inset 0 1px 0 rgba(255,255,255,.9);
+        }
+        .metric:hover, .panel:hover { box-shadow: var(--shadow); }
+        .metric-value { color: var(--text); font-size: 1.8rem; }
+        .metric-icon { width: 48px; height: 48px; border-radius: 15px; }
+        .metric-label, .metric-sub { color: var(--muted); }
+
+        .panel, .report-view, .class-browser-panel, .history-panel {
+            border-color: var(--border);
+            background: var(--surface);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .panel-header { padding: 20px 22px 15px; }
+        .panel-title { color: var(--text); font-size: 1.16rem; }
+        .list-panel > .panel-header, .history-panel > .panel-header { background: linear-gradient(180deg, var(--surface), var(--surface-2)); }
+        .toolbar { padding: 14px 18px; background: var(--surface-2); }
+        .search-wrap input, .toolbar select, input, select, textarea { border-radius: 11px; }
+        :is(input, select, textarea, button, a, summary):focus-visible { outline: 3px solid #70c7e5; outline-offset: 2px; }
+        .search-wrap input:focus, input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 4px var(--primary-glow); }
+
+        .btn { border-radius: 11px; transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease; }
+        .btn:hover:not(:disabled) { transform: translateY(-1px); }
+        .btn-primary { box-shadow: 0 7px 16px var(--primary-glow); }
+        .form-save-bar { padding: 14px 18px; }
+        .table-wrap { border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+        tbody tr { transition: background 140ms ease; }
+        tbody tr:hover { background: var(--primary-soft) !important; }
+        .pager { border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+
+        @media (min-width: 861px) {
+            .app > .topbar-actions {
+                border-right-color: rgba(210,233,245,.13);
+                background: radial-gradient(circle at -30% -8%, rgba(90,180,217,.31), transparent 66%),
+                            linear-gradient(180deg, #0b3b66, #092c52 62%, #082441);
+                box-shadow: 8px 0 26px rgba(8, 43, 75, .17);
+            }
+            .app > .topbar-actions .action-group::before,
+            .app > .topbar-actions .advanced-label { color: #b3d5e8; }
+            .app > .topbar-actions [data-sidebar-view][aria-current="page"] {
+                border-color: rgba(177,225,243,.25);
+                border-left: 3px solid #e5ba60;
+                background: linear-gradient(90deg, rgba(84,171,212,.28), rgba(255,255,255,.08));
+                box-shadow: inset 0 1px 0 rgba(255,255,255,.1);
+            }
+            .app > .topbar-actions .action-group .btn { min-height: 42px; }
+        }
+
+        html[data-theme="dark"] .metric,
+        html[data-theme="dark"] .panel,
+        html[data-theme="dark"] .report-view,
+        html[data-theme="dark"] .history-panel { box-shadow: var(--shadow-sm); }
+        html[data-theme="dark"] .form-panel > .panel-header { background: linear-gradient(135deg, #103859, #155b78); }
+        html[data-theme="dark"] .admin-overview {
+            border-color: rgba(255,255,255,.14);
+            border-left-color: #dfb457;
+            background: radial-gradient(circle at 83% 6%, rgba(108,211,224,.19), transparent 26%),
+                        linear-gradient(116deg, #0a2c4c 0%, #104468 59%, #145c71 100%);
+        }
+        html[data-theme="dark"] .admin-overview h1 { color: #fff; }
+        html[data-theme="dark"] .admin-overview p { color: #dceef7; }
+        html[data-theme="dark"] .metric-value { color: var(--text); }
+
+        @media (max-width: 860px) {
+            .app { padding-left: 12px; padding-right: 12px; }
+            .topbar { margin-left: -12px; margin-right: -12px; border-radius: 0 0 16px 16px; padding-inline: 14px; }
+            .admin-overview { min-height: 134px; padding: 19px 21px; }
+            .admin-overview::before { right: -45px; top: -28px; width: 180px; height: 180px; opacity: .55; }
+            .admin-overview::after { display: none; }
+            .metrics { gap: 10px; }
+            .metric { padding: 14px; }
+            .mobile-tabs {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 5px;
+                border-color: var(--border);
+                background: var(--surface);
+                backdrop-filter: none;
+                -webkit-backdrop-filter: none;
+            }
+            .mobile-tab-btn {
+                flex-direction: column;
+                gap: 1px;
+                min-height: 52px;
+                height: auto;
+                padding: 4px 2px;
+                color: var(--text-2);
+                font-size: .74rem;
+                line-height: 1.25;
+                white-space: normal;
+            }
+            .mobile-tab-btn.active { background: var(--primary-soft); color: var(--primary); box-shadow: inset 0 0 0 1px var(--border); }
+            .panel { margin: 0 0 14px; border-radius: 16px; }
+        }
+
+        @media (max-width: 860px) {
+            html[data-theme="dark"] .mobile-tabs { background: var(--surface); }
+        }
+
+        @media (max-width: 560px) {
+            body::before {
+                display: block;
+                width: 190px;
+                right: -105px;
+                top: 95px;
+                opacity: .48;
+                box-shadow: none;
+            }
+            body::after { display: none; }
+            .topbar { margin-bottom: 14px; }
+            .admin-overview h1 { max-width: 26ch; font-size: 1.27rem; }
+            .admin-overview p { font-size: .83rem; }
+            .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .metric { min-height: 92px; }
+            .metric-icon { width: 40px; height: 40px; }
+            .metric-value { font-size: 1.45rem; }
+        }
+
+        @media (max-width: 420px) {
+            .topbar { gap: 4px; padding-inline: 8px; }
+            .topbar .brand { gap: 6px; }
+            .topbar .brand-title { font-size: .76rem; }
+            .topbar .brand-mark { width: 34px; height: 34px; }
+            .topbar .status-pill { width: 30px; min-width: 30px; max-width: 30px; height: 30px; }
+            .topbar .theme-btn, .topbar .mobile-menu-btn { width: 34px; height: 34px; }
+            .metric { gap: 8px; padding: 10px; }
+            .metric-icon { width: 34px; height: 34px; }
+            .metric-sync .metric-value { font-size: 1.06rem; white-space: nowrap; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .btn, tbody tr { transition: none; }
+            .btn:hover:not(:disabled) { transform: none; }
+        }
+
+        @media print {
+            body { background: #fff !important; }
+            body::before, body::after { display: none !important; }
+        }
     </style>
 </head>
 <body class="sidebar-open">
@@ -3369,7 +3647,7 @@
         </button>
         <div class="brand">
             <div class="brand-mark">
-                <img src="./assets/moeys-logo.png" alt="និមិត្តសញ្ញាក្រសួងអប់រំ យុវជន និងកីឡា">
+                <img src="./assets/school-emblem.png" alt="និមិត្តសញ្ញាវិទ្យាល័យសុខអានព្រៃមេលង">
             </div>
             <div class="brand-text">
                 <div class="brand-kicker">រដ្ឋបាលសាលារៀន</div>
@@ -4062,7 +4340,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.61</span>
+        <span class="footer-version">កំណែ 2.1.62</span>
     </footer>
 
 </main><!-- end .app -->

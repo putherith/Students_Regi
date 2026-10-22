@@ -7,7 +7,7 @@ const path = require("node:path");
 const QRCode = require("qrcode");
 
 const APP_ENTRY = path.join(__dirname, "..", "index.html");
-const APP_ICON = path.join(__dirname, "..", "assets", "moeys-logo.png");
+const APP_ICON = path.join(__dirname, "..", "assets", "school-emblem.png");
 const PHONE_CAMERA_PAGE = fs.readFileSync(path.join(__dirname, "phone-camera.html"), "utf8");
 const ALLOWED_PERMISSIONS = new Set(["media"]);
 const MAX_PHONE_PHOTO_BYTES = 10 * 1024 * 1024;
