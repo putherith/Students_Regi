@@ -6,6 +6,7 @@ const vm = require('node:vm');
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'google-sheet-backend.gs'), 'utf8');
 const context = {
+    PORTAL_ADMIN_REQUIRED_PROPERTY:'PORTAL_ADMIN_REQUIRED',
     ContentService: {
         MimeType:{ JSON:'json', JAVASCRIPT:'javascript' },
         createTextOutput(text) { return { text, setMimeType() { return this; } }; }
@@ -14,6 +15,8 @@ const context = {
 };
 vm.createContext(context);
 vm.runInContext(source, context);
+context.portalAdminCredential_ = () => null;
+context.ensureMissingStudentCodes_ = () => 0;
 
 const keys = Array.from(context.HEADERS || vm.runInContext('HEADERS', context));
 const rows = Array.from({ length:3 }, (_, index) => {
@@ -42,7 +45,10 @@ context.readAppSettings_ = () => ({ principalName:'Test', academicYearStart:2026
 context.getRevision_ = () => 'revision-1';
 
 const get = params => JSON.parse(context.doGet({ parameter:params }).text);
+const status = get({ action:'status' });
+assert.equal(status.capabilities.studentLatinName, true);
 const first = get({ action:'listpage', offset:'0', limit:'2' });
+assert.ok(first.ok, JSON.stringify(first));
 readRanges.length = 0;
 const compact = get({ action:'listpage', offset:'0', limit:'2', includePhotos:'0' });
 const photoColumn = keys.indexOf('photo') + 1;
@@ -53,6 +59,7 @@ const studentStatus = get({ action:'studentstatus', studentId:'id-2' });
 readRanges.length = 0;
 const photos = get({ action:'photos', studentIds:'id-2,STU-3' });
 const photosAfterTwelveKeys = get({ action:'photos', studentIds:[...Array.from({length:12}, (_, i) => `missing-${i}`), 'STU-3'].join(',') });
+assert.ok(photosAfterTwelveKeys.ok, JSON.stringify(photosAfterTwelveKeys));
 assert.equal(photosAfterTwelveKeys.students.length, 1);
 assert.equal(photosAfterTwelveKeys.students[0].studentCode, 'STU-3');
 assert.equal(readRanges.filter(range => range.column === photoColumn).length, 3);

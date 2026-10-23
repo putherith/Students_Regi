@@ -9,6 +9,8 @@ const PORTAL_ATTENDANCE_HEADERS = ["key", "className", "studentId", "date", "per
 const PORTAL_SCORE_HEADERS = ["key", "className", "studentId", "subject", "assessment", "date", "maxScore", "score", "notes", "updatedAt", "actor"];
 const PORTAL_ACTIVITY_HEADERS = ["id", "className", "date", "title", "details", "updatedAt", "actor"];
 const PORTAL_SESSION_SECONDS = 21600;
+const PORTAL_REMEMBER_SECONDS = 30 * 24 * 60 * 60;
+const PORTAL_REMEMBER_PROPERTY_PREFIX = "portal-remember:";
 const PORTAL_ADMIN_SCOPE = "admin";
 const PORTAL_ADMIN_REQUIRED_PROPERTY = "PORTAL_ADMIN_REQUIRED";
 const PORTAL_ATTENDANCE_STATUSES = ["អវត្តមាន", "មកយឺត", "សុំច្បាប់", "មានវត្តមាន"];
@@ -87,7 +89,11 @@ function teacherPortalClasses() {
   return portalClasses_();
 }
 
-function teacherPortalLogin(className, pin) {
+function portalRememberKey_(token) {
+  return PORTAL_REMEMBER_PROPERTY_PREFIX + portalHashPin_("session", token);
+}
+
+function teacherPortalLogin(className, pin, remember) {
   const cls = String(className || "").trim();
   const supplied = String(pin || "").trim();
   if (!supplied || supplied.length > 80) throw new Error("សូមបញ្ចូលលេខ PIN");
@@ -106,18 +112,30 @@ function teacherPortalLogin(className, pin) {
   }
   cache.remove(throttleKey);
   const token = Utilities.getUuid() + Utilities.getUuid();
-  cache.put("portal-session:" + token, JSON.stringify({ scope:scope, className:cls,
-    credentialHash:credential.pinHash }), PORTAL_SESSION_SECONDS);
+  const session = { scope:scope, className:cls, credentialHash:credential.pinHash };
+  const persistent = remember === true && scope === "class";
+  if (persistent) {
+    session.expiresAt = Date.now() + PORTAL_REMEMBER_SECONDS * 1000;
+    PropertiesService.getScriptProperties().setProperty(portalRememberKey_(token), JSON.stringify(session));
+  } else {
+    cache.put("portal-session:" + token, JSON.stringify(session), PORTAL_SESSION_SECONDS);
+  }
   return { token:token, role:scope, className:scope === PORTAL_ADMIN_SCOPE ? "" : cls,
-    teacherName:credential.teacherName || "", expiresIn:PORTAL_SESSION_SECONDS };
+    teacherName:credential.teacherName || "", remembered:persistent,
+    expiresIn:persistent ? PORTAL_REMEMBER_SECONDS : PORTAL_SESSION_SECONDS };
 }
 
 function portalSession_(token, adminOnly) {
   const key = String(token || "").trim();
   if (!/^[0-9a-f-]{72}$/.test(key)) throw new Error("សូមចូលប្រើ Portal ម្តងទៀត");
-  const cached = CacheService.getScriptCache().get("portal-session:" + key);
+  const properties = PropertiesService.getScriptProperties();
+  const cached = CacheService.getScriptCache().get("portal-session:" + key) || properties.getProperty(portalRememberKey_(key));
   if (!cached) throw new Error("Session ផុតកំណត់។ សូមចូលប្រើម្តងទៀត");
   const session = JSON.parse(cached);
+  if (session.expiresAt && Date.now() > Number(session.expiresAt)) {
+    properties.deleteProperty(portalRememberKey_(key));
+    throw new Error("Session ផុតកំណត់។ សូមចូលប្រើម្តងទៀត");
+  }
   const credential = portalAccessRow_(session.scope, session.scope === PORTAL_ADMIN_SCOPE ? "" : session.className);
   if (!credential || !credential.enabled || credential.pinHash !== session.credentialHash) {
     throw new Error("សិទ្ធិចូលប្រើត្រូវបានផ្លាស់ប្តូរ។ សូមចូលម្ដងទៀត");
@@ -125,6 +143,14 @@ function portalSession_(token, adminOnly) {
   if (adminOnly && session.scope !== PORTAL_ADMIN_SCOPE) throw new Error("ត្រូវការសិទ្ធិរដ្ឋបាល");
   return { scope:session.scope, className:session.className, actor:credential.teacherName ||
     (session.scope === PORTAL_ADMIN_SCOPE ? "រដ្ឋបាល" : "គ្រូថ្នាក់ " + session.className) };
+}
+
+function teacherPortalLogout(token) {
+  const key = String(token || "").trim();
+  if (!/^[0-9a-f-]{72}$/.test(key)) return false;
+  CacheService.getScriptCache().remove("portal-session:" + key);
+  PropertiesService.getScriptProperties().deleteProperty(portalRememberKey_(key));
+  return true;
 }
 
 function portalAssertClass_(session, className) {
@@ -183,13 +209,40 @@ function portalRoster_(className) {
     .filter(function(student) { return String(student.className || "").trim() === className && String(student.id || "").trim(); })
     .map(function(student) {
       const result = {};
-      ["id", "studentCode", "studentName", "studentSurname", "studentGivenName", "gender", "dob", "className",
+      ["id", "studentCode", "studentName", "studentSurname", "studentGivenName", "studentLatinName", "gender", "dob", "className",
        "fromSchool", "contact", "guardianName", "guardianDob", "fatherName", "fatherPhone", "fatherDob", "fatherOccupation",
        "motherName", "motherPhone", "motherDob", "motherOccupation",
        "pobVillage", "pobCommune", "pobDistrict", "pobProvince", "currentVillage", "currentCommune", "currentDistrict",
        "currentProvince", "updatedAt"].forEach(function(key) { result[key] = student[key] || ""; });
       return result;
     });
+}
+
+function teacherPortalAssignMissingCodes(token, className) {
+  const session = portalSession_(token, false);
+  const cls = portalAssertClass_(session, className);
+  return withWriteLock_(function() {
+    const sheet = getStudentsSheet_();
+    const count = Math.max(0, sheet.getLastRow() - 1);
+    if (!count) return { className:cls, assigned:0 };
+    const rows = sheet.getRange(2, 1, count, HEADERS.length).getValues();
+    const academicYear = studentCodeAcademicYear_();
+    const used = new Set(rows.map(function(row) { return String(row[HEADERS.indexOf("studentCode")] || "").trim(); }).filter(Boolean));
+    const classIndex = HEADERS.indexOf("className");
+    const codeIndex = HEADERS.indexOf("studentCode");
+    const updatedIndex = HEADERS.indexOf("updatedAt");
+    let assigned = 0;
+    rows.forEach(function(row) {
+      if (String(row[classIndex] || "").trim() !== cls || String(row[codeIndex] || "").trim()) return;
+      row[codeIndex] = allocateStudentCode_(cls, "", [...used], academicYear);
+      used.add(row[codeIndex]);
+      row[updatedIndex] = new Date().toISOString();
+      assigned++;
+    });
+    if (assigned) sheet.getRange(2, 1, count, HEADERS.length).setValues(rows);
+    if (assigned) touchRevision_(DATA_REVISION_PROPERTY);
+    return { className:cls, assigned:assigned };
+  });
 }
 
 function teacherPortalRoster(token, className) {
@@ -394,7 +447,7 @@ function teacherPortalSaveActivity(token, className, activity) {
   });
 }
 
-const PORTAL_EDITABLE_STUDENT_FIELDS = ["studentSurname", "studentGivenName", "gender", "dob", "fromSchool", "contact",
+const PORTAL_EDITABLE_STUDENT_FIELDS = ["studentSurname", "studentGivenName", "studentLatinName", "gender", "dob", "fromSchool", "contact",
   "fatherName", "fatherPhone", "fatherDob", "fatherOccupation", "motherName", "motherPhone", "motherDob",
   "motherOccupation", "guardianName", "guardianDob",
   "pobVillage", "pobCommune", "pobDistrict", "pobProvince",

@@ -40,7 +40,7 @@ app.whenReady().then(async () => {
         document.body.innerHTML = StudentCardTemplate.render([studentWithPhoto], ${JSON.stringify(settings)}, ${JSON.stringify(logo)}, '២០២៥-២០២៦', ${JSON.stringify(schoolEmblem)});
         document.body.style.margin='0';
         document.querySelector('.cards-grid').style.justifyContent='start';
-        document.querySelector('.cards-grid').style.gridTemplateColumns='75mm';
+        document.querySelector('.cards-grid').style.gridTemplateColumns='95mm';
     `);
     await win.webContents.executeJavaScript('document.fonts.ready');
     await win.webContents.executeJavaScript('Promise.all(Array.from(document.images, i => i.decode().catch(() => {})))');
@@ -96,7 +96,7 @@ app.whenReady().then(async () => {
             ruleSections.at(-1).getBoundingClientRect().bottom < regulationCardRect.bottom - 2;
         const lastRule = ruleSections.at(-1).querySelector('li:last-child');
         const lastRuleFullyVisible = lastRule.getBoundingClientRect().bottom <= regulationCardRect.bottom - 4 &&
-            lastRule.textContent.trim().endsWith('ស្របតាមបទបញ្ជារបស់សាលា។');
+            lastRule.textContent.trim().endsWith('តាមបទបញ្ជាសាលា។');
         const a4PageSize = Math.abs(frontRect.width - 194*96/25.4)<1 && Math.abs(frontRect.height - 281*96/25.4)<1;
         const fourPerSheet = frontPages.length===2 && backPages.length===2 &&
             [...frontPages,...backPages].every(page => page.querySelectorAll('.certificate-student-card').length<=4);
@@ -104,11 +104,11 @@ app.whenReady().then(async () => {
         return { width:card.width, height:card.height, overflow, teacherVisible:frontCard?.innerText.includes('គ្រូបន្ទុកថ្នាក់'), fonts:document.fonts.check('18px "Khmer OS Siemreap"'), photoReframed:photo?.src.startsWith('data:image/jpeg'), photoFillsSlot:Math.abs(photoBounds.height-slot.height)<1 && Math.abs(photoBounds.width-slot.width)<1, portraitFill, photoAspect:slot.width/slot.height, objectFit:getComputedStyle(photo).objectFit, blueAboveNotBelow, shirtAtBottomEdges, bottomEdgePixels:[...bottomLeftPixel.slice(0,3),...bottomRightPixel.slice(0,3)], blueMatchesReference, frameHeight:frame.height, fourPerSheet, a4PageSize, duplexPositionsMirror, regulationsFit, regulationsFillPanel, rulesDoNotOverlap, lastRuleFullyVisible, regulationHeadings, regulationCounts, regulationBarColors, regulationContentHeight:regulationContent.height, regulationCardHeight:regulationCardRect.height, backWatermarkVisible };
     })()`);
     const shot = await win.webContents.capturePage({ x:0,y:0,width:Math.ceil(metrics.width),height:Math.ceil(metrics.height) });
-    fs.writeFileSync(path.join(out, 'student-card-75x100.png'), shot.toPNG());
+    fs.writeFileSync(path.join(out, 'student-card-95x120.png'), shot.toPNG());
     const actualBackRect = await win.webContents.executeJavaScript(`(() => {const r=document.querySelector('.certificate-student-card-back').getBoundingClientRect();return {x:Math.floor(r.x),y:Math.floor(r.y),width:Math.ceil(r.width),height:Math.ceil(r.height)}})()`);
     win.webContents.debugger.attach('1.3');
     const actualBackShot = await win.webContents.debugger.sendCommand('Page.captureScreenshot', { format:'png', captureBeyondViewport:true, clip:{...actualBackRect,scale:2} });
-    fs.writeFileSync(path.join(out, 'student-card-back-75x100.png'), Buffer.from(actualBackShot.data, 'base64'));
+    fs.writeFileSync(path.join(out, 'student-card-back-95x120.png'), Buffer.from(actualBackShot.data, 'base64'));
     win.webContents.debugger.detach();
     // Reference-sized review makes placement comparison with the user's screenshot easy.
     await win.webContents.executeJavaScript(`
@@ -165,6 +165,6 @@ app.whenReady().then(async () => {
     fs.writeFileSync(path.join(out, 'metrics.json'), JSON.stringify(metrics, null, 2));
     console.log(JSON.stringify(metrics));
     win.destroy();
-    if (Math.abs(metrics.width - 75*96/25.4) > .1 || Math.abs(metrics.height - 100*96/25.4) > .1 || metrics.overflow.length || metrics.teacherVisible || (!suppliedPhoto && !metrics.photoReframed) || !metrics.photoFillsSlot || !metrics.portraitFill || !metrics.blueAboveNotBelow || !metrics.shirtAtBottomEdges || !metrics.alreadyFramedBlueSidesFixed || (exampleCardScreenshot && (!metrics.suppliedScreenshot.beforeBlue || metrics.suppliedScreenshot.afterBlue || !metrics.suppliedScreenshot.reframed)) || !metrics.blueMatchesReference || !metrics.fourPerSheet || !metrics.a4PageSize || !metrics.duplexPositionsMirror || !metrics.regulationsFit || !metrics.regulationsFillPanel || !metrics.rulesDoNotOverlap || !metrics.lastRuleFullyVisible || !metrics.backWatermarkVisible || metrics.regulationCounts.join(',') !== '7,8,3' || metrics.regulationBarColors.join('|') !== 'rgb(32, 81, 125)|rgb(199, 0, 0)|rgb(138, 105, 0)' || metrics.frameHeight < 108 || metrics.frameHeight > 115) throw new Error('Card layout validation failed');
+    if (Math.abs(metrics.width - 95*96/25.4) > .1 || Math.abs(metrics.height - 120*96/25.4) > .1 || metrics.overflow.length || metrics.teacherVisible || (!suppliedPhoto && !metrics.photoReframed) || !metrics.photoFillsSlot || !metrics.portraitFill || !metrics.blueAboveNotBelow || !metrics.shirtAtBottomEdges || !metrics.alreadyFramedBlueSidesFixed || (exampleCardScreenshot && (!metrics.suppliedScreenshot.beforeBlue || metrics.suppliedScreenshot.afterBlue || !metrics.suppliedScreenshot.reframed)) || !metrics.blueMatchesReference || !metrics.fourPerSheet || !metrics.a4PageSize || !metrics.duplexPositionsMirror || !metrics.regulationsFit || !metrics.regulationsFillPanel || !metrics.rulesDoNotOverlap || !metrics.lastRuleFullyVisible || !metrics.backWatermarkVisible || metrics.regulationCounts.join(',') !== '4,7,3' || metrics.regulationBarColors.join('|') !== 'rgb(32, 81, 125)|rgb(199, 0, 0)|rgb(138, 105, 0)' || metrics.frameHeight < 130 || metrics.frameHeight > 136) throw new Error('Card layout validation failed');
     app.quit();
 }).catch(error => { console.error(error); app.exit(1); });
