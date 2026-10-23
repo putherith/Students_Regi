@@ -123,6 +123,9 @@ sheets['_Portal Access'] = accessBackup;
 const html = fs.readFileSync('teacher-portal.html', 'utf8');
 assert.match(html, /id="remember-login" type="checkbox"/);
 assert.match(html, /result\.remembered===true&&result\.role==='class'/);
+assert.match(html, /id="deployment-gate"/);
+assert.match(html, /window\.google && window\.google\.script && window\.google\.script\.run/,
+  'static preview must direct teachers to the Apps Script portal instead of calling missing google.script.run');
 vm.compileFunction(html.slice(html.indexOf('<script>') + 8, html.indexOf('</script>')));
 const appHtml = fs.readFileSync('index.html', 'utf8');
 assert.match(appHtml, /id="studentLatinName" name="studentLatinName"/);
