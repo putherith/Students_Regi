@@ -42,7 +42,8 @@ const HEADERS = [
   "fatherDob",
   "motherDob",
   "guardianDob",
-  "classTrack"
+  "classTrack",
+  "studentLatinName"
 ];
 
 const HEADER_LABELS = {
@@ -72,6 +73,7 @@ const HEADER_LABELS = {
   updatedAt: "កែចុងក្រោយ",
   studentSurname: "គោត្តនាម",
   studentGivenName: "នាមខ្លួន",
+  studentLatinName: "ឈ្មោះជាអក្សរឡាតាំង",
   fatherOccupation: "មុខរបរឪពុក",
   motherOccupation: "មុខរបរម្តាយ",
   guardianName: "ឈ្មោះអាណាព្យាបាល",
@@ -110,7 +112,8 @@ const VIEW_FIELDS = [
   "photo",
   "fatherPhone",
   "motherPhone",
-  "applicationNumber"
+  "applicationNumber",
+  "studentLatinName"
 ];
 
 const HEADER_ROW = HEADERS.map(function(key) { return HEADER_LABELS[key] || key; });
@@ -138,8 +141,8 @@ function onEdit(e) {
   }
 }
 
-const STUDENT_COLUMN_WIDTHS = [90, 95, 170, 60, 105, 80, 165, 115, 135, 135, 135, 120, 130, 130, 125, 150, 150, 150, 100, 145, 145, 120, 120, 125, 125, 145, 105, 125, 125, 135, 135, 150, 165];
-const VIEW_COLUMN_WIDTHS = [95, 120, 120, 60, 105, 80, 165, 165, 120, 130, 135, 125, 130, 135, 125, 145, 150, 115, 135, 135, 135, 125, 150, 150, 150, 100, 125, 125, 105];
+const STUDENT_COLUMN_WIDTHS = [90, 95, 170, 60, 105, 80, 165, 115, 135, 135, 135, 120, 130, 130, 125, 150, 150, 150, 100, 145, 145, 120, 120, 125, 125, 145, 105, 125, 125, 135, 135, 150, 165, 180];
+const VIEW_COLUMN_WIDTHS = [95, 120, 120, 60, 105, 80, 165, 165, 120, 130, 135, 125, 130, 135, 125, 145, 150, 115, 135, 135, 135, 125, 150, 150, 150, 100, 125, 125, 105, 180];
 const CLASS_TAB_COLORS = ["#0f766e", "#2563eb", "#7c3aed", "#15803d", "#b45309", "#be123c", "#0891b2", "#4f46e5"];
 
 function doGet(e) {
@@ -154,6 +157,7 @@ function doGet(e) {
     if (action === "status") {
       return output_({
         ok: true,
+        capabilities: { studentLatinName:true, portalRememberLogin:true },
         revision: getRevision_(DATA_REVISION_PROPERTY),
         settingsRevision: getRevision_(SETTINGS_REVISION_PROPERTY)
       }, e);
@@ -734,6 +738,9 @@ function normalizeStudentCodes_(students) {
 
 function mergeStudentRecord_(existing, incoming) {
   const merged = Object.assign({}, existing || {}, incoming || {});
+  if (incoming && incoming.__hasStudentLatinName === false) {
+    merged.studentLatinName = String((existing && existing.studentLatinName) || "");
+  }
   // Never let a text-only edit or an offline retry with no cached image clear a photo
   // that already exists in the shared Sheet.
   ["studentName", "studentSurname", "studentGivenName", "photo", "classTrack"].forEach(function(field) {
@@ -875,6 +882,11 @@ function normalizeIncomingStudent_(item) {
   const now = new Date().toISOString();
   const normalized = {};
   HEADERS.forEach(function(key) { normalized[key] = cell_(student[key]); });
+  // A backup/import can normalize the same row more than once. Keep the original
+  // field-presence flag so older clients cannot erase a Latin name accidentally.
+  normalized.__hasStudentLatinName = Object.prototype.hasOwnProperty.call(student, "__hasStudentLatinName")
+    ? student.__hasStudentLatinName === true
+    : Object.prototype.hasOwnProperty.call(student, "studentLatinName");
   normalized.id = cell_(student.recordId || student.id || student.studentCode || item.studentId);
   normalized.studentCode = cell_(student.studentCode || item.studentId || student.studentId);
   normalized.studentSurname = cell_(student.studentSurname);

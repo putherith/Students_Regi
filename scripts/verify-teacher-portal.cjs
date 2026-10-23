@@ -40,14 +40,14 @@ const context = vm.createContext({
   },
   CacheService: {getScriptCache: () => ({get: key => cache.get(key) || null, put: (key, value) => cache.set(key, value), remove: key => cache.delete(key)})},
   LockService: {getScriptLock: () => ({waitLock() {}, releaseLock() {}})},
-  PropertiesService: {getScriptProperties: () => ({getProperty: key => properties.get(key) || '', setProperty: (key, value) => properties.set(key, value)})}
+  PropertiesService: {getScriptProperties: () => ({getProperty: key => properties.get(key) || '', setProperty: (key, value) => properties.set(key, value), deleteProperty: key => properties.delete(key)})}
 });
 vm.runInContext(fs.readFileSync('google-sheet-backend.gs', 'utf8'), context);
 vm.runInContext(fs.readFileSync('teacher-portal.gs', 'utf8'), context);
 vm.runInContext('getStudentsSheet_ = () => SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Students")', context);
 
 const headers = vm.runInContext('HEADERS', context);
-const student = (id, cls, code, name) => headers.map(key => ({id, className: cls, studentCode: code, studentName: name, studentSurname: name.split(' ')[0], studentGivenName: name.split(' ')[1], photo: `data:image/jpeg;base64,${id}`, updatedAt: '2026-09-29T00:00:00.000Z'})[key] || '');
+const student = (id, cls, code, name) => headers.map(key => ({id, className: cls, studentCode: code, studentName: name, studentSurname: name.split(' ')[0], studentGivenName: name.split(' ')[1], studentLatinName: 'SOK DARA', photo: `data:image/jpeg;base64,${id}`, updatedAt: '2026-09-29T00:00:00.000Z'})[key] || '');
 sheets.Students = new FakeSheet([headers, student('id-a', '7A', '9022607001', 'សុខ ដារ៉ា'), student('id-b', '8A', '9022508001', 'សុខ មករា')]);
 const hash = (salt, pin) => crypto.createHash('sha256').update(`${salt}:${pin}`).digest('hex');
 sheets['_Portal Access'] = new FakeSheet([
@@ -57,8 +57,25 @@ sheets['_Portal Access'] = new FakeSheet([
   ['class', '8A', 'salt-b', hash('salt-b', '987654321098'), 'គ្រូ 8A', true, 'now']
 ]);
 const call = (name, ...args) => context[name](...args);
+const oldClientUpdate = call('normalizeIncomingStudent_', {student:{id:'id-a',studentName:'សុខ ដារ៉ា'}});
+assert.equal(call('mergeStudentRecord_', {studentLatinName:'SOK DARA'}, oldClientUpdate).studentLatinName, 'SOK DARA');
+assert.equal(call('mergeStudentRecord_', {studentLatinName:'SOK DARA'}, call('normalizeIncomingStudent_', oldClientUpdate)).studentLatinName, 'SOK DARA');
+const explicitLatinClear = call('normalizeIncomingStudent_', {student:{id:'id-a',studentLatinName:''}});
+assert.equal(call('mergeStudentRecord_', {studentLatinName:'SOK DARA'}, explicitLatinClear).studentLatinName, '');
 const teacher = call('teacherPortalLogin', '7A', '123456789012');
 assert.equal(teacher.role, 'class');
+const remembered = call('teacherPortalLogin', '7A', '123456789012', true);
+assert.equal(remembered.remembered, true);
+assert.equal(remembered.expiresIn, 30 * 24 * 60 * 60);
+assert.equal(call('teacherPortalRoster', remembered.token, '7A').students[0].studentLatinName, 'SOK DARA');
+assert.equal(call('teacherPortalLogout', remembered.token), true);
+assert.throws(() => call('teacherPortalRoster', remembered.token, '7A'), /Session/);
+const rememberedForRotation = call('teacherPortalLogin', '7A', '123456789012', true);
+const expiredRemembered = call('teacherPortalLogin', '7A', '123456789012', true);
+const expiredKey = call('portalRememberKey_', expiredRemembered.token);
+properties.set(expiredKey, JSON.stringify({...JSON.parse(properties.get(expiredKey)),expiresAt:Date.now()-1}));
+assert.throws(() => call('teacherPortalRoster', expiredRemembered.token, '7A'), /Session/);
+assert.equal(properties.has(expiredKey), false);
 assert.equal(call('teacherPortalRoster', teacher.token, '7A').students.length, 1);
 assert.equal(call('teacherPortalPhotos', teacher.token, '7A', ['id-a'])[0].photo, 'data:image/jpeg;base64,id-a');
 assert.throws(() => call('teacherPortalPhotos', teacher.token, '7A', ['id-b']), /សិទ្ធិ/);
@@ -82,11 +99,13 @@ assert.equal(call('teacherPortalScores', teacher.token, '7A', 'គណិត', '�
 call('teacherPortalSaveActivity', teacher.token, '7A', {date:'2026-09-29',title:'សម្អាតថ្នាក់',details:'រួមគ្នា'});
 assert.equal(call('teacherPortalActivities', teacher.token, '7A')[0].title, 'សម្អាតថ្នាក់');
 const beforePhoto = sheets.Students.rows[1][headers.indexOf('photo')];
-call('teacherPortalUpdateStudent', teacher.token, '7A', 'id-a', {contact:'012345678'}, '2026-09-29T00:00:00.000Z');
+call('teacherPortalUpdateStudent', teacher.token, '7A', 'id-a', {contact:'012345678',studentLatinName:'SOK DARA II'}, '2026-09-29T00:00:00.000Z');
 assert.equal(sheets.Students.rows[1][headers.indexOf('photo')], beforePhoto);
 assert.equal(sheets.Students.rows[1][headers.indexOf('studentCode')], '9022607001');
 assert.equal(sheets.Students.rows[1][headers.indexOf('contact')], '012345678');
+assert.equal(sheets.Students.rows[1][headers.indexOf('studentLatinName')], 'SOK DARA II');
 const admin = call('teacherPortalLogin', '__admin__', 'admin-secret');
+assert.equal(call('teacherPortalLogin', '__admin__', 'admin-secret', true).remembered, false);
 assert.throws(() => call('assertAuthorized_', {parameter:{}}, null), /Unauthorized/);
 assert.doesNotThrow(() => call('assertAuthorized_', {parameter:{key:'admin-secret'}}, null));
 assert.equal(call('teacherPortalAdminOverview', admin.token).length, 2);
@@ -95,14 +114,25 @@ assert.throws(() => call('teacherPortalIssueClassPin', teacher.token, '8A', 'x')
 const rotated = call('teacherPortalIssueClassPin', admin.token, '7A', 'គ្រូថ្មី');
 assert.equal(rotated.pin.length, 12);
 assert.throws(() => call('teacherPortalRoster', teacher.token, '7A'), /សិទ្ធិ/);
+assert.throws(() => call('teacherPortalRoster', rememberedForRotation.token, '7A'), /សិទ្ធិ/);
 assert.equal(call('teacherPortalLogin', '7A', rotated.pin).teacherName, 'គ្រូថ្មី');
 const accessBackup = sheets['_Portal Access'];
 delete sheets['_Portal Access'];
 assert.throws(() => call('assertAuthorized_', {parameter:{key:'admin-secret'}}, null), /credential is unavailable/);
 sheets['_Portal Access'] = accessBackup;
 const html = fs.readFileSync('teacher-portal.html', 'utf8');
+assert.match(html, /id="remember-login" type="checkbox"/);
+assert.match(html, /result\.remembered===true&&result\.role==='class'/);
 vm.compileFunction(html.slice(html.indexOf('<script>') + 8, html.indexOf('</script>')));
 const appHtml = fs.readFileSync('index.html', 'utf8');
+assert.match(appHtml, /id="studentLatinName" name="studentLatinName"/);
+assert.match(appHtml, /studentLatinName: getValue\("studentLatinName"\)/);
+assert.match(appHtml, /if \(!await googleLatinNameReady\(\)\)/, 'Google Sheet capability is checked before saving a Latin name');
+const sheetSync = appHtml.slice(appHtml.indexOf('    async function syncGoogleSheet('), appHtml.indexOf('    async function syncCloudStorage('));
+assert.match(sheetSync, /studentLatinName[\s\S]*googleLatinNameReady\(\)/, 'backup and queued sync must not drop Latin names against an old Script');
+const templateSource = appHtml.slice(appHtml.indexOf('    const STUDENT_TEMPLATE_TOP_HEADERS = ['), appHtml.indexOf('    // ===================== UTILITY'));
+const templateLengths = vm.runInNewContext(`${templateSource}\n({top:STUDENT_TEMPLATE_TOP_HEADERS.length,sub:STUDENT_TEMPLATE_SUB_HEADERS.length,csv:STUDENT_CSV_HEADERS.length,fields:STUDENT_IMPORT_FIELDS.length,example:STUDENT_TEMPLATE_EXAMPLE.length,cols:STUDENT_TEMPLATE_COLS.length})`);
+assert.deepEqual(Object.values(templateLengths), [29,29,29,29,29,29]);
 const inlineScripts = [...appHtml.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
   .map(match => match[1]).filter(source => source.trim());
 inlineScripts.forEach((source, index) => new vm.Script(source, {filename:`index-inline-${index}.js`}));

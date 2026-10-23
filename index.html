@@ -952,6 +952,7 @@
         }
 
         .student-name { font-weight: 700; color: var(--text); }
+        .student-latin-name { display:block; max-width:100%; color:var(--muted); font-family:Arial,sans-serif; font-size:.74rem; letter-spacing:.025em; overflow-wrap:anywhere; }
         .student-meta { font-size: .78rem; color: var(--muted); margin-top: 2px; }
 
         .student-name-button {
@@ -2016,7 +2017,7 @@
         .web-phone-camera-status { min-height:24px; margin-top:14px; color:var(--muted); text-align:center; font-weight:750; }
         .web-phone-camera-status.connected { color:var(--green); }
         .web-phone-camera-status.error { color:var(--red); }
-        .app-settings-modal .modal-dialog { width:min(620px,100%); max-height:calc(100dvh - 32px); }
+        .app-settings-modal .modal-dialog { width:min(580px,100%); max-height:calc(100dvh - 32px); }
         .card-export-dialog { width:min(440px,calc(100vw - 28px)); max-height:calc(100dvh - 28px); padding:22px; border:1px solid var(--border); border-radius:16px; background:var(--surface); color:var(--text); box-shadow:var(--shadow-lg); }
         .card-export-dialog::backdrop { background:rgba(9,25,47,.62); }
         .card-export-dialog h2 { margin:0 0 5px; color:var(--primary); font-size:1.25rem; }
@@ -2025,8 +2026,13 @@
         .card-export-dialog select { width:100%; min-height:46px; margin-bottom:18px; }
         .card-export-dialog-actions { display:flex; flex-wrap:wrap; gap:8px; }
         .card-export-dialog-actions .btn { flex:1 1 140px; justify-content:center; }
-        .app-settings-modal .modal-body { padding:18px 20px; }
+        .app-settings-modal .modal-body { flex:1 1 auto; padding:18px 20px; }
         .app-settings-modal .modal-footer { position:relative; z-index:1; }
+        .settings-heading { display:flex; align-items:flex-start; gap:12px; }
+        .settings-heading .modal-icon { flex:0 0 40px; width:40px; height:40px; margin:0; }
+        .settings-heading-copy { min-width:0; }
+        .settings-heading .modal-title { margin:0 0 2px; }
+        .settings-heading .modal-desc { margin:0; font-size:.8rem; line-height:1.45; }
         .settings-storage-link { display:flex; align-items:center; gap:11px; width:100%; min-height:52px; margin-top:14px; padding:8px 12px; border:1px solid var(--border-strong); border-radius:11px; background:var(--surface-2); color:var(--text); font:inherit; text-align:left; cursor:pointer; }
         .settings-storage-link:hover, .settings-storage-link:focus-visible { border-color:var(--primary); background:var(--primary-soft); outline:none; }
         .settings-storage-link > ion-icon:first-child { flex:0 0 auto; width:21px; height:21px; color:var(--primary); }
@@ -2084,11 +2090,13 @@
         .class-student-actions .btn { min-height:34px; padding:0 9px; font-size:.76rem; }
         @media (max-width:560px) {
             .phone-camera-connect { grid-template-columns:1fr; justify-items:center; text-align:center; }
-            .app-settings-modal { padding:8px; align-items:flex-end; }
-            .app-settings-modal .modal-dialog { max-height:calc(100dvh - 16px); border-radius:14px; }
-            .app-settings-modal .modal-body { padding:14px; }
-            .settings-tabs { top:-14px; }
-            .app-settings-modal .modal-footer { padding:10px 12px calc(10px + env(safe-area-inset-bottom)); }
+            .app-settings-modal { padding:0; align-items:stretch; }
+            .app-settings-modal .modal-dialog { width:100%; max-height:100dvh; height:100dvh; border-radius:0; }
+            .app-settings-modal .modal-body { padding:16px 14px; }
+            .settings-tabs { top:-16px; }
+            .settings-tabs button { min-height:48px; }
+            .app-settings-modal .modal-footer { padding:10px 14px calc(10px + env(safe-area-inset-bottom)); }
+            .app-settings-modal .modal-footer .btn { min-height:44px; height:auto; }
             .settings-section { padding:12px; }
             .teacher-setting-row { grid-template-columns:1fr; gap:4px; }
             .class-browser-content { padding:12px; }
@@ -3916,6 +3924,10 @@
                                     <input id="studentGivenName" name="studentGivenName" type="text" required
                                            placeholder="ឧ. ដារ៉ា">
                                 </div>
+                                <div class="field field-full">
+                                    <label for="studentLatinName">ឈ្មោះជាអក្សរឡាតាំង (អាចទុកទទេ)</label>
+                                    <input id="studentLatinName" name="studentLatinName" type="text" lang="en" autocomplete="off" placeholder="ឧ. SOK DARA">
+                                </div>
                                 <div class="field">
                                     <label class="required">ភេទ</label>
                                     <div class="gender-group" role="radiogroup" aria-label="ភេទ">
@@ -4340,7 +4352,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.62</span>
+        <span class="footer-version">កំណែ 2.1.63</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4495,11 +4507,15 @@
 <div id="app-settings-modal" class="modal app-settings-modal" role="dialog" aria-modal="true" aria-labelledby="app-settings-title">
     <div class="modal-dialog">
         <div class="modal-body">
-            <div class="modal-icon modal-icon-primary" aria-hidden="true">
-                <ion-icon name="settings-outline"></ion-icon>
+            <div class="settings-heading">
+                <div class="modal-icon modal-icon-primary" aria-hidden="true">
+                    <ion-icon name="settings-outline"></ion-icon>
+                </div>
+                <div class="settings-heading-copy">
+                    <h2 id="app-settings-title" class="modal-title" tabindex="-1">ការកំណត់សាលា និងកាតសិស្ស</h2>
+                    <p class="modal-desc">ជ្រើសផ្នែកខាងក្រោម ដើម្បីកែព័ត៌មានដែលអ្នកត្រូវការ។</p>
+                </div>
             </div>
-            <h2 id="app-settings-title" class="modal-title" tabindex="-1">ការកំណត់សាលា និងកាតសិស្ស</h2>
-            <p class="modal-desc">កំណត់ព័ត៌មានសាលា កាលបរិច្ឆេទ និងគ្រូបន្ទុកតាមថ្នាក់។</p>
             <button id="sheet-settings-btn" class="settings-storage-link" type="button" aria-label="បើកការកំណត់ឃ្លាំងទិន្នន័យ">
                 <ion-icon name="cloud-outline" aria-hidden="true"></ion-icon>
                 <span><strong>ឃ្លាំងទិន្នន័យ</strong><small id="settings-storage-status">Google Sheet</small></span>
@@ -4558,7 +4574,7 @@
             </section>
         </div>
         <div class="modal-footer">
-            <button id="cancel-app-settings-btn" class="btn btn-ghost" type="button">បោះបង់</button>
+            <button id="cancel-app-settings-btn" class="btn btn-ghost" type="button">ត្រឡប់</button>
             <button id="save-app-settings-btn" class="btn btn-primary" type="button">
                 <ion-icon name="save-outline"></ion-icon> រក្សាទុក Settings
             </button>
@@ -4773,6 +4789,9 @@
     let lastGoogleSettingsRevision = localStorage.getItem(GOOGLE_SETTINGS_REVISION_STORAGE_KEY) || "";
     let appSettings = loadAppSettingsFromLocal();
     let storageReturnToSettings = false;
+    let googleLatinNameCapabilityUrl = "";
+    let googleLatinNameCapabilityCheck = null;
+    let googleLatinNameCapabilityCheckUrl = "";
 
     const SUPABASE_FIELD_MAP = {
         id: "id",
@@ -4780,6 +4799,7 @@
         studentName: "student_name",
         studentSurname: "student_surname",
         studentGivenName: "student_given_name",
+        studentLatinName: "student_latin_name",
         gender: "gender",
         dob: "dob",
         className: "class_name",
@@ -4810,7 +4830,7 @@
         updatedAt: "updated_at"
     };
     const SUPABASE_OPTIONAL_COLUMNS = new Set([
-        "photo", "student_surname", "student_given_name", "father_dob", "father_occupation", "mother_dob", "mother_occupation", "guardian_name", "guardian_dob", "application_number", "father_phone", "mother_phone", "class_track"
+        "photo", "student_surname", "student_given_name", "student_latin_name", "father_dob", "father_occupation", "mother_dob", "mother_occupation", "guardian_name", "guardian_dob", "application_number", "father_phone", "mother_phone", "class_track"
     ]);
 
     // ===================== LOCAL STORAGE DB HANDLERS =====================
@@ -5516,7 +5536,7 @@
     const disabledSupabaseColumns = new Set();
 
     const fieldIds = [
-        "studentCode","studentSurname","studentGivenName","dob","fatherName","fatherDob","fatherOccupation","fatherPhone","motherName","motherDob","motherOccupation","motherPhone","guardianName","guardianDob",
+        "studentCode","studentSurname","studentGivenName","studentLatinName","dob","fatherName","fatherDob","fatherOccupation","fatherPhone","motherName","motherDob","motherOccupation","motherPhone","guardianName","guardianDob",
         "pobProvince","pobDistrict","pobCommune","pobVillage",
         "currentProvince","currentDistrict","currentCommune","currentVillage",
         "fromSchool","className","classTrack","contact","applicationNumber"
@@ -5525,11 +5545,11 @@
     const STUDENT_TEMPLATE_TOP_HEADERS = [
         "អត្តលេខ", "គោត្តនាម", "នាមខ្លួន", "ភេទ", "ថ្ងៃកំណើត", "ថ្នាក់", "សាលា",
         "ទីកន្លែងកំណើត", "", "", "", "លេខទូរស័ព្ទ", "ឈ្មោះឪពុក", "ថ្ងៃកំណើតឪពុក", "មុខរបរឪពុក", "ឈ្មោះម្តាយ", "ថ្ងៃកំណើតម្តាយ", "មុខរបរម្តាយ", "ឈ្មោះអាណាព្យាបាល", "ថ្ងៃកំណើតអាណាព្យាបាល",
-        "អាសយដ្ឋានបច្ចុប្បន្ន", "", "", "", "លេខទូរសព្ទឪពុក", "លេខទូរសព្ទម្តាយ", "លេខពាក្យ", "ប្រភេទថ្នាក់"
+        "អាសយដ្ឋានបច្ចុប្បន្ន", "", "", "", "លេខទូរសព្ទឪពុក", "លេខទូរសព្ទម្តាយ", "លេខពាក្យ", "ប្រភេទថ្នាក់", "ឈ្មោះជាអក្សរឡាតាំង"
     ];
     const STUDENT_TEMPLATE_SUB_HEADERS = [
         "", "", "", "", "", "", "", "ភូមិ", "ឃុំ/សង្កាត់", "ស្រុក/ខណ្ឌ", "ខេត្ត/ក្រុង",
-        "", "", "", "", "", "", "", "", "", "ភូមិ", "ឃុំ/សង្កាត់", "ស្រុក/ខណ្ឌ", "ខេត្ត/ក្រុង", "", "", ""
+        "", "", "", "", "", "", "", "", "", "ភូមិ", "ឃុំ/សង្កាត់", "ស្រុក/ខណ្ឌ", "ខេត្ត/ក្រុង", "", "", "", "", ""
     ];
     const STUDENT_CSV_HEADERS = [
         "អត្តលេខ", "គោត្តនាម", "នាមខ្លួន", "ភេទ", "ថ្ងៃកំណើត", "ថ្នាក់", "សាលា",
@@ -5537,13 +5557,13 @@
         "ទីកន្លែងកំណើត - ស្រុក/ខណ្ឌ", "ទីកន្លែងកំណើត - ខេត្ត/ក្រុង",
         "លេខទូរស័ព្ទ", "ឈ្មោះឪពុក", "ថ្ងៃកំណើតឪពុក", "មុខរបរឪពុក", "ឈ្មោះម្តាយ", "ថ្ងៃកំណើតម្តាយ", "មុខរបរម្តាយ", "ឈ្មោះអាណាព្យាបាល", "ថ្ងៃកំណើតអាណាព្យាបាល",
         "អាសយដ្ឋានបច្ចុប្បន្ន - ភូមិ", "អាសយដ្ឋានបច្ចុប្បន្ន - ឃុំ/សង្កាត់",
-        "អាសយដ្ឋានបច្ចុប្បន្ន - ស្រុក/ខណ្ឌ", "អាសយដ្ឋានបច្ចុប្បន្ន - ខេត្ត/ក្រុង", "លេខទូរសព្ទឪពុក", "លេខទូរសព្ទម្តាយ", "លេខពាក្យ", "ប្រភេទថ្នាក់"
+        "អាសយដ្ឋានបច្ចុប្បន្ន - ស្រុក/ខណ្ឌ", "អាសយដ្ឋានបច្ចុប្បន្ន - ខេត្ត/ក្រុង", "លេខទូរសព្ទឪពុក", "លេខទូរសព្ទម្តាយ", "លេខពាក្យ", "ប្រភេទថ្នាក់", "ឈ្មោះជាអក្សរឡាតាំង"
     ];
     const STUDENT_IMPORT_FIELDS = [
         "studentCode", "studentSurname", "studentGivenName", "gender", "dob", "className", "fromSchool",
         "pobVillage", "pobCommune", "pobDistrict", "pobProvince",
         "contact", "fatherName", "fatherDob", "fatherOccupation", "motherName", "motherDob", "motherOccupation", "guardianName", "guardianDob",
-        "currentVillage", "currentCommune", "currentDistrict", "currentProvince", "fatherPhone", "motherPhone", "applicationNumber", "classTrack"
+        "currentVillage", "currentCommune", "currentDistrict", "currentProvince", "fatherPhone", "motherPhone", "applicationNumber", "classTrack", "studentLatinName"
     ];
     const STUDENT_DATA_FIELDS = [
         "studentName", "gender", "dob", "className", "classTrack", "fromSchool",
@@ -5555,16 +5575,16 @@
         "", "ហ៊ុន", "ណារ", "ប្រុស", "15/ឧសភា/2010", "7A", "សាលាបឋមសិក្សាព្រៃខ្លា",
         "ព្រៃមេលងខាងជើង", "ព្រៃខ្លា", "ស្រុកកោះអណ្តែត", "ខេត្តតាកែវ",
         "012345678", "ហ៊ុន សក្កដា", "10/មករា/1980", "កសិករ", "គង់ សុភី", "22/កក្កដា/1985", "អាជីវករ", "ហ៊ុន សក្កដា", "10/មករា/1980",
-        "ព្រៃមេលងខាងជើង", "ព្រៃខ្លា", "ស្រុកកោះអណ្តែត", "ខេត្តតាកែវ", "", "", "001/2026", "ថ្នាក់វិទ្យាសាស្ត្រ"
+        "ព្រៃមេលងខាងជើង", "ព្រៃខ្លា", "ស្រុកកោះអណ្តែត", "ខេត្តតាកែវ", "", "", "001/2026", "ថ្នាក់វិទ្យាសាស្ត្រ", "HUN NARA"
     ];
-    const STUDENT_TEMPLATE_MERGES = [0,1,2,3,4,5,6,11,12,13,14,15,16,17,18,19,24,25,26,27]
+    const STUDENT_TEMPLATE_MERGES = [0,1,2,3,4,5,6,11,12,13,14,15,16,17,18,19,24,25,26,27,28]
         .map(c => ({ s:{r:3,c}, e:{r:4,c} }))
         .concat([{s:{r:3,c:7},e:{r:3,c:10}}, {s:{r:3,c:20},e:{r:3,c:23}}]);
     const STUDENT_TEMPLATE_COLS = [
         {wch:15}, {wch:16}, {wch:16}, {wch:10}, {wch:15}, {wch:10}, {wch:22},
         {wch:16}, {wch:16}, {wch:16}, {wch:16}, {wch:15},
         {wch:18}, {wch:16}, {wch:16}, {wch:18}, {wch:16}, {wch:16}, {wch:20}, {wch:16},
-        {wch:16}, {wch:16}, {wch:16}, {wch:16}, {wch:18}, {wch:18}, {wch:14}, {wch:24}
+        {wch:16}, {wch:16}, {wch:16}, {wch:16}, {wch:18}, {wch:18}, {wch:14}, {wch:24}, {wch:24}
     ];
 
     // ===================== UTILITY =====================
@@ -5767,7 +5787,8 @@
         }
         const composedName = [studentSurname, studentGivenName].filter(Boolean).join(" ");
         const studentName = legacyName && legacyName.length > composedName.length ? legacyName : (composedName || legacyName);
-        return { ...student, studentSurname, studentGivenName, studentName };
+        return { ...student, studentSurname, studentGivenName, studentName,
+            studentLatinName:String(student.studentLatinName || "").trim() };
     }
 
     function studentFullName(student={}) {
@@ -5783,7 +5804,7 @@
             studentVisibleId(s), s.studentSurname, s.studentGivenName, s.gender, formatDate(s.dob), s.className, s.fromSchool,
             s.pobVillage, s.pobCommune, s.pobDistrict, s.pobProvince,
             s.contact, s.fatherName, formatDate(s.fatherDob), s.fatherOccupation, s.motherName, formatDate(s.motherDob), s.motherOccupation, s.guardianName, formatDate(s.guardianDob),
-            s.currentVillage, s.currentCommune, s.currentDistrict, s.currentProvince, s.fatherPhone, s.motherPhone, s.applicationNumber, s.classTrack
+            s.currentVillage, s.currentCommune, s.currentDistrict, s.currentProvince, s.fatherPhone, s.motherPhone, s.applicationNumber, s.classTrack, s.studentLatinName
         ];
     }
 
@@ -6053,13 +6074,12 @@
         storeAppSettings();
         updateStudentCodeHint();
         els.saveAppSettingsBtn.disabled = true;
+        closeAppSettings();
+        showToast("បានរក្សាទុក Settings ក្នុងឧបករណ៍នេះ");
         try {
             await syncAppSettingsToGoogleSheet();
-            closeAppSettings();
-            showToast("បានរក្សាទុក Settings កាតសិស្ស");
         } catch (error) {
             console.error("Settings sync error:", error);
-            closeAppSettings();
             showToast("បានរក្សាទុកក្នុងកុំព្យូទ័រ ប៉ុន្តែ sync ទៅ Google Sheet មិនបាន", "warning");
         } finally {
             els.saveAppSettingsBtn.disabled = false;
@@ -6582,6 +6602,14 @@
         const url = getGoogleScriptUrl();
         if (!url) return false;
         if (navigator.onLine === false) throw new Error("ឧបករណ៍គ្មានអ៊ីនធឺណិត");
+        // Older deployments silently ignore this new column. Keep the mutation
+        // in the local outbox until the server confirms it can store Latin names.
+        if (["upsert", "upsertmany", "backup", "replace"].includes(action)
+            && (String(student.studentLatinName || "").trim()
+                || (Array.isArray(students) && students.some(row => String(row.studentLatinName || "").trim())))
+            && !await googleLatinNameReady()) {
+            throw new Error("Google Sheet Script មិនទាន់គាំទ្រឈ្មោះឡាតាំង។ សូម Update Script មុន Sync។");
+        }
         const body = { action, studentId, student: {...student, studentId}, accessKey:getGoogleSheetAccessKey(), sentAt: new Date().toISOString() };
         if (Array.isArray(students)) {
             body.students = students.map(i => ({ studentId: studentDisplayId(i, i.id), student: {...i, studentId: studentDisplayId(i,i.id)} }));
@@ -6828,6 +6856,23 @@
         });
     }
 
+    async function googleLatinNameReady() {
+        if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl()) return true;
+        const url = getGoogleScriptUrl();
+        if (googleLatinNameCapabilityUrl === url) return true;
+        if (!googleLatinNameCapabilityCheck || googleLatinNameCapabilityCheckUrl !== url) {
+            googleLatinNameCapabilityCheckUrl = url;
+            const check = readGoogleSheetJsonp({ action:"status" }, 15000)
+                .then(status => {
+                    const supported = status?.ok === true && status.capabilities?.studentLatinName === true;
+                    if (supported) googleLatinNameCapabilityUrl = url;
+                    return supported;
+                }).finally(() => { if (googleLatinNameCapabilityCheck === check) googleLatinNameCapabilityCheck = null; });
+            googleLatinNameCapabilityCheck = check;
+        }
+        return googleLatinNameCapabilityCheck;
+    }
+
     async function readGoogleSheetPage(offset) {
         for (let attempt = 0; attempt < 2; attempt++) {
             try {
@@ -6897,6 +6942,7 @@
             student.studentCode || "",
             student.studentSurname || "",
             student.studentGivenName || "",
+            student.studentLatinName || "",
             student.studentName || "",
             student.updatedAt || "",
             String(student.photo || "").length
@@ -6906,7 +6952,7 @@
     function normalizeCloudStudent(item={}, idx=0) {
         const raw = item.student && typeof item.student === "object" ? { ...item.student } : { ...item };
         const textFields = [
-            "studentCode","studentId","studentName","studentSurname","studentGivenName","gender","className","classTrack","fromSchool",
+            "studentCode","studentId","studentName","studentSurname","studentGivenName","studentLatinName","gender","className","classTrack","fromSchool",
             "pobVillage","pobCommune","pobDistrict","pobProvince","contact","fatherName","fatherOccupation","fatherPhone",
             "motherName","motherOccupation","motherPhone","guardianName","currentVillage","currentCommune","currentDistrict",
             "currentProvince","applicationNumber"
@@ -8497,6 +8543,7 @@
             studentCode: getValue("studentCode"),
             studentSurname,
             studentGivenName,
+            studentLatinName: getValue("studentLatinName"),
             studentName: [studentSurname, studentGivenName].filter(Boolean).join(" "),
             gender: document.querySelector('input[name="gender"]:checked')?.value || "ប្រុស",
             dob: normDate(getValue("dob")),
@@ -8722,6 +8769,17 @@
         if (!payload.studentName) { showToast("សូមបំពេញឈ្មោះសិស្ស","warning"); return; }
         if (!payload.contact) { showToast("សូមបំពេញលេខទូរស័ព្ទ","warning"); return; }
         const serverAllocatesCode = getCloudProvider() === GOOGLE_SHEET_PROVIDER && hasGoogleScriptUrl();
+        if (payload.studentLatinName && serverAllocatesCode) {
+            try {
+                if (!await googleLatinNameReady()) {
+                    showToast("Google Sheet Script មិនទាន់គាំទ្រឈ្មោះឡាតាំង។ សូម Update Script មុនរក្សាទុក ដើម្បីកុំឱ្យបាត់ទិន្នន័យ។", "warning");
+                    return;
+                }
+            } catch (error) {
+                showToast("មិនអាចផ្ទៀងផ្ទាត់ការរក្សាទុកឈ្មោះឡាតាំងក្នុង Google Sheet បាន។ សូមពិនិត្យការភ្ជាប់ ហើយសាកម្តងទៀត។", "warning");
+                return;
+            }
+        }
         const duplicateOptions = { ignoreCode:serverAllocatesCode && !editingId };
         const localDuplicate = findDuplicate(payload, editingId, allStudents, duplicateOptions);
         if (localDuplicate) { showToast(duplicateMsg(localDuplicate), "warning"); return; }
@@ -9280,7 +9338,7 @@
     }
     function studentSearchText(s) {
         if (studentSearchTextCache.has(s)) return studentSearchTextCache.get(s);
-        const text = [studentDisplayId(s),studentFullName(s),s.gender,s.dob,s.fatherName,s.fatherDob,s.fatherOccupation,s.motherName,s.motherDob,s.motherOccupation,s.guardianName,s.guardianDob,s.fromSchool,s.className,s.contact,s.applicationNumber,addressText(s,"pob"),addressText(s,"current")].filter(Boolean).join(" ").toLowerCase();
+        const text = [studentDisplayId(s),studentFullName(s),s.studentLatinName,s.gender,s.dob,s.fatherName,s.fatherDob,s.fatherOccupation,s.motherName,s.motherDob,s.motherOccupation,s.guardianName,s.guardianDob,s.fromSchool,s.className,s.contact,s.applicationNumber,addressText(s,"pob"),addressText(s,"current")].filter(Boolean).join(" ").toLowerCase();
         const normalized = normalizeSearchText(text);
         studentSearchTextCache.set(s, normalized);
         return normalized;
@@ -9525,6 +9583,7 @@
                                     <button class="student-name-button edit-btn" type="button" data-id="${esc(s.id)}" title="កែព័ត៌មាន ${esc(studentFullName(s))}">
                                         <span class="student-name">${esc(studentFullName(s))}</span>
                                     </button>
+                                    ${s.studentLatinName ? `<small lang="en" class="student-latin-name">${esc(s.studentLatinName)}</small>` : ""}
                                     ${dataStatusBadge(status)}
                                 </div>
                             </div>
@@ -9599,6 +9658,7 @@
                                     <span class="student-name">${esc(studentFullName(s))}</span>
                                 </span>
                                 <span class="student-meta">${esc(studentVisibleId(s)||"–")} · ${esc(formatDate(s.dob)||"–")}</span>
+                                ${s.studentLatinName ? `<span lang="en" class="student-latin-name">${esc(s.studentLatinName)}</span>` : ""}
                                 <span class="mobile-student-mini">${esc(miniInfo)}</span>
                             </button>
                             <div class="mobile-student-side">
@@ -9909,7 +9969,7 @@
         printWindow("ពាក្យចុះឈ្មោះ", () => {
         const photoSrc = safePhotoSrc(s.photo);
         const rows = [
-            ["លេខសម្គាល់",studentVisibleId(s)],["គោត្តនាម",s.studentSurname],["នាមខ្លួន",s.studentGivenName],["ឈ្មោះពេញ",studentFullName(s)],["ភេទ",s.gender],
+            ["លេខសម្គាល់",studentVisibleId(s)],["គោត្តនាម",s.studentSurname],["នាមខ្លួន",s.studentGivenName],["ឈ្មោះពេញ",studentFullName(s)],["ឈ្មោះឡាតាំង",s.studentLatinName],["ភេទ",s.gender],
             ["ថ្ងៃខែឆ្នាំកំណើត",formatDate(s.dob)],["ថ្នាក់",s.className],["សាលា",s.fromSchool],
             ["ទីកន្លែងកំណើត",addressText(s,"pob")],["លេខទូរស័ព្ទ",s.contact],
             ["ឈ្មោះឪពុក",s.fatherName],["ថ្ងៃខែឆ្នាំកំណើតឪពុក",formatDate(s.fatherDob)],["មុខរបរឪពុក",s.fatherOccupation],
@@ -10196,6 +10256,7 @@
         studentName:["គោត្តនាម-នាម","ឈ្មោះសិស្ស","ឈ្មោះពេញ","ឈ្មោះ","studentName","student name","name","full name"],
         studentSurname:["គោត្តនាម","នាមត្រកូល","studentSurname","surname","family name","last name"],
         studentGivenName:["នាមខ្លួន","នាម","studentGivenName","given name","first name"],
+        studentLatinName:["ឈ្មោះជាអក្សរឡាតាំង","ឈ្មោះឡាតាំង","studentLatinName","latin name","name in latin"],
         gender:["ភេទ","gender","sex"],
         dob:["ថ្ងៃកំណើត","ថ្ងៃខែឆ្នាំកំណើត","dob","date of birth","birthdate"],
         pobVillage:["ភូមិ","ភូមិ (កំណើត)","ភូមិកំណើត","ទីកន្លែងកំណើត - ភូមិ","pobVillage"],
@@ -10270,7 +10331,7 @@
             studentGivenName:r("studentGivenName")
         });
         return {
-            studentCode:r("studentCode"), ...identity,
+            studentCode:r("studentCode"), ...identity, studentLatinName:r("studentLatinName"),
             gender:normGender(r("gender")), dob:normDate(readImportVal(row,"dob")),
             fatherName:r("fatherName"), fatherDob:normDate(readImportVal(row,"fatherDob")), fatherOccupation:r("fatherOccupation"), fatherPhone:r("fatherPhone"),
             motherName:r("motherName"), motherDob:normDate(readImportVal(row,"motherDob")), motherOccupation:r("motherOccupation"), motherPhone:r("motherPhone"),
@@ -10381,6 +10442,11 @@
             if(dup){skipped.push({reason:dup.type,student:s});return;}
             accepted.push(s);
         });
+        if (accepted.some(student => student.studentLatinName) && getCloudProvider() === GOOGLE_SHEET_PROVIDER && hasGoogleScriptUrl()) {
+            if (!await googleLatinNameReady()) {
+                throw new Error("Google Sheet Script មិនទាន់គាំទ្រឈ្មោះឡាតាំង។ សូម Update Script មុន Import។");
+            }
+        }
         const withCodes=await assignCodes(accepted);
         const nowIso=new Date().toISOString();
         const saved=withCodes.map((st,idx)=>{
@@ -10409,7 +10475,7 @@
             const result=await importStudentObjects(students,file.name);
             if(!result.accepted.length){showToast(`មិនមានជួរណាបាន Import។ រំលង ${result.skipped.length}`,"warning");}
             else{showToast(`Import ${result.accepted.length} នាក់។ រំលង ${result.skipped.length}`);await refreshStudents({reset:true, source:"memory"});}
-        }catch(e){console.error("Import error:",e);showToast("Import មិនបាន","error");}
+        }catch(e){console.error("Import error:",e);showToast(e?.message || "Import មិនបាន","error");}
         finally{setImporting(false);els.importFileInput.value="";}
     }
 
