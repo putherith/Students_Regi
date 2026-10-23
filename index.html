@@ -531,6 +531,15 @@
         .section-chevron ion-icon { width: 16px; height: 16px; }
         .section-collapsed .section-chevron { transform: rotate(-90deg); }
         .section-collapsed .section-body { display: none; }
+        .section-header:focus-visible, .family-details > summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 6px; }
+        .form-panel .section-collapsed .section-header { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+
+        .family-details { grid-column: 1 / -1; min-width: 0; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); }
+        .family-details > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 46px; padding: 10px 14px; color: var(--text); font-weight: 700; cursor: pointer; list-style: none; }
+        .family-details > summary::-webkit-details-marker { display: none; }
+        .family-details > summary::after { content: "+"; color: var(--primary); font-size: 1.2rem; line-height: 1; }
+        .family-details[open] > summary::after { content: "−"; }
+        .family-details > .field-grid { padding: 4px 14px 14px; }
 
         .field-grid {
             display: grid;
@@ -3411,6 +3420,24 @@
             background: radial-gradient(ellipse at 90% -8%, rgba(65, 167, 220, .22), transparent 35rem),
                         radial-gradient(ellipse at 5% 52%, rgba(37, 122, 193, .13), transparent 38rem),
                         linear-gradient(155deg, #f8fbfe 0%, #edf3f8 54%, #e4f0f4 100%);
+            isolation: isolate;
+        }
+
+        /* Ambient layers are composited behind the UI; only transforms animate. */
+        .ambient-grid {
+            position: fixed;
+            inset: -56px;
+            z-index: 0;
+            pointer-events: none;
+            opacity: .32;
+            background-image: linear-gradient(rgba(31, 106, 155, .09) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(31, 106, 155, .09) 1px, transparent 1px);
+            background-size: 56px 56px;
+            mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 78%, transparent);
+            animation: ambient-grid-drift 32s linear infinite;
+        }
+        @keyframes ambient-grid-drift {
+            to { transform: translate3d(56px, 56px, 0); }
         }
 
         /* Decorative depth stays behind the interface and never intercepts clicks. */
@@ -3428,6 +3455,7 @@
             top: 11vh;
             background: radial-gradient(circle at 32% 25%, rgba(255,255,255,.94) 0%, rgba(164,224,246,.56) 27%, rgba(43,133,194,.16) 61%, transparent 75%);
             box-shadow: inset 24px 20px 60px rgba(255,255,255,.5), -30px 35px 90px rgba(33,99,148,.08);
+            animation: ambient-orb-one 22s ease-in-out infinite alternate;
         }
         body::after {
             width: min(24vw, 340px);
@@ -3435,6 +3463,13 @@
             left: -10vw;
             bottom: -10vh;
             background: radial-gradient(circle at 35% 28%, rgba(255,255,255,.84) 0%, rgba(130,214,211,.35) 38%, rgba(17,113,151,.11) 68%, transparent 76%);
+            animation: ambient-orb-two 27s ease-in-out infinite alternate;
+        }
+        @keyframes ambient-orb-one {
+            to { transform: translate3d(-36px, 28px, 0) scale(1.08); }
+        }
+        @keyframes ambient-orb-two {
+            to { transform: translate3d(28px, -34px, 0) scale(.92); }
         }
 
         html[data-theme="dark"] body {
@@ -3443,6 +3478,7 @@
         }
         html[data-theme="dark"] body::before { opacity: .23; }
         html[data-theme="dark"] body::after { opacity: .16; }
+        html[data-theme="dark"] .ambient-grid { opacity: .2; }
 
         .app { position: relative; z-index: 1; max-width: 1680px; padding-bottom: 56px; }
 
@@ -3603,6 +3639,7 @@
         }
 
         @media (max-width: 560px) {
+            .ambient-grid { opacity: .18; }
             body::before {
                 display: block;
                 width: 190px;
@@ -3634,17 +3671,21 @@
         }
 
         @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .ambient-grid, body::before, body::after { animation: none !important; }
             .btn, tbody tr { transition: none; }
             .btn:hover:not(:disabled) { transform: none; }
         }
 
         @media print {
             body { background: #fff !important; }
+            .ambient-grid { display: none !important; }
             body::before, body::after { display: none !important; }
         }
     </style>
 </head>
 <body class="sidebar-open">
+<div class="ambient-grid" aria-hidden="true"></div>
 <main class="app">
 
     <!-- ======================== TOPBAR ======================== -->
@@ -3871,7 +3912,7 @@
                     <!-- Section: Student Photo -->
                     <div class="form-section" data-step="៥">
                         <div class="section-header" role="button" tabindex="0" aria-expanded="true"
-                             onclick="toggleSection(this)" onkeydown="if(event.key==='Enter')toggleSection(this)">
+                             onclick="toggleSection(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSection(this)}">
                             <div class="section-icon"><ion-icon name="camera-outline"></ion-icon></div>
                             <span class="section-title">រូបថតសិស្ស</span>
                             <span class="section-chevron"><ion-icon name="chevron-down-outline"></ion-icon></span>
@@ -3901,7 +3942,7 @@
                     <!-- Section: Student Info -->
                     <div class="form-section" data-step="១">
                         <div class="section-header" role="button" tabindex="0" aria-expanded="true"
-                             onclick="toggleSection(this)" onkeydown="if(event.key==='Enter')toggleSection(this)">
+                             onclick="toggleSection(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSection(this)}">
                             <div class="section-icon"><ion-icon name="person-outline"></ion-icon></div>
                             <span class="section-title">ព័ត៌មានសិស្ស</span>
                             <span class="section-chevron"><ion-icon name="chevron-down-outline"></ion-icon></span>
@@ -3969,6 +4010,10 @@
                                     <input id="dob" name="dob" type="hidden">
                                     <small id="dob-help" class="field-help">ជ្រើសថ្ងៃ ខែ និងឆ្នាំពីបញ្ជី</small>
                                 </div>
+                            </div>
+                            <details id="family-details" class="family-details">
+                                <summary>ព័ត៌មានឪពុក ម្តាយ និងអាណាព្យាបាល</summary>
+                                <div class="field-grid">
                                 <div class="field">
                                     <label for="fatherName">ឈ្មោះឪពុក</label>
                                     <input id="fatherName" name="fatherName" type="text" placeholder="ឪពុក">
@@ -4041,14 +4086,15 @@
                                     </div>
                                     <input id="guardianDob" name="guardianDob" type="hidden">
                                 </div>
-                            </div>
+                                </div>
+                            </details>
                         </div>
                     </div>
 
                     <!-- Section: Birth Place -->
-                    <div class="form-section" data-step="២">
-                        <div class="section-header" role="button" tabindex="0" aria-expanded="true"
-                             onclick="toggleSection(this)" onkeydown="if(event.key==='Enter')toggleSection(this)">
+                    <div class="form-section section-collapsed" data-step="២">
+                        <div class="section-header" role="button" tabindex="0" aria-expanded="false"
+                             onclick="toggleSection(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSection(this)}">
                             <div class="section-icon"><ion-icon name="location-outline"></ion-icon></div>
                             <span class="section-title">ទីកន្លែងកំណើត</span>
                             <span class="section-chevron"><ion-icon name="chevron-down-outline"></ion-icon></span>
@@ -4085,9 +4131,9 @@
                     </div>
 
                     <!-- Section: Current Address -->
-                    <div class="form-section" data-step="៣">
-                        <div class="section-header" role="button" tabindex="0" aria-expanded="true"
-                             onclick="toggleSection(this)" onkeydown="if(event.key==='Enter')toggleSection(this)">
+                    <div class="form-section section-collapsed" data-step="៣">
+                        <div class="section-header" role="button" tabindex="0" aria-expanded="false"
+                             onclick="toggleSection(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSection(this)}">
                             <div class="section-icon"><ion-icon name="home-outline"></ion-icon></div>
                             <span class="section-title">អាសយដ្ឋានបច្ចុប្បន្ន</span>
                             <span class="section-chevron"><ion-icon name="chevron-down-outline"></ion-icon></span>
@@ -4130,7 +4176,7 @@
                     <!-- Section: Academic -->
                     <div class="form-section" data-step="៤">
                         <div class="section-header" role="button" tabindex="0" aria-expanded="true"
-                             onclick="toggleSection(this)" onkeydown="if(event.key==='Enter')toggleSection(this)">
+                             onclick="toggleSection(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSection(this)}">
                             <div class="section-icon"><ion-icon name="book-outline"></ion-icon></div>
                             <span class="section-title">ការសិក្សា និងទំនាក់ទំនង</span>
                             <span class="section-chevron"><ion-icon name="chevron-down-outline"></ion-icon></span>
@@ -4352,7 +4398,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.64</span>
+        <span class="footer-version">កំណែ 2.1.65</span>
     </footer>
 
 </main><!-- end .app -->
@@ -4735,10 +4781,15 @@
         document.documentElement.setAttribute('data-theme', saved);
     })();
 
+    function setFormSectionExpanded(section, expanded) {
+        if (!section) return;
+        section.classList.toggle('section-collapsed', !expanded);
+        section.querySelector('.section-header')?.setAttribute('aria-expanded', String(expanded));
+    }
+
     function toggleSection(header) {
         const section = header.closest('.form-section');
-        section.classList.toggle('section-collapsed');
-        header.setAttribute('aria-expanded', !section.classList.contains('section-collapsed'));
+        setFormSectionExpanded(section, section?.classList.contains('section-collapsed'));
     }
 </script>
 
@@ -8661,6 +8712,13 @@
         photoSelectedByUser = false;
         closeMobileEditPanel();
         els.registrationForm.reset();
+        document.getElementById("family-details").open = false;
+        for (const step of ["១", "៤", "៥"]) {
+            setFormSectionExpanded(els.formPanel.querySelector(`.form-section[data-step="${step}"]`), true);
+        }
+        for (const step of ["២", "៣"]) {
+            setFormSectionExpanded(els.formPanel.querySelector(`.form-section[data-step="${step}"]`), false);
+        }
         DATE_SELECTOR_CONFIGS.forEach(config => {
             document.getElementById(config.fieldId).value = "";
             document.getElementById(`${config.prefix}-day`).setCustomValidity("");
@@ -8698,6 +8756,12 @@
         document.querySelectorAll('input[name="gender"]').forEach(i => { i.checked = i.value === (s.gender||"ប្រុស"); });
         setAddressGroup(pobGroup, { province:s.pobProvince, district:s.pobDistrict, commune:s.pobCommune, village:s.pobVillage });
         setAddressGroup(currentGroup, { province:s.currentProvince, district:s.currentDistrict, commune:s.currentCommune, village:s.currentVillage });
+        for (const step of ["១", "៤", "៥"]) {
+            setFormSectionExpanded(els.formPanel.querySelector(`.form-section[data-step="${step}"]`), true);
+        }
+        document.getElementById("family-details").open = ["fatherName", "fatherDob", "fatherOccupation", "fatherPhone", "motherName", "motherDob", "motherOccupation", "motherPhone", "guardianName", "guardianDob"].some(key => Boolean(s[key]));
+        setFormSectionExpanded(els.formPanel.querySelector('.form-section[data-step="២"]'), ["pobVillage", "pobCommune", "pobDistrict", "pobProvince"].some(key => Boolean(s[key])));
+        setFormSectionExpanded(els.formPanel.querySelector('.form-section[data-step="៣"]'), ["currentVillage", "currentCommune", "currentDistrict", "currentProvince"].some(key => Boolean(s[key])));
         els.sameAddress.checked = addressesMatch(s);
         lockCurrentAddress(els.sameAddress.checked);
         setEditMode(id);
@@ -10746,6 +10810,11 @@
             });
         });
         els.registrationForm.addEventListener("submit",handleFormSubmit);
+        els.registrationForm.addEventListener("invalid", event => {
+            setFormSectionExpanded(event.target.closest(".form-section"), true);
+            const details = event.target.closest("details");
+            if (details) details.open = true;
+        }, true);
         els.clearBtn.addEventListener("click",()=>{
             const wasEditing = Boolean(els.editingId.value);
             resetForm();
