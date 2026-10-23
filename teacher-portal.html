@@ -88,9 +88,23 @@
     @media(max-width:760px){.header-inner{padding:11px 16px}.brand h1{font-size:15px}.brand-logo-wrap{width:43px;height:43px;border-radius:13px}main{padding:0 14px;margin:20px auto 40px}.card{padding:19px;border-radius:17px}.login-hero{padding:28px;min-height:280px}.login-hero h2{font-size:25px;margin:15px 0 10px}.login-hero:before{right:27px;top:24px}.login-hero:after{width:280px;height:280px}.portal-hero{padding:23px}.portal-hero h2{font-size:23px}.portal-stats{margin-top:13px}.section-heading{align-items:stretch!important}.tabs{margin-bottom:13px}.tabs button{font-size:12px;padding:9px 8px}.student-card{min-height:132px}.portrait{width:76px;height:100px}}
     @media(max-width:390px){.header-actions button{padding:8px 10px;font-size:12px}.student-card{padding:10px;gap:9px}.student-card-body strong{font-size:14px}}
     .portal-launch{max-width:680px;margin:7vh auto;padding:36px;text-align:center}.portal-launch h2{font-size:25px}.portal-launch p{line-height:1.9}.portal-launch a{display:inline-block;margin-top:12px;padding:12px 20px;border-radius:11px;background:#125876;color:#fff;text-decoration:none;font-weight:700}.portal-launch a:focus-visible{outline:3px solid #32aaaf;outline-offset:3px}
+    /* Keep the Apps Script page and local preview on the same ambient design. */
+    body{isolation:isolate}
+    .portal-ambient{position:fixed;inset:-56px;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(31,106,155,.032) 1px,transparent 1px),linear-gradient(90deg,rgba(31,106,155,.032) 1px,transparent 1px);background-size:56px 56px;mask-image:linear-gradient(to bottom,transparent,#000 18%,#000 78%,transparent);animation:ambient-grid-drift 32s linear infinite}
+    .portal-ambient:before,.portal-ambient:after{content:'';position:absolute;display:block;aspect-ratio:1;border-radius:50%;pointer-events:none}
+    .portal-ambient:before{width:min(38vw,500px);right:-8vw;top:7vh;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.9),rgba(119,213,225,.3) 38%,rgba(33,129,180,.08) 68%,transparent 76%);animation:ambient-orb-one 22s ease-in-out infinite alternate}
+    .portal-ambient:after{width:min(26vw,350px);left:-7vw;bottom:-8vh;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.8),rgba(145,194,234,.27) 40%,rgba(42,107,168,.08) 68%,transparent 76%);animation:ambient-orb-two 27s ease-in-out infinite alternate}
+    @keyframes ambient-grid-drift{to{transform:translate3d(56px,56px,0)}}
+    @keyframes ambient-orb-one{to{transform:translate3d(-36px,28px,0) scale(1.08)}}
+    @keyframes ambient-orb-two{to{transform:translate3d(28px,-34px,0) scale(.92)}}
+    main{position:relative;z-index:1}
+    @media(max-width:560px){.portal-ambient{background-image:linear-gradient(rgba(31,106,155,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(31,106,155,.02) 1px,transparent 1px)}.portal-ambient:before{width:230px;right:-130px}.portal-ambient:after{width:180px;left:-110px}}
+    @media(prefers-reduced-motion:reduce){.portal-ambient,.portal-ambient:before,.portal-ambient:after{animation:none!important}}
+    @media print{.portal-ambient{display:none!important}}
   </style>
 </head>
 <body>
+<div class="portal-ambient" aria-hidden="true"></div>
 <header class="site-header"><div class="header-inner"><div class="brand"><div class="brand-logo-wrap" aria-hidden="true">ស</div><div><h1>ផ្ទាំងគ្រូបន្ទុកថ្នាក់</h1><small>វិទ្យាល័យសុខអានព្រៃមេលង</small></div></div><div class="header-actions"><button id="logout" class="secondary hidden" type="button">ចាកចេញ</button></div></div></header>
 <main>
   <div id="notice" class="notice hidden" role="status" aria-live="polite"></div>

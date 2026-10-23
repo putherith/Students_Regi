@@ -38,6 +38,16 @@ assert.match(html, /function setSidebarActiveView\(view\)/);
 assert.match(html, /id="clear-filters-btn"[^>]*hidden/);
 assert.match(html, /id="active-filter-count"[^>]*hidden/);
 assert.match(html, /id="toggle-filters-btn"[^>]*aria-controls="toolbar-filters"[^>]*aria-expanded="false"/);
+assert.match(html, /<details id="family-details" class="family-details">[\s\S]*?<summary>ព័ត៌មានឪពុក ម្តាយ និងអាណាព្យាបាល<\/summary>/,
+    'Optional family details remain available without filling the initial form');
+for (const step of ['២', '៣']) {
+    assert.match(html, new RegExp(`<div class="form-section section-collapsed" data-step="${step}">\\s*<div class="section-header"[^>]*aria-expanded="false"`),
+        `Address section ${step} starts collapsed but accessible`);
+}
+assert.match(html, /els\.registrationForm\.addEventListener\("invalid", event => \{[\s\S]*?setFormSectionExpanded\(event\.target\.closest\("\.form-section"\), true\)/,
+    'Validation reveals any hidden invalid form field');
+assert.match(html, /document\.getElementById\("family-details"\)\.open = \["fatherName"[\s\S]*?\.some\(key => Boolean\(s\[key\]\)\)/,
+    'Editing a student reveals stored family information');
 assert.match(html, /@media \(min-width: 861px\) \{[\s\S]*?\.main-layout\.show-list \.form-panel,\s*\.main-layout\.show-form \.list-panel \{ display:none; \}/,
     'Desktop shows one primary work panel at a time');
 const editSource = html.slice(html.indexOf('    async function loadStudentIntoForm(id) {'), html.indexOf('    function setSaving(', html.indexOf('    async function loadStudentIntoForm(id) {')));
