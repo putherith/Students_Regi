@@ -87,12 +87,19 @@
     @media(prefers-reduced-motion:reduce){button,.student-card{transition:none!important}button:hover,.student-card:hover{transform:none}}
     @media(max-width:760px){.header-inner{padding:11px 16px}.brand h1{font-size:15px}.brand-logo-wrap{width:43px;height:43px;border-radius:13px}main{padding:0 14px;margin:20px auto 40px}.card{padding:19px;border-radius:17px}.login-hero{padding:28px;min-height:280px}.login-hero h2{font-size:25px;margin:15px 0 10px}.login-hero:before{right:27px;top:24px}.login-hero:after{width:280px;height:280px}.portal-hero{padding:23px}.portal-hero h2{font-size:23px}.portal-stats{margin-top:13px}.section-heading{align-items:stretch!important}.tabs{margin-bottom:13px}.tabs button{font-size:12px;padding:9px 8px}.student-card{min-height:132px}.portrait{width:76px;height:100px}}
     @media(max-width:390px){.header-actions button{padding:8px 10px;font-size:12px}.student-card{padding:10px;gap:9px}.student-card-body strong{font-size:14px}}
+    .portal-launch{max-width:680px;margin:7vh auto;padding:36px;text-align:center}.portal-launch h2{font-size:25px}.portal-launch p{line-height:1.9}.portal-launch a{display:inline-block;margin-top:12px;padding:12px 20px;border-radius:11px;background:#125876;color:#fff;text-decoration:none;font-weight:700}.portal-launch a:focus-visible{outline:3px solid #32aaaf;outline-offset:3px}
   </style>
 </head>
 <body>
 <header class="site-header"><div class="header-inner"><div class="brand"><div class="brand-logo-wrap" aria-hidden="true">ស</div><div><h1>ផ្ទាំងគ្រូបន្ទុកថ្នាក់</h1><small>វិទ្យាល័យសុខអានព្រៃមេលង</small></div></div><div class="header-actions"><button id="logout" class="secondary hidden" type="button">ចាកចេញ</button></div></div></header>
 <main>
   <div id="notice" class="notice hidden" role="status" aria-live="polite"></div>
+  <section id="deployment-gate" class="card portal-launch hidden" role="status">
+    <span class="eyebrow">ផ្ទាំងគ្រូបន្ទុកថ្នាក់</span>
+    <h2>សូមបើក Portal ពី Google Apps Script</h2>
+    <p class="muted">ឯកសារនេះជាទម្រង់ Portal។ ការចូលដោយ PIN និងទិន្នន័យសិស្សដំណើរការតែនៅពេលបើកតាម Google Apps Script ដែលភ្ជាប់នឹងសាលា។</p>
+    <a href="https://script.google.com/macros/s/AKfycbyc_1v8DBczUTac1CprLsj2Ae5uKt8In-XGpB6lXXmCZj7Mm-4OL1DPSJjNXsD-G2GK/exec?action=teacherportal" rel="noopener noreferrer">បើក Portal ផ្លូវការ →</a>
+  </section>
   <div id="login-layout" class="login-layout">
     <div class="login-hero"><span class="eyebrow">ប្រព័ន្ធគ្រប់គ្រងថ្នាក់រៀន</span><h2>ព័ត៌មានសិស្ស វត្តមាន និងពិន្ទុ នៅកន្លែងតែមួយ</h2><p>ចូលមើលសិស្ស និងរូបថត កែព័ត៌មាន កត់អវត្តមាន និងរៀបចំសកម្មភាពថ្នាក់តាមសិទ្ធិរបស់គ្រូបន្ទុក។</p><div class="login-features" aria-label="មុខងារសំខាន់"><span>◉ បញ្ជី និងរូបថត</span><span>✓ វត្តមាន</span><span>▥ ពិន្ទុ</span></div></div>
     <section id="login-card" class="card"><span class="eyebrow">ចូលប្រើដោយសុវត្ថិភាព</span><h2>សូមស្វាគមន៍</h2><p class="muted">ជ្រើសថ្នាក់ ហើយបញ្ចូល PIN ដែលរដ្ឋបាលបានផ្ដល់។</p><div class="row"><div class="field"><label for="class-login">ថ្នាក់</label><select id="class-login"><option value="">កំពុងទាញថ្នាក់...</option></select></div><div class="field"><label for="pin-login">លេខ PIN</label><input id="pin-login" type="password" autocomplete="off" inputmode="numeric"></div><label class="remember-option" for="remember-login"><input id="remember-login" type="checkbox"><span><strong>ចងចាំការចូល ៣០ ថ្ងៃ</strong><small id="remember-help">សម្រាប់គ្រូតាមថ្នាក់ លើឧបករណ៍ផ្ទាល់ខ្លួនប៉ុណ្ណោះ</small></span></label><button id="login" type="button">ចូលប្រើ Portal →</button></div></section>
@@ -155,7 +162,12 @@
   function tab(name){['students','attendance','scores','activities'].forEach(id=>$(id).classList.toggle('hidden',id!==name));$('edit-card').classList.add('hidden');document.querySelectorAll('.tabs button').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===name));if(name==='activities')loadActivities()}
   $('login').onclick=login;$('pin-login').onkeydown=e=>{if(e.key==='Enter')login()};$('logout').onclick=logout;$('refresh').onclick=async()=>{try{if(state.role==='admin')await adminOverview();else{state.photoCache.clear();await roster()}notice('បានផ្ទុកទិន្នន័យថ្មី')}catch(e){fail(e)}};$('student-search').oninput=renderStudents;$('assign-missing-codes').onclick=assignMissingCodes;$('save-student').onclick=saveStudent;$('cancel-edit').onclick=()=>{$('edit-card').classList.add('hidden');$('students').classList.remove('hidden')};$('load-attendance').onclick=loadAttendance;$('save-attendance').onclick=saveAttendance;$('load-scores').onclick=loadScores;$('save-scores').onclick=saveScores;$('save-activity').onclick=saveActivity;$('cancel-activity').onclick=cancelActivity;document.querySelectorAll('.tabs button').forEach(btn=>btn.onclick=()=>tab(btn.dataset.tab));['attendance-date','score-date','activity-date'].forEach(id=>$(id).value=today());
   $('class-login').addEventListener('change',updateRememberOption);
-  classes().then(restoreSession).catch(fail);
+  if (window.google && window.google.script && window.google.script.run) {
+    classes().then(restoreSession).catch(fail);
+  } else {
+    $('login-layout').classList.add('hidden');
+    $('deployment-gate').classList.remove('hidden');
+  }
 </script>
 </body>
 </html>

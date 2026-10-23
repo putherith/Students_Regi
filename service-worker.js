@@ -1,4 +1,4 @@
-const CACHE_NAME = "students-registration-web-v2.1.63";
+const CACHE_NAME = "students-registration-web-v2.1.64";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -34,15 +34,18 @@ self.addEventListener("fetch", event => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
+    const isAppEntry = url.pathname.endsWith("/") || url.pathname.endsWith("/index.html");
     event.respondWith(
       fetch(new Request(request, { cache:"no-cache" }))
         .then(response => {
           if (!response.ok) throw new Error("Page is unavailable");
           const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
+          // A teacher-portal navigation must never replace the app's offline entry.
+          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
           return response;
         })
-        .catch(() => caches.match("./index.html"))
+        .catch(async () => (await caches.match(request))
+          || (isAppEntry ? await caches.match("./index.html") : Response.error()))
     );
     return;
   }
