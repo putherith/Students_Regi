@@ -982,6 +982,7 @@
             color: var(--primary-dark);
             text-decoration: underline;
         }
+        .student-name-edit-icon { width: 14px; height: 14px; margin-left: 4px; color: var(--primary); opacity: .75; vertical-align: middle; pointer-events: none; }
 
         .student-name-button:focus-visible {
             outline: 2px solid var(--primary);
@@ -3813,6 +3814,38 @@
             }
             .mobile-tab-btn.active { box-shadow: inset 0 1px 0 var(--depth-edge), 0 5px 11px rgba(18,85,143,.14); }
             .student-card, .class-tile, .class-student-item { box-shadow: 0 5px 12px rgba(18,63,99,.07), inset 0 1px 0 var(--depth-edge); }
+            .table-detail-toggle { display: none !important; }
+        }
+
+        /* Keep the full 23-field record available, but start with the nine fields
+           staff use to identify a student. Printed reports use a separate layout. */
+        @media screen and (min-width: 861px) {
+            #students-table.compact-view thead tr:nth-child(2),
+            #students-table.compact-view thead tr:first-child > th:nth-child(7),
+            #students-table.compact-view thead tr:first-child > th:nth-child(8),
+            #students-table.compact-view thead tr:first-child > th:nth-child(10),
+            #students-table.compact-view thead tr:first-child > th:nth-child(11),
+            #students-table.compact-view thead tr:first-child > th:nth-child(12),
+            #students-table.compact-view thead tr:first-child > th:nth-child(13),
+            #students-table.compact-view thead tr:first-child > th:nth-child(14),
+            #students-table.compact-view thead tr:first-child > th:nth-child(15),
+            #students-table.compact-view tbody tr > td:nth-child(7),
+            #students-table.compact-view tbody tr > td:nth-child(8),
+            #students-table.compact-view tbody tr > td:nth-child(9),
+            #students-table.compact-view tbody tr > td:nth-child(10),
+            #students-table.compact-view tbody tr > td:nth-child(11),
+            #students-table.compact-view tbody tr > td:nth-child(13),
+            #students-table.compact-view tbody tr > td:nth-child(14),
+            #students-table.compact-view tbody tr > td:nth-child(15),
+            #students-table.compact-view tbody tr > td:nth-child(16),
+            #students-table.compact-view tbody tr > td:nth-child(17),
+            #students-table.compact-view tbody tr > td:nth-child(18),
+            #students-table.compact-view tbody tr > td:nth-child(19),
+            #students-table.compact-view tbody tr > td:nth-child(20),
+            #students-table.compact-view tbody tr > td:nth-child(21) { display: none; }
+            #students-table.compact-view thead tr:first-child > th:nth-child(3) { min-width: 210px; }
+            #students-table.compact-view thead tr:first-child > th:nth-child(17) { min-width: 185px; }
+            .table-detail-toggle[aria-pressed="true"] { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -4410,6 +4443,9 @@
                     <span>តម្រង</span>
                     <span id="active-filter-count" class="filter-count" aria-hidden="true" hidden></span>
                 </button>
+                <button id="toggle-table-detail-btn" class="btn btn-ghost table-detail-toggle" type="button" aria-controls="students-table" aria-pressed="false" title="ប្តូររវាងតារាងសង្ខេប និងតារាងលម្អិត">
+                    <ion-icon name="grid-outline" aria-hidden="true"></ion-icon><span id="table-detail-label">ជួរឈរទាំងអស់</span>
+                </button>
                 <button id="clear-filters-btn" class="btn btn-ghost clear-filters-btn" type="button" aria-label="សម្អាតតម្រង" hidden>
                     <ion-icon name="close-circle-outline" aria-hidden="true"></ion-icon><span>សម្អាតតម្រង</span>
                 </button>
@@ -4435,7 +4471,7 @@
 
             <!-- Desktop Table -->
             <div class="table-wrap" role="region" aria-label="តារាងសិស្ស" tabindex="0">
-                <table>
+                <table id="students-table" class="compact-view">
                     <thead>
                         <tr>
                             <th rowspan="2" style="width:40px; text-align:center; vertical-align:middle;">ល.រ</th>
@@ -4469,7 +4505,7 @@
                     </thead>
                     <tbody id="student-list">
                         <tr class="skeleton-row">
-                            <td colspan="23">
+                            <td colspan="9">
                                 <div class="skeleton skeleton-line" style="width:60%;height:16px"></div>
                             </td>
                         </tr>
@@ -4543,7 +4579,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.66</span>
+        <span class="footer-version">កំណែ 2.1.67</span>
     </footer>
 
 </main><!-- end .app -->
@@ -5558,6 +5594,9 @@
         saveBtn: document.getElementById("save-student-btn"),
         clearBtn: document.getElementById("clear-form-btn"),
         sameAddress: document.getElementById("same-address"),
+        studentTable: document.getElementById("students-table"),
+        toggleTableDetailBtn: document.getElementById("toggle-table-detail-btn"),
+        tableDetailLabel: document.getElementById("table-detail-label"),
         studentList: document.getElementById("student-list"),
         studentCards: document.getElementById("student-cards"),
         resultSummary: document.getElementById("result-summary"),
@@ -5723,6 +5762,7 @@
     let selectedClassName = null;
     let totalStudentsCount = 0;
     let pageSize = 25; // Keep the initial DOM small for smooth table and mobile rendering.
+    let tableDetailsExpanded = false; // Presentation only; no student fields are changed.
     let currentPageIndex = 0;
     let hasNextPage = false;
     let isLoadingPage = false;
@@ -9620,6 +9660,17 @@
 
     function hasActiveFilters() { return Boolean(els.searchInput.value.trim()||els.genderFilter.value||els.classFilter.value||els.schoolFilter.value||els.photoFilter.value); }
 
+    function setTableDetailMode(expanded) {
+        tableDetailsExpanded = Boolean(expanded);
+        els.studentTable.classList.toggle("compact-view", !tableDetailsExpanded);
+        els.toggleTableDetailBtn.setAttribute("aria-pressed", String(tableDetailsExpanded));
+        els.tableDetailLabel.textContent = tableDetailsExpanded ? "តារាងសង្ខេប" : "ជួរឈរទាំងអស់";
+        // Group and empty rows must span the same visible columns as the header.
+        els.studentList.querySelectorAll("td[colspan]").forEach(cell => {
+            if (cell.colSpan === 9 || cell.colSpan === 23) cell.colSpan = tableDetailsExpanded ? 23 : 9;
+        });
+    }
+
     function updateFilterUi() {
         const selectedCount = [els.genderFilter, els.classFilter, els.schoolFilter, els.photoFilter]
             .filter(input => Boolean(input.value)).length;
@@ -9786,7 +9837,7 @@
             const emptyMessage = hasActiveFilters() ? "មិនមានសិស្សត្រូវនឹងការស្វែងរក ឬតម្រងនេះ" : "មិនទាន់មានទិន្នន័យសិស្ស";
             const emptyAction = hasActiveFilters() ? '<button class="btn btn-secondary clear-empty-filters-btn" type="button">បង្ហាញសិស្សទាំងអស់</button>' : "";
             els.studentList.innerHTML = `
-                <tr><td colspan="23">
+                <tr><td colspan="${tableDetailsExpanded ? 23 : 9}">
                     <div class="empty">
                         <ion-icon name="person-outline"></ion-icon>
                         <p>${emptyMessage}</p>${emptyAction}
@@ -9810,8 +9861,9 @@
                             <div class="table-student-name" style="display: flex; align-items: center; gap: 8px;">
                                     ${photoSrc ? `<img src="${esc(photoSrc)}" class="student-photo-thumbnail view-photo-img" data-id="${esc(s.id)}" alt="មើលរូបថត ${esc(studentFullName(s))}" loading="lazy" decoding="async">` : ''}
                                 <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
-                                    <button class="student-name-button edit-btn" type="button" data-id="${esc(s.id)}" title="កែព័ត៌មាន ${esc(studentFullName(s))}">
+                                    <button class="student-name-button edit-btn" type="button" data-id="${esc(s.id)}" title="កែព័ត៌មាន ${esc(studentFullName(s))}" aria-label="កែព័ត៌មាន ${esc(studentFullName(s))}">
                                         <span class="student-name">${esc(studentFullName(s))}</span>
+                                        <ion-icon class="student-name-edit-icon" name="create-outline" aria-hidden="true"></ion-icon>
                                     </button>
                                     ${s.studentLatinName ? `<small lang="en" class="student-latin-name">${esc(s.studentLatinName)}</small>` : ""}
                                     ${dataStatusBadge(status)}
@@ -9848,9 +9900,6 @@
                                 <button class="btn btn-icon view-photo-btn" type="button" title="មើលរូបថត" data-id="${esc(s.id)}">
                                     <ion-icon name="image-outline"></ion-icon>
                                 </button>
-                                <button class="btn btn-icon edit-btn" type="button" title="កែ" data-id="${esc(s.id)}">
-                                    <ion-icon name="create-outline"></ion-icon>
-                                </button>
                                 <button class="btn btn-icon transfer-class-btn" type="button" title="ប្ដូរថ្នាក់" aria-label="ប្ដូរថ្នាក់ ${esc(studentFullName(s))}" data-id="${esc(s.id)}">
                                     <ion-icon name="swap-horizontal-outline" aria-hidden="true"></ion-icon>
                                 </button>
@@ -9863,7 +9912,7 @@
             }).join("");
             return `
                 <tr class="class-group-row">
-                    <td colspan="23">ថ្នាក់ ${esc(cls)}<span class="class-count">${students.length} នាក់</span></td>
+                    <td colspan="${tableDetailsExpanded ? 23 : 9}">ថ្នាក់ ${esc(cls)}<span class="class-count">${students.length} នាក់</span></td>
                 </tr>${rows}`;
         }).join("");
 
@@ -9943,7 +9992,7 @@
         } catch(e) {
             console.error("Load page error:", e);
             setStatus("មានបញ្ហា","error");
-            els.studentList.innerHTML = `<tr><td colspan="23"><div class="empty"><p>ផ្ទុកទិន្នន័យមិនបាន</p></div></td></tr>`;
+            els.studentList.innerHTML = `<tr><td colspan="${tableDetailsExpanded ? 23 : 9}"><div class="empty"><p>ផ្ទុកទិន្នន័យមិនបាន</p></div></td></tr>`;
         } finally {
             setPageLoading(false);
         }
@@ -11030,6 +11079,7 @@
             else applyFilters();
         });
         els.clearFiltersBtn.addEventListener("click",clearAllListFilters);
+        els.toggleTableDetailBtn.addEventListener("click", () => setTableDetailMode(!tableDetailsExpanded));
         document.getElementById("className").addEventListener("input", updateStudentCodeHint);
 
         // Table actions
