@@ -42,6 +42,10 @@ assert.match(html, /function setSidebarActiveView\(view\)/);
 assert.match(html, /id="clear-filters-btn"[^>]*hidden/);
 assert.match(html, /id="active-filter-count"[^>]*hidden/);
 assert.match(html, /id="toggle-filters-btn"[^>]*aria-controls="toolbar-filters"[^>]*aria-expanded="false"/);
+assert.match(html, /id="toggle-table-detail-btn"[^>]*aria-controls="students-table"[^>]*aria-pressed="false"/,
+    'The desktop roster starts in a concise view with an explicit full-details control');
+assert.match(html, /<table id="students-table" class="compact-view">/);
+assert.match(html, /#students-table\.compact-view thead tr:nth-child\(2\)/);
 assert.match(html, /<details id="family-details" class="family-details">[\s\S]*?<summary>ព័ត៌មានឪពុក ម្តាយ និងអាណាព្យាបាល<\/summary>/,
     'Optional family details remain available without filling the initial form');
 for (const step of ['២', '៣']) {
@@ -185,15 +189,28 @@ vm.runInNewContext(`${filterSource}\nfilterTeacherSettings()`, { els });
 assert.deepEqual(rows.map(row => row.hidden), [false, false]);
 
 const listFilterSource = html.slice(html.indexOf('    function hasActiveFilters() {'), html.indexOf('    async function refreshMissingPhotoCodes(', html.indexOf('    function hasActiveFilters() {')));
+const tableClasses = new Set(['compact-view']);
+const spanCells = [{ colSpan:9 }, { colSpan:9 }];
 const filterControls = {
     searchInput:{ value:'សិស្ស' }, genderFilter:{ value:'ប្រុស' }, classFilter:{ value:'7A' },
     schoolFilter:{ value:'' }, photoFilter:{ value:'' },
     activeFilterCount:{ hidden:true, textContent:'' }, clearFiltersBtn:{ hidden:true },
-    toggleFiltersBtn:{ getAttribute:() => 'false', setAttribute:() => {} }
+    toggleFiltersBtn:{ getAttribute:() => 'false', setAttribute:() => {} },
+    studentTable:{ classList:{ toggle(name, active) { if (active) tableClasses.add(name); else tableClasses.delete(name); } } },
+    toggleTableDetailBtn:{ attributes:{}, setAttribute(name, value) { this.attributes[name] = value; } },
+    tableDetailLabel:{ textContent:'' },
+    studentList:{ querySelectorAll:() => spanCells }
 };
 let resets = 0; let refreshes = 0;
 const filtersContext = vm.createContext({ els:filterControls, resetPagination:() => { resets++; }, applyFilters:() => { refreshes++; } });
-vm.runInContext(listFilterSource, filtersContext);
+vm.runInContext(`let tableDetailsExpanded = false;\n${listFilterSource}`, filtersContext);
+filtersContext.setTableDetailMode(true);
+assert.equal(tableClasses.has('compact-view'), false);
+assert.equal(filterControls.toggleTableDetailBtn.attributes['aria-pressed'], 'true');
+assert.deepEqual(spanCells.map(cell => cell.colSpan), [23, 23]);
+filtersContext.setTableDetailMode(false);
+assert.equal(tableClasses.has('compact-view'), true);
+assert.deepEqual(spanCells.map(cell => cell.colSpan), [9, 9]);
 filtersContext.updateFilterUi();
 assert.equal(filterControls.activeFilterCount.textContent, '2');
 assert.equal(filterControls.clearFiltersBtn.hidden, false);
