@@ -982,6 +982,7 @@
             color: var(--primary-dark);
             text-decoration: underline;
         }
+        .student-name-edit-icon { width: 14px; height: 14px; margin-left: 4px; color: var(--primary); opacity: .75; vertical-align: middle; pointer-events: none; }
 
         .student-name-button:focus-visible {
             outline: 2px solid var(--primary);
@@ -9860,8 +9861,9 @@
                             <div class="table-student-name" style="display: flex; align-items: center; gap: 8px;">
                                     ${photoSrc ? `<img src="${esc(photoSrc)}" class="student-photo-thumbnail view-photo-img" data-id="${esc(s.id)}" alt="មើលរូបថត ${esc(studentFullName(s))}" loading="lazy" decoding="async">` : ''}
                                 <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
-                                    <button class="student-name-button edit-btn" type="button" data-id="${esc(s.id)}" title="កែព័ត៌មាន ${esc(studentFullName(s))}">
+                                    <button class="student-name-button edit-btn" type="button" data-id="${esc(s.id)}" title="កែព័ត៌មាន ${esc(studentFullName(s))}" aria-label="កែព័ត៌មាន ${esc(studentFullName(s))}">
                                         <span class="student-name">${esc(studentFullName(s))}</span>
+                                        <ion-icon class="student-name-edit-icon" name="create-outline" aria-hidden="true"></ion-icon>
                                     </button>
                                     ${s.studentLatinName ? `<small lang="en" class="student-latin-name">${esc(s.studentLatinName)}</small>` : ""}
                                     ${dataStatusBadge(status)}
