@@ -30,6 +30,10 @@ for (const [name, panel] of [['card', 'settings-card-panel'], ['school', 'settin
 assert.match(settings, /id="settings-school-panel"[^>]*hidden/);
 assert.match(settings, /id="teacher-settings-section"[^>]*hidden[\s\S]*?<input id="teacher-settings-search"[\s\S]*?<div id="teacher-settings-list"/);
 assert.match(settings, /id="app-settings-title"[^>]*tabindex="-1"/);
+assert.match(html, /<details id="alternate-storage-settings" class="storage-provider-advanced">[\s\S]*?id="storage-provider-select"/,
+    'Alternative storage is available under a clearly labeled advanced section');
+assert.match(html, /id="storage-test-result"[^>]*role="status"[^>]*hidden/,
+    'Draft connection test has a persistent result inside Settings');
 assert.match(html, /\.settings-tabs \{ position:sticky;/, 'Settings categories remain available while scrolling');
 assert.match(html, /<details class="panel history-panel"[\s\S]*?<summary class="panel-header">/, 'Activity history is available without cluttering the roster');
 assert.doesNotMatch(html, /class="admin-overview-actions"/, 'Duplicate dashboard shortcuts removed');
@@ -108,6 +112,7 @@ const classList = () => {
 const draft = { value:'unsaved principal name' };
 const storageEls = {
     appSettingsModal:{ classList:classList() }, sheetModal:{ classList:classList() },
+    alternateStorageSettings:{ open:false }, storageTestResult:{ hidden:true, textContent:'', dataset:{} },
     storageProviderSelect:{ value:'' }, supabaseUrlInput:{ value:'' }, supabaseKeyInput:{ value:'' },
     sheetUrlInput:{ value:'' }, sheetAccessKeyInput:{ value:'' },
     settingsStorageStatus:{ textContent:'' }, sheetSettingsBtn:{ focus() { this.focused = true; } },
@@ -116,6 +121,7 @@ const storageEls = {
 storageEls.appSettingsModal.classList.add('is-open');
 const storageContext = vm.createContext({
     els:storageEls, storageReturnToSettings:false, getCloudProvider:() => 'google-sheet',
+    SUPABASE_PROVIDER:'supabase', clearStorageTestResult:() => {},
     getSupabaseUrl:() => '', getSupabaseAnonKey:() => '', getGoogleScriptUrl:() => 'https://example.test/exec',
     getGoogleSheetAccessKey:() => '', currentStorageName:() => 'Google Sheet',
     updateStorageFieldsVisibility:() => {}, setTimeout:() => {}, isMobileView:() => false
@@ -129,6 +135,20 @@ assert.equal(storageEls.appSettingsModal.classList.contains('is-open'), true);
 assert.equal(storageEls.sheetModal.classList.contains('is-open'), false);
 assert.equal(draft.value, 'unsaved principal name', 'Storage round-trip preserves unsaved school settings');
 assert.equal(storageEls.sheetSettingsBtn.focused, true);
+
+const saveStorageSource = html.slice(html.indexOf('    function saveSheetUrl() {'), html.indexOf('    function setStorageTestLoading(', html.indexOf('    function saveSheetUrl() {')));
+const writes = [];
+const saveStorageContext = vm.createContext({
+    els:{storageProviderSelect:{value:'supabase'},supabaseUrlInput:{value:'http://invalid'},supabaseKeyInput:{value:'valid-key'}},
+    SUPABASE_PROVIDER:'supabase', GOOGLE_SHEET_PROVIDER:'google-sheet',
+    normalizeSupabaseUrl:value => value, showToast:() => {}, showStorageTestResult:() => {},
+    localStorage:{setItem:(key,value) => writes.push([key,value])}
+});
+vm.runInContext(saveStorageSource, saveStorageContext);
+saveStorageContext.saveSheetUrl();
+assert.deepEqual(writes, [], 'Invalid alternative storage does not switch the active provider');
+const testStorageSource = html.slice(html.indexOf('    async function testCloudStorageConnection() {'), html.indexOf('    async function supabaseFetch(', html.indexOf('    async function testCloudStorageConnection() {')));
+assert.doesNotMatch(testStorageSource, /setStatus\(/, 'Testing an unsaved draft does not change the live connection status');
 
 const closeMenuSource = html.slice(html.indexOf('        function closeMobileActions() {'), html.indexOf('        els.mobileMenuBtn?.addEventListener("click", () => {', html.indexOf('        function closeMobileActions() {')));
 const menuOverlay = { classList:classList() };

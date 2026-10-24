@@ -26,6 +26,17 @@ for (const [file, layer] of pages) {
   assert.match(style, /@media\s*\(?prefers-reduced-motion:\s*reduce\)?[\s\S]*?ambient-(?:grid|orb)/,
     `${file}: reduced-motion stops ambient animation`);
   assert.match(style, /@media\s*print[\s\S]*?ambient/, `${file}: print hides decoration`);
+  assert.match(style, /@media\s+screen\s*\{[\s\S]*?linear-gradient/, `${file}: screen-only depth surfaces exist`);
+  assert.match(style, /box-shadow:[^;}]+inset/, `${file}: raised and inset surface depth exists`);
+}
+
+const appStyle = read('index.html').match(/<style(?:\s[^>]*)?>([\s\S]*?)<\/style>/i)[1];
+for (const selector of ['.metric', '.class-tile', '.report-export-section', '.settings-storage-link', '.modal-dialog', '.mobile-tabs']) {
+  assert.ok(appStyle.includes(selector), `App covers ${selector}`);
+}
+const portalStyle = read('teacher-portal.html').match(/<style(?:\s[^>]*)?>([\s\S]*?)<\/style>/i)[1];
+for (const selector of ['.login-hero', '.portal-hero', '.student-card', '.tabs']) {
+  assert.ok(portalStyle.includes(selector), `Teacher portal covers ${selector}`);
 }
 
 assert.equal(read('teacher-portal.html'), read('script-release-2.1.64/TeacherPortal.html'),
