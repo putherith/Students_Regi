@@ -100,6 +100,26 @@
     main{position:relative;z-index:1}
     @media(max-width:560px){.portal-ambient{background-image:linear-gradient(rgba(31,106,155,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(31,106,155,.02) 1px,transparent 1px)}.portal-ambient:before{width:230px;right:-130px}.portal-ambient:after{width:180px;left:-110px}}
     @media(prefers-reduced-motion:reduce){.portal-ambient,.portal-ambient:before,.portal-ambient:after{animation:none!important}}
+    /* Shared institutional depth language with the administration app. */
+    @media screen{
+      .site-header{background:linear-gradient(120deg,rgba(255,255,255,.98),rgba(235,248,250,.96));box-shadow:0 12px 28px rgba(14,62,94,.11),inset 0 1px 0 #fff}
+      .brand-logo-wrap{box-shadow:0 11px 19px rgba(8,76,94,.22),inset 0 1px 0 #ffffff78}
+      .card{background:linear-gradient(145deg,#fff,#f8fcff);border-color:#d7e5ed;box-shadow:0 18px 35px rgba(18,63,99,.1),0 4px 10px rgba(18,63,99,.04),inset 0 1px 0 #fff}
+      .login-hero,.portal-hero{background:radial-gradient(circle at 88% 5%,rgba(136,231,222,.3),transparent 34%),linear-gradient(125deg,#092d50,#15527c 60%,#147d83);box-shadow:0 26px 48px rgba(9,54,87,.23),inset 0 1px 0 #ffffff49}
+      .login-hero:before{box-shadow:20px 24px 30px #051e343d,inset 0 1px 0 #ffffff69}
+      .stat{box-shadow:inset 0 1px 0 #ffffff42,0 8px 18px #082a4622}
+      .tabs{background:linear-gradient(165deg,#e8f2f6,#f8fcff);box-shadow:inset 0 2px 5px #12436312,0 8px 20px #12365d0d}
+      .tabs button.active{background:linear-gradient(150deg,#fff,#ebf8f6);box-shadow:0 8px 16px #12365d26,inset 0 1px 0 #fff}
+      .student-card,.student{background:linear-gradient(145deg,#fff,#f4fafe);box-shadow:0 8px 18px #12365d0c,inset 0 1px 0 #fff}
+      .student-card:hover{border-color:#8acbc9;box-shadow:0 20px 35px #12365d21}
+      .portrait{box-shadow:inset 0 1px 0 #ffffffa6,0 8px 17px #12365d1b}
+      .table-wrap{box-shadow:inset 0 1px 0 #fff,0 8px 20px #12365d0c}
+      th{background:linear-gradient(180deg,#edf6f7,#e4f0f7)}
+      button:not(.secondary):not(.danger){box-shadow:0 9px 17px rgba(18,85,143,.2),inset 0 1px 0 #ffffff42}
+      button:active:not(:disabled){transform:translateY(0);box-shadow:inset 0 2px 5px #082a4633}
+    }
+    @media screen and (max-width:760px){.site-header{backdrop-filter:none}.card{box-shadow:0 10px 22px rgba(18,63,99,.09),inset 0 1px 0 #fff}.student-card:hover,button:hover{transform:none}}
+    @media(prefers-reduced-motion:reduce){.student-card,button{transition:none!important}.student-card:hover,button:hover{transform:none!important}}
     @media print{.portal-ambient{display:none!important}}
   </style>
 </head>
