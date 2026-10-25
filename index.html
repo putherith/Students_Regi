@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ប្រព័ន្ធចុះឈ្មោះសិស្ស</title>
-    <meta name="description" content="គ្រប់គ្រងបញ្ជីសិស្ស ស្វែងរក Import Print និងទាញយក CSV">
+    <meta name="description" content="គ្រប់គ្រងបញ្ជីសិស្ស ស្វែងរក Import Print និងទាញយក Excel">
     <meta name="theme-color" content="#082f54">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -4171,13 +4171,14 @@
             <h2 id="report-print-title">បោះពុម្ពបញ្ជី និងកាត</h2>
             <p>ប៊ូតុងទាំងនេះប្រើតម្រងបច្ចុប្បន្នពីផ្ទាំងបញ្ជីសិស្ស។ សម្រាប់បញ្ជីតាមថ្នាក់ សូមជ្រើសរបាយការណ៍ខាងក្រោម។</p>
             <div class="report-export-actions">
-                <button id="print-list-btn" class="btn btn-secondary" type="button"><ion-icon name="print-outline" aria-hidden="true"></ion-icon> បញ្ជីលម្អិត</button>
+                <button id="print-list-btn" class="btn btn-secondary" type="button"><ion-icon name="print-outline" aria-hidden="true"></ion-icon> បញ្ជីសិស្ស A4</button>
                 <button id="print-photo-list-btn" class="btn btn-ghost" type="button"><ion-icon name="images-outline" aria-hidden="true"></ion-icon> បញ្ជីមានរូបថត</button>
                 <button id="print-card-list-btn" class="btn btn-ghost" type="button"><ion-icon name="id-card-outline" aria-hidden="true"></ion-icon> កាតសិស្ស</button>
             </div>
             <h2>ទាញយកទិន្នន័យ</h2>
             <div class="report-export-actions">
                 <button id="download-photos-btn" class="btn btn-ghost" type="button"><ion-icon name="images-outline" aria-hidden="true"></ion-icon> រូបថត ZIP</button>
+                <button id="download-excel-btn" class="btn btn-secondary" type="button"><ion-icon name="grid-outline" aria-hidden="true"></ion-icon> ទិន្នន័យ Excel</button>
                 <button id="download-csv-btn" class="btn btn-ghost" type="button"><ion-icon name="download-outline" aria-hidden="true"></ion-icon> ទិន្នន័យ CSV</button>
             </div>
         </div>
@@ -4736,7 +4737,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.67</span>
+        <span class="footer-version">កំណែ 2.1.68</span>
     </footer>
 
 </main><!-- end .app -->
@@ -5830,6 +5831,7 @@
         cardExportPrintBtn: document.getElementById("card-export-print"),
         cardExportPdfBtn: document.getElementById("card-export-pdf"),
         cardExportCancelBtn: document.getElementById("card-export-cancel"),
+        downloadExcelBtn: document.getElementById("download-excel-btn"),
         downloadCsvBtn: document.getElementById("download-csv-btn"),
         deleteAllBtn: document.getElementById("delete-all-btn"),
         transferClassModal: document.getElementById("transfer-class-modal"),
@@ -9540,7 +9542,9 @@
         const teacher = appSettings.classTeachers[group.name] || "................................";
         const principal = appSettings.principalName || "................................";
         // Give full Khmer names the widest column on each half of the A4 sheet.
-        const columns = [3.4, 7.3, 16, 3.2, 9.2, 10.9];
+        // Keep both halves identical and reserve the most space for Khmer names.
+        // Each half totals exactly 50%, so browser and PDF printing stay aligned.
+        const columns = [3.8, 8.6, 16.2, 4, 9.2, 8.2];
         const colgroup = `<colgroup>${[...columns, ...columns].map(width => `<col style="width:${width}%">`).join("")}</colgroup>`;
         const headings = `<th>ល.រ</th><th>អត្តលេខ</th><th>គោត្តនាម និងនាម</th><th>ភេទ</th><th>ថ្ងៃខែឆ្នាំកំណើត</th><th>សាលាមកពី</th>`;
         const fitCell = (value, extraClass="") => `<td class="roster-fit-cell ${extraClass}"><span class="roster-fit-text">${esc(value || "")}</span></td>`;
@@ -9648,7 +9652,7 @@
             document.fonts?.ready.then(() => fitRosterText(els.classReportRoster));
         }
         els.printClassReportBtn.innerHTML = `<ion-icon name="print-outline" aria-hidden="true"></ion-icon> ${reportMode === "class" ? "បោះពុម្ពបញ្ជី A4" : "បោះពុម្ពរបាយការណ៍"}`;
-        els.downloadClassReportBtn.innerHTML = `<ion-icon name="download-outline" aria-hidden="true"></ion-icon> ${reportMode === "class" ? "ទាញបញ្ជី Excel" : "ទាញ CSV"}`;
+        els.downloadClassReportBtn.innerHTML = `<ion-icon name="download-outline" aria-hidden="true"></ion-icon> ទាញ Excel`;
         els.downloadClassRosterBtn.hidden = reportMode !== "class" || !rows.length;
         els.printClassReportBtn.disabled = !rows.length;
         els.downloadClassReportBtn.disabled = !rows.length;
@@ -9674,20 +9678,46 @@
             downloadClassRosterExcel(selected ? [selected] : rows);
             return;
         }
+        if (!window.StudentExport?.styledWorkbook) {
+            showToast("មុខងារ Excel មិនទាន់ផ្ទុក។ សូម Refresh ហើយសាកម្ដងទៀត។", "error");
+            return;
+        }
         const total = rows.reduce((sum, group) => sum + group.students.length, 0);
-        const grades = reportMode === "grade";
-        const lines = [[grades ? "កម្រិតថ្នាក់" : "ថ្នាក់", ...(grades ? ["ចំនួនថ្នាក់"] : []), "សរុប", "ប្រុស", "ស្រី", "មិនកំណត់ភេទ"]];
-        rows.forEach(group => lines.push([group.name, ...(grades ? [group.classCount] : []), group.students.length, group.male, group.female, group.students.length - group.male - group.female]));
-        lines.push(["សរុប", ...(grades ? [rows.reduce((sum, group) => sum + group.classCount, 0)] : []), total, rows.reduce((sum, group) => sum + group.male, 0), rows.reduce((sum, group) => sum + group.female, 0), rows.reduce((sum, group) => sum + group.students.length - group.male - group.female, 0)]);
-        const blob = new Blob(["\uFEFF" + lines.map(row => row.map(csvVal).join(",")).join("\r\n")], { type:"text/csv;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = selected ? `student-report-${selected.name.replace(/[\\/:*?"<>|]/g, "-")}.csv` : `student-report-${reportMode}.csv`;
-        document.body.append(link);
-        link.click();
-        link.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        const columns = [
+            { header:"ល.រ", width:7, type:"integer" },
+            { header:"កម្រិតថ្នាក់", width:22 },
+            { header:"ចំនួនថ្នាក់", width:14, type:"integer" },
+            { header:"សិស្សសរុប", width:14, type:"integer" },
+            { header:"ប្រុស", width:12, type:"integer" },
+            { header:"ស្រី", width:12, type:"integer" },
+            { header:"មិនកំណត់ភេទ", width:17, type:"integer" },
+            { header:"ភាគរយ", width:12, align:"center" }
+        ];
+        const data = rows.map((group, index) => [
+            index + 1, group.name, group.classCount || 0, group.students.length,
+            group.male, group.female, group.students.length - group.male - group.female,
+            total ? `${(group.students.length / total * 100).toFixed(1)}%` : "0.0%"
+        ]);
+        data.push([
+            "", "សរុប", rows.reduce((sum, group) => sum + (group.classCount || 0), 0), total,
+            rows.reduce((sum, group) => sum + group.male, 0),
+            rows.reduce((sum, group) => sum + group.female, 0),
+            rows.reduce((sum, group) => sum + group.students.length - group.male - group.female, 0),
+            total ? "100%" : "0%"
+        ]);
+        const blob = window.StudentExport.styledWorkbook({
+            title:"របាយការណ៍សិស្សតាមកម្រិតថ្នាក់",
+            sheets:[{
+                name:"ស្ថិតិតាមកម្រិត",
+                title:"របាយការណ៍ស្ថិតិសិស្សតាមកម្រិតថ្នាក់",
+                subtitle:"វិទ្យាល័យសុខអានព្រៃមេលង · មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ",
+                meta:`ឆ្នាំសិក្សា ${appSettings.academicYearStart}-${appSettings.academicYearStart + 1} · សិស្សសរុប ${total} នាក់`,
+                columns,
+                rows:data
+            }]
+        });
+        downloadWorkbookFile(blob, `student-report-grade-${appSettings.academicYearStart}.xlsx`);
+        showToast("ទាញរបាយការណ៍ Excel រួច", "success");
     }
 
     function rosterDownloadName(groups, extension) {
@@ -9718,67 +9748,126 @@
         showToast(`ទាញទម្រង់ A4 ${groups.length} ថ្នាក់រួច`, "success");
     }
 
-    function rosterExcelDate(value) {
-        const match = String(normDate(value) || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
-        return match ? new Date(Date.UTC(+match[1], +match[2] - 1, +match[3])) : String(value || "");
+    const standardExcelColumns = [
+        { header:"ល.រ", width:6, type:"integer", value:(student, index) => index + 1 },
+        { header:"អត្តលេខ", width:16, type:"code", align:"center", value:student => studentVisibleId(student) },
+        { header:"គោត្តនាម និងនាម", width:24, value:student => studentFullName(student) },
+        { header:"ឈ្មោះឡាតាំង", width:23, value:student => student.studentLatinName },
+        { header:"ភេទ", width:8, align:"center", value:student => student.gender },
+        { header:"ថ្ងៃខែឆ្នាំកំណើត", width:15, type:"date", align:"center", value:student => normDate(student.dob) },
+        { header:"ថ្នាក់", width:9, align:"center", value:student => student.className },
+        { header:"ប្រភេទថ្នាក់", width:18, value:student => student.classTrack },
+        { header:"សាលាមកពី", width:24, value:student => student.fromSchool },
+        { header:"លេខទូរស័ព្ទ", width:16, type:"code", align:"center", value:student => student.contact },
+        { header:"ឈ្មោះអាណាព្យាបាល", width:22, value:student => student.guardianName },
+        { header:"អាសយដ្ឋានបច្ចុប្បន្ន", width:34, value:student => addressText(student, "current") },
+        { header:"លេខពាក្យ", width:13, type:"code", align:"center", value:student => student.applicationNumber }
+    ];
+
+    const detailedExcelColumns = [
+        { header:"ល.រ", width:6, type:"integer", value:(student, index) => index + 1 },
+        { header:"អត្តលេខ", width:16, type:"code", align:"center", value:student => studentVisibleId(student) },
+        { header:"គោត្តនាម", width:16, value:student => student.studentSurname },
+        { header:"នាមខ្លួន", width:16, value:student => student.studentGivenName },
+        { header:"គោត្តនាម និងនាម", width:24, value:student => studentFullName(student) },
+        { header:"ឈ្មោះឡាតាំង", width:23, value:student => student.studentLatinName },
+        { header:"ភេទ", width:8, align:"center", value:student => student.gender },
+        { header:"ថ្ងៃខែឆ្នាំកំណើត", width:15, type:"date", align:"center", value:student => normDate(student.dob) },
+        { header:"ថ្នាក់", width:9, align:"center", value:student => student.className },
+        { header:"ប្រភេទថ្នាក់", width:18, value:student => student.classTrack },
+        { header:"សាលាមកពី", width:24, value:student => student.fromSchool },
+        { header:"ភូមិកំណើត", width:17, value:student => student.pobVillage },
+        { header:"ឃុំ/សង្កាត់កំណើត", width:18, value:student => student.pobCommune },
+        { header:"ស្រុក/ខណ្ឌកំណើត", width:18, value:student => student.pobDistrict },
+        { header:"ខេត្ត/ក្រុងកំណើត", width:18, value:student => student.pobProvince },
+        { header:"លេខទូរស័ព្ទ", width:16, type:"code", align:"center", value:student => student.contact },
+        { header:"ឈ្មោះឪពុក", width:20, value:student => student.fatherName },
+        { header:"ថ្ងៃកំណើតឪពុក", width:15, type:"date", value:student => normDate(student.fatherDob) },
+        { header:"មុខរបរឪពុក", width:17, value:student => student.fatherOccupation },
+        { header:"ទូរស័ព្ទឪពុក", width:16, type:"code", value:student => student.fatherPhone },
+        { header:"ឈ្មោះម្តាយ", width:20, value:student => student.motherName },
+        { header:"ថ្ងៃកំណើតម្តាយ", width:15, type:"date", value:student => normDate(student.motherDob) },
+        { header:"មុខរបរម្តាយ", width:17, value:student => student.motherOccupation },
+        { header:"ទូរស័ព្ទម្តាយ", width:16, type:"code", value:student => student.motherPhone },
+        { header:"ឈ្មោះអាណាព្យាបាល", width:22, value:student => student.guardianName },
+        { header:"ថ្ងៃកំណើតអាណាព្យាបាល", width:18, type:"date", value:student => normDate(student.guardianDob) },
+        { header:"ភូមិបច្ចុប្បន្ន", width:17, value:student => student.currentVillage },
+        { header:"ឃុំ/សង្កាត់បច្ចុប្បន្ន", width:18, value:student => student.currentCommune },
+        { header:"ស្រុក/ខណ្ឌបច្ចុប្បន្ន", width:18, value:student => student.currentDistrict },
+        { header:"ខេត្ត/ក្រុងបច្ចុប្បន្ន", width:18, value:student => student.currentProvince },
+        { header:"លេខពាក្យ", width:13, type:"code", align:"center", value:student => student.applicationNumber }
+    ];
+
+    function excelRows(students, columns) {
+        return students.map((student, index) => columns.map(column => column.value(student, index) ?? ""));
     }
 
-    function classRosterExcelPage(group, students, page, pages) {
-        const start = page * 90;
-        const year = `${appSettings.academicYearStart}-${appSettings.academicYearStart + 1}`;
-        const rows = Array.from({ length:56 }, () => Array(12).fill(""));
-        rows[0][0] = "ក្រសួងអប់រំ យុវជន និងកីឡា";
-        rows[0][6] = "ព្រះរាជាណាចក្រកម្ពុជា";
-        rows[1][0] = "មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ";
-        rows[1][6] = "ជាតិ សាសនា ព្រះមហាក្សត្រ";
-        rows[2][0] = "វិទ្យាល័យសុខអានព្រៃមេលង";
-        rows[3][0] = `ថ្នាក់ ${group.name}`;
-        rows[4][0] = `បញ្ជីឈ្មោះសិស្ស ${group.key === "unassigned" ? "មិនទាន់កំណត់ថ្នាក់" : `ថ្នាក់ទី ${group.name}`} ឆ្នាំសិក្សា ${year}`;
-        const headings = ["ល.រ", "អត្តលេខ", "គោត្តនាម និងនាម", "ភេទ", "ថ្ងៃខែឆ្នាំកំណើត", "សាលាមកពី"];
-        rows[5] = [...headings, ...headings];
-        const cells = index => {
-            const student = students[index];
-            return student ? [index + 1, String(studentVisibleId(student) || ""), studentFullName(student) || "", student.gender || "", rosterExcelDate(student.dob), student.fromSchool || ""] : Array(6).fill("");
-        };
-        for (let row = 0; row < 45; row++) rows[6 + row] = [...cells(start + row), ...cells(start + 45 + row)];
-        rows[51][0] = `* បញ្ជីនេះមានសិស្សសរុប ${students.length} នាក់ ស្រី ${group.female} នាក់${pages > 1 ? ` (ទំព័រ ${page + 1}/${pages})` : ""}`;
-        rows[51][6] = `ថ្ងៃទី ........ ខែ ................ ឆ្នាំ ${String(appSettings.issueDate || "").slice(0, 4)}`;
-        rows[53][0] = "បានឃើញ និងឯកភាព — គ្រូបន្ទុកថ្នាក់";
-        rows[53][6] = "នាយកសាលា";
-        rows[55][0] = appSettings.classTeachers[group.name] || "";
-        rows[55][6] = appSettings.principalName || "";
-        return rows;
+    function downloadWorkbookFile(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+    }
+
+    function workbookMeta(students) {
+        const male = students.filter(student => student.gender === "ប្រុស").length;
+        const female = students.filter(student => student.gender === "ស្រី").length;
+        return `ឆ្នាំសិក្សា ${appSettings.academicYearStart}-${appSettings.academicYearStart + 1} · សរុប ${students.length} នាក់ · ប្រុស ${male} · ស្រី ${female}`;
     }
 
     function downloadClassRosterExcel(groups) {
-        if (!window.XLSX?.utils) {
-            showToast("Excel មិនទាន់ផ្ទុក។ កំពុងទាញទម្រង់ A4 ជំនួស។", "warning");
-            downloadClassRosterHtml();
+        if (!window.StudentExport?.styledWorkbook) {
+            showToast("មុខងារ Excel មិនទាន់ផ្ទុក។ សូម Refresh ហើយសាកម្ដងទៀត។", "error");
             return;
         }
-        const book = window.XLSX.utils.book_new();
-        const usedNames = new Set();
-        groups.forEach(group => {
+        const sheets = groups.map(group => {
             const students = sortedRosterStudents(group);
-            const pages = Math.max(1, Math.ceil(students.length / 90));
-            for (let page = 0; page < pages; page++) {
-                const sheet = window.XLSX.utils.aoa_to_sheet(classRosterExcelPage(group, students, page, pages), { cellDates:true, dateNF:"dd/mm/yyyy" });
-                sheet["!cols"] = [4, 13, 24, 6, 14, 20, 4, 13, 24, 6, 14, 20].map(wch => ({ wch }));
-                sheet["!rows"] = Array.from({ length:56 }, (_, index) => ({ hpt:index === 5 ? 30 : index >= 6 && index <= 50 ? 15 : 19 }));
-                sheet["!merges"] = [
-                    [0, 0, 5], [0, 6, 11], [1, 0, 5], [1, 6, 11], [2, 0, 5], [3, 0, 5], [4, 0, 11],
-                    [51, 0, 5], [51, 6, 11], [53, 0, 5], [53, 6, 11], [55, 0, 5], [55, 6, 11]
-                ].map(([r, c, end]) => ({ s:{ r, c }, e:{ r, c:end } }));
-                sheet["!margins"] = { left:.24, right:.24, top:.24, bottom:.24, header:0, footer:0 };
-                const base = `${group.name}${pages > 1 ? `-${page + 1}` : ""}`.replace(/[\\/?*\[\]:]/g, "-").slice(0, 27) || "Class";
-                let name = base;
-                for (let suffix = 2; usedNames.has(name); suffix++) name = `${base.slice(0, 27)}-${suffix}`;
-                usedNames.add(name);
-                window.XLSX.utils.book_append_sheet(book, sheet, name);
-            }
+            return {
+                name:group.name,
+                title:`បញ្ជីឈ្មោះសិស្សថ្នាក់ ${group.name}`,
+                subtitle:"វិទ្យាល័យសុខអានព្រៃមេលង · មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ",
+                meta:workbookMeta(students),
+                columns:standardExcelColumns.map(({ value, ...column }) => column),
+                rows:excelRows(students, standardExcelColumns),
+                paperSize:9,
+                fitToWidth:1
+            };
         });
-        window.XLSX.writeFile(book, rosterDownloadName(groups, "xlsx"), { compression:true });
-        showToast(`ទាញ Excel ${groups.length} ថ្នាក់រួច`, "success");
+        const blob = window.StudentExport.styledWorkbook({ title:"បញ្ជីឈ្មោះសិស្សតាមថ្នាក់", sheets });
+        downloadWorkbookFile(blob, rosterDownloadName(groups, "xlsx"));
+        showToast(`ទាញ Excel ${groups.length} ថ្នាក់រួច · មានតម្រង និងក្បាលតារាងជាប់`, "success");
+    }
+
+    function downloadStudentExcel() {
+        const students = printableRows();
+        if (!students.length) { showToast("មិនមានទិន្នន័យសម្រាប់ទាញ Excel", "warning"); return; }
+        if (!window.StudentExport?.styledWorkbook) {
+            showToast("មុខងារ Excel មិនទាន់ផ្ទុក។ សូម Refresh ហើយសាកម្ដងទៀត។", "error");
+            return;
+        }
+        const sorted = [...students].sort((a, b) =>
+            compareKhmer(a.className || "", b.className || "", { numeric:true }) ||
+            compareKhmer(studentFullName(a), studentFullName(b)));
+        const columns = detailedExcelColumns;
+        const blob = window.StudentExport.styledWorkbook({
+            title:"ទិន្នន័យសិស្សលម្អិត",
+            sheets:[{
+                name:"បញ្ជីសិស្ស",
+                title:"បញ្ជីទិន្នន័យសិស្សលម្អិត",
+                subtitle:"វិទ្យាល័យសុខអានព្រៃមេលង · មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ",
+                meta:workbookMeta(sorted),
+                columns:columns.map(({ value, ...column }) => column),
+                rows:excelRows(sorted, columns),
+                paperSize:8,
+                fitToWidth:2
+            }]
+        });
+        downloadWorkbookFile(blob, `student-data-${new Date().toISOString().slice(0, 10)}.xlsx`);
+        showToast(`ទាញ Excel ${sorted.length} នាក់រួច · រក្សាទិន្នន័យពេញ ${columns.length} ជួរឈរ`, "success");
     }
 
     // ===================== FILTERS =====================
@@ -10478,7 +10567,9 @@
         const rows = printableRows();
         if (!rows.length) { showToast("មិនមានទិន្នន័យសម្រាប់បោះពុម្ព","warning"); return; }
         printWindow(withPhotos ? "បញ្ជីសិស្សមានរូបថត" : "បញ្ជីសិស្ស", () => {
-        const columnCount = withPhotos ? 23 : 22;
+        // Keep the paper report intentionally compact. The complete registration
+        // record remains available in the Excel export, where wide data is usable.
+        const columnCount = withPhotos ? 11 : 10;
         let idx = 0;
         const body = groupedByClass(rows).map(([cls,students]) => {
             const studentRows = students.map(s => {
@@ -10490,89 +10581,76 @@
                 return `<tr>
                     <td class="num-col">${idx}</td>
                     ${photoCell}
-                    <td style="font-family: monospace; font-size: 10.5px; text-align: center;">${esc(studentVisibleId(s)||"")}</td>
-                    <td style="font-weight: 600;">${esc(studentFullName(s))}</td>
+                    <td class="code-col">${esc(studentVisibleId(s)||"")}</td>
+                    <td class="name-col">${esc(studentFullName(s))}</td>
+                    <td class="latin-col">${esc(s.studentLatinName||"")}</td>
                     <td class="center-col">${esc(s.gender||"")}</td>
-                    <td class="center-col" style="font-size: 10.5px;">${esc(formatDate(s.dob)||"")}</td>
+                    <td class="center-col date-col">${esc(formatDate(s.dob)||"")}</td>
                     <td class="center-col">${esc(s.className||"")}</td>
                     <td>${esc(s.fromSchool||"")}</td>
-                    <td>${esc(s.pobVillage||"")}</td>
-                    <td>${esc(s.pobCommune||"")}</td>
-                    <td>${esc(s.pobDistrict||"")}</td>
-                    <td>${esc(s.pobProvince||"")}</td>
-                    <td style="font-size: 10.5px; text-align: center;">${esc(s.contact||"")}</td>
-                    <td>${esc(s.fatherName||"")}</td>
-                    <td>${esc(s.fatherOccupation||"")}</td>
-                    <td>${esc(s.motherName||"")}</td>
-                    <td>${esc(s.motherOccupation||"")}</td>
+                    <td class="code-col">${esc(s.contact||"")}</td>
                     <td>${esc(s.guardianName||"")}</td>
-                    <td>${esc(s.currentVillage||"")}</td>
-                    <td>${esc(s.currentCommune||"")}</td>
-                    <td>${esc(s.currentDistrict||"")}</td>
-                    <td>${esc(s.currentProvince||"")}</td>
-                    <td class="center-col" style="font-family:monospace;">${esc(s.applicationNumber||"")}</td>
                 </tr>`;
             }).join("");
             return `<tr class="class-row"><td colspan="${columnCount}">ថ្នាក់ ${esc(cls)} – ${students.length} នាក់</td></tr>${studentRows}`;
         }).join("");
         return `
             <style>
-                @page { size: A4 landscape; margin: 10mm; }
-                table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-                th, td { border: 1px solid #9ca3af; padding: 6px 8px; font-size: 11px; vertical-align: middle; }
-                th { background: #f3f4f6; text-align: center; font-weight: 700; }
-                .class-row td { background: #e0f2fe; color: #0369a1; font-weight: 700; font-size: 12px; border-top: 2px solid #9ca3af; }
+                @page { size: A4 landscape; margin: 8mm; }
+                table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 9px; }
+                thead { display: table-header-group; }
+                tr { break-inside: avoid; page-break-inside: avoid; }
+                th, td { border: .35mm solid #334155; padding: 1.45mm 1.25mm; font-size: 7.4pt; line-height: 1.35; vertical-align: middle; overflow-wrap: anywhere; }
+                th { background: #173f78; color: #fff; text-align: center; font-weight: 700; }
+                .class-row td { background: #dbeafe; color: #173f78; font-weight: 700; font-size: 8.2pt; border-top: .55mm solid #173f78; }
                 td.num-col { text-align: center; }
                 td.center-col { text-align: center; }
-                td.photo-col { width: 48px; text-align: center; padding: 3px; }
-                .print-list-photo { width: 34px; height: 44px; object-fit: cover; border: 1px solid #9ca3af; display: block; margin: 0 auto; }
+                td.code-col { text-align: center; font-family: Arial, sans-serif; font-size: 7pt; white-space: nowrap; }
+                td.name-col { font-weight: 700; }
+                td.latin-col { font-family: Arial, sans-serif; font-size: 6.8pt; text-transform: uppercase; }
+                td.date-col { font-family: Arial, sans-serif; font-size: 7pt; white-space: nowrap; }
+                td.photo-col { text-align: center; padding: .7mm; }
+                .print-list-photo { width: 8mm; height: 10.5mm; object-fit: cover; border: .25mm solid #94a3b8; display: block; margin: 0 auto; }
             </style>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                <div style="text-align: center; font-weight: bold; font-size: 12px; line-height: 1.6;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3mm;">
+                <div style="text-align:center;font-weight:bold;font-size:9pt;line-height:1.55;">
                     <div>មន្ទីរអប់រំ យុវជន និងកីឡា</div>
                     <div>វិទ្យាល័យសុខអានព្រៃមេលង</div>
                 </div>
-                <div style="text-align: center; font-weight: bold; font-size: 12px; line-height: 1.6;">
-                    <div style="font-size: 13px; letter-spacing: 0.5px;">ព្រះរាជាណាចក្រកម្ពុជា</div>
-                    <div style="font-size: 11px; margin-top: 2px;">ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
-                    <div style="font-family: 'Khmer OS Siemreap', 'Siemreap', sans-serif; font-weight: normal; font-size: 10px; margin-top: -3px; letter-spacing: -1px;">🕊️🕊️🕊️</div>
+                <div style="text-align:center;font-weight:bold;font-size:9pt;line-height:1.55;">
+                    <div style="font-size:10pt;">ព្រះរាជាណាចក្រកម្ពុជា</div>
+                    <div>ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
                 </div>
             </div>
-            <div style="clear: both;"></div>
-            <h1 style="text-align: center; font-size: 20px; font-weight: 700; margin: 10px 0 5px;">បញ្ជីរាយនាមសិស្ស</h1>
-            <p style="text-align: center; font-size: 12px; font-weight: bold; color: #374151; margin: 0 0 15px 0;">
+            <h1 style="text-align:center;font-size:14pt;font-weight:700;margin:2mm 0 1mm;">បញ្ជីរាយនាមសិស្ស</h1>
+            <p style="text-align:center;font-size:8.5pt;font-weight:bold;color:#334155;margin:0 0 2mm;">
                 ឆ្នាំសិក្សា ${esc(studentCardAcademicYear())} | សរុប ${rows.length} នាក់ | ថ្ងៃបោះពុម្ព៖ ${esc(new Date().toLocaleDateString("km-KH"))}
             </p>
             <table>
+                <colgroup>
+                    ${withPhotos ? `
+                        <col style="width:3.5%"><col style="width:5%"><col style="width:9.5%">
+                        <col style="width:13.5%"><col style="width:13%"><col style="width:5%">
+                        <col style="width:8.5%"><col style="width:6%"><col style="width:13%">
+                        <col style="width:9%"><col style="width:14%">` : `
+                        <col style="width:3.5%"><col style="width:10%"><col style="width:14%">
+                        <col style="width:14%"><col style="width:5%"><col style="width:9%">
+                        <col style="width:6%"><col style="width:14%"><col style="width:9.5%">
+                        <col style="width:15%">`}
+                </colgroup>
                 <thead>
                     <tr>
-                        <th rowspan="2" style="width: 40px;">ល.រ</th>
-                        ${withPhotos ? `<th rowspan="2" style="width: 48px;">រូបថត</th>` : ""}
-                        <th rowspan="2" style="width: 80px;">អត្តលេខ</th>
-                        <th rowspan="2" style="min-width: 140px;">គោត្តនាម-នាម</th>
-                        <th rowspan="2" style="width: 50px;">ភេទ</th>
-                        <th rowspan="2" style="width: 85px;">ថ្ងៃកំណើត</th>
-                        <th rowspan="2" style="width: 60px;">ថ្នាក់</th>
-                        <th rowspan="2" style="min-width: 120px;">សាលា</th>
-                        <th colspan="4">ទីកន្លែងកំណើត</th>
-                        <th rowspan="2" style="min-width: 95px;">លេខទូរស័ព្ទ</th>
-                        <th rowspan="2" style="min-width: 100px;">ឈ្មោះឪពុក</th>
-                        <th rowspan="2" style="min-width: 90px;">មុខរបរឪពុក</th>
-                        <th rowspan="2" style="min-width: 100px;">ឈ្មោះម្តាយ</th>
-                        <th rowspan="2" style="min-width: 90px;">មុខរបរម្តាយ</th>
-                        <th rowspan="2" style="min-width: 110px;">អាណាព្យាបាល</th>
-                        <th colspan="4">អាសយដ្ឋានបច្ចុប្បន្ន</th>
-                        <th rowspan="2" style="width:80px;">លេខពាក្យ</th>
-                    </tr>
-                    <tr>
-                        <th style="width: 70px;">ភូមិ</th>
-                        <th style="width: 70px;">ឃុំ/សង្កាត់</th>
-                        <th style="width: 70px;">ស្រុក/ខណ្ឌ</th>
-                        <th style="width: 80px;">ខេត្ត/ក្រុង</th>
-                        <th style="width: 70px;">ភូមិ</th>
-                        <th style="width: 70px;">ឃុំ/សង្កាត់</th>
-                        <th style="width: 70px;">ស្រុក/ខណ្ឌ</th>
-                        <th style="width: 80px;">ខេត្ត/ក្រុង</th>
+                        <th>ល.រ</th>
+                        ${withPhotos ? "<th>រូបថត</th>" : ""}
+                        <th>អត្តលេខ</th>
+                        <th>គោត្តនាម និងនាម</th>
+                        <th>ឈ្មោះឡាតាំង</th>
+                        <th>ភេទ</th>
+                        <th>ថ្ងៃកំណើត</th>
+                        <th>ថ្នាក់</th>
+                        <th>សាលាមកពី</th>
+                        <th>ទូរស័ព្ទ</th>
+                        <th>អាណាព្យាបាល</th>
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
@@ -11332,6 +11410,7 @@
             if (event.target === els.cardExportDialog) els.cardExportDialog.close();
         });
         els.downloadPhotosBtn?.addEventListener("click",downloadAllStudentPhotos);
+        els.downloadExcelBtn?.addEventListener("click",downloadStudentExcel);
         els.downloadCsvBtn.addEventListener("click",downloadCSV);
         els.reportModeClassBtn?.addEventListener("click", () => { reportMode = "class"; renderClassReport(); });
         els.reportModeGradeBtn?.addEventListener("click", () => { reportMode = "grade"; renderClassReport(); });
