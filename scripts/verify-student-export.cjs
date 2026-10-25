@@ -57,19 +57,37 @@ function localZipEntries(bytes) {
                 { header:'ថ្ងៃខែឆ្នាំកំណើត', width:15, type:'date' }
             ],
             rows:[[1, '9022607001', 'សុខ ស្រីនីត', '2012-06-23'], [2, '9022607002', 'សុខ ដារ៉ា', '2011-12-05']]
+        }, {
+            name:'ថ្នាក់ 8B',
+            title:'បញ្ជីឈ្មោះសិស្សថ្នាក់ 8B',
+            subtitle:'វិទ្យាល័យសុខអានព្រៃមេលង',
+            meta:'សរុប ១ នាក់',
+            columns:[
+                { header:'ល.រ', width:6, type:'integer' },
+                { header:'អត្តលេខ', width:16, type:'code', align:'center' },
+                { header:'គោត្តនាម និងនាម', width:24 },
+                { header:'ថ្ងៃខែឆ្នាំកំណើត', width:15, type:'date' }
+            ],
+            rows:[[1, '9022508001', 'ចាន់ វិសាល', '2011-01-15']]
         }]
     });
     assert.equal(workbook.type, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     const workbookBytes = new Uint8Array(await workbook.arrayBuffer());
+    if (process.env.SAVE_XLSX) {
+        fs.mkdirSync(path.dirname(process.env.SAVE_XLSX), { recursive:true });
+        fs.writeFileSync(process.env.SAVE_XLSX, workbookBytes);
+    }
     const entries = localZipEntries(workbookBytes);
     for (const required of [
         '[Content_Types].xml', 'xl/workbook.xml', 'xl/styles.xml',
-        'xl/worksheets/sheet1.xml', 'xl/worksheets/_rels/sheet1.xml.rels', 'xl/tables/table1.xml'
+        'xl/worksheets/sheet1.xml', 'xl/worksheets/_rels/sheet1.xml.rels', 'xl/tables/table1.xml',
+        'xl/worksheets/sheet2.xml', 'xl/worksheets/_rels/sheet2.xml.rels', 'xl/tables/table2.xml'
     ]) assert.ok(entries.has(required), `Missing ${required}`);
     const sheet = new TextDecoder().decode(entries.get('xl/worksheets/sheet1.xml'));
     const table = new TextDecoder().decode(entries.get('xl/tables/table1.xml'));
     const styles = new TextDecoder().decode(entries.get('xl/styles.xml'));
     assert.match(sheet, /state="frozen"/);
+    assert.ok(sheet.indexOf('<sheetPr>') < sheet.indexOf('<dimension '), 'sheetPr must precede dimension for Excel');
     assert.match(sheet, /fitToPage="1"/);
     assert.match(sheet, /paperSize="9" orientation="landscape" fitToWidth="1"/);
     assert.match(sheet, /width="24" customWidth="1"/);
@@ -80,5 +98,6 @@ function localZipEntries(bytes) {
     assert.match(styles, /formatCode="dd\/mm\/yyyy"/);
     assert.match(styles, /Khmer OS Siemreap/);
     assert.equal(new DataView(workbookBytes.buffer).getUint32(workbookBytes.length - 22, true), 0x06054b50);
+    assert.notEqual(new DataView(workbookBytes.buffer).getUint16(12, true), 0, 'ZIP date must be valid for Microsoft Excel');
     console.log('Photo ZIP and styled Excel workbook exports passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });

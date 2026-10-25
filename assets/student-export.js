@@ -24,6 +24,9 @@
         if (entries.length > 65535) throw new Error("Too many photos for one ZIP file");
         const parts = [], directory = [];
         let offset = 0, directorySize = 0;
+        const now = new Date();
+        const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | Math.floor(now.getSeconds() / 2);
+        const dosDate = (Math.max(1980, now.getFullYear()) - 1980) << 9 | ((now.getMonth() + 1) << 5) | now.getDate();
         for (const entry of entries) {
             const name = encoder.encode(entry.name);
             const bytes = entry.bytes;
@@ -33,6 +36,8 @@
             l.setUint32(0, 0x04034b50, true);
             l.setUint16(4, 20, true);
             l.setUint16(6, 0x0800, true); // UTF-8 filenames (including Khmer).
+            l.setUint16(10, dosTime, true);
+            l.setUint16(12, dosDate, true);
             l.setUint32(14, checksum, true);
             l.setUint32(18, bytes.length, true);
             l.setUint32(22, bytes.length, true);
@@ -45,6 +50,8 @@
             c.setUint16(4, 20, true);
             c.setUint16(6, 20, true);
             c.setUint16(8, 0x0800, true);
+            c.setUint16(12, dosTime, true);
+            c.setUint16(14, dosDate, true);
             c.setUint32(16, checksum, true);
             c.setUint32(20, bytes.length, true);
             c.setUint32(24, bytes.length, true);
@@ -176,8 +183,8 @@
         const merges = [1, 2, 3].map(row => `<mergeCell ref="A${row}:${lastColumn}${row}"/>`).join("");
         return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-  <dimension ref="A1:${lastColumn}${lastRow}"/>
   <sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>
+  <dimension ref="A1:${lastColumn}${lastRow}"/>
   <sheetViews><sheetView workbookViewId="0"><pane ySplit="5" topLeftCell="A6" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
   <sheetFormatPr defaultRowHeight="20"/>
   <cols>${columnXml}</cols>
