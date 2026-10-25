@@ -179,6 +179,7 @@
         .brand-text { min-width: 0; }
 
         .brand-title {
+            margin: 0;
             font-size: 1.05rem;
             font-weight: 700;
             color: var(--text);
@@ -347,6 +348,7 @@
 
         .theme-btn:hover { color: var(--amber); border-color: var(--amber); background: var(--amber-soft); }
         .theme-btn ion-icon { width: 19px; height: 19px; }
+        .theme-btn svg { width: 19px; height: 19px; }
         .theme-btn .icon-moon { display: none; }
         [data-theme="dark"] .theme-btn .icon-sun { display: none; }
         [data-theme="dark"] .theme-btn .icon-moon { display: block; }
@@ -890,6 +892,7 @@
             color: var(--muted);
             pointer-events: none;
         }
+        .search-wrap > svg { position:absolute; left:11px; top:50%; transform:translateY(-50%); width:17px; height:17px; color:var(--muted); pointer-events:none; }
 
         .search-wrap input { padding-left: 38px; }
 
@@ -919,10 +922,10 @@
 
         table {
             width: 100%;
-            min-width: 1580px;
             border-collapse: collapse;
             border: 1px solid var(--border);
         }
+        .table-wrap > table { min-width: 1580px; }
 
         thead th {
             padding: 8px 10px;
@@ -3817,9 +3820,153 @@
             .table-detail-toggle { display: none !important; }
         }
 
+        .mobile-roster-summary, .mobile-quick-filters, .mobile-header-clock { display:none; }
+
+        @media screen and (min-width: 601px) and (max-width: 860px) {
+            .topbar .brand-mark { position:relative; }
+            .topbar .brand-mark .mobile-menu-btn { position:absolute; inset:0; display:block; width:100%; height:100%; padding:0; border:0; background:transparent; color:transparent; font-size:0; cursor:pointer; }
+            .topbar .brand-mark .mobile-menu-btn:focus-visible { outline:2px solid #f5c53f; outline-offset:3px; }
+        }
+
+        /* Phone roster follows the supplied compact administration layout. */
+        @media screen and (max-width: 600px) {
+            body { background:#f5f7fb; }
+            .ambient-grid, body::before, body::after { display:none !important; }
+            .app { padding:0 16px calc(90px + env(safe-area-inset-bottom)); }
+            .topbar {
+                position:relative; z-index:1; display:flex; align-items:flex-start; min-height:124px; height:124px;
+                margin:0 -16px; padding:15px 16px; gap:8px; border:0; border-bottom:2px solid #d7a824;
+                border-radius:0; background:#102849; box-shadow:none;
+            }
+            .topbar .brand { min-width:0; align-items:center; gap:10px; }
+            .topbar .brand-mark {
+                position:relative; flex:0 0 44px; width:44px; height:44px; padding:0;
+                border:1.5px solid #e4b82d; border-radius:50%; background:#fff; box-shadow:none; overflow:visible;
+            }
+            .topbar .brand-mark img { display:block; width:100%; height:100%; border-radius:50%; object-fit:contain; }
+            .topbar .brand-mark .mobile-menu-btn { position:absolute; inset:0; display:block; width:100%; height:100%; min-height:0; padding:0; border:0; border-radius:50%; background:transparent; color:transparent; font-size:0; box-shadow:none; cursor:pointer; }
+            .topbar .brand-mark .mobile-menu-btn:focus-visible { outline:2px solid #f5c53f; outline-offset:3px; }
+            .topbar .brand-title { max-width:210px; font-size:.92rem; line-height:1.35; white-space:nowrap; }
+            .topbar .status-pill {
+                position:absolute; left:70px; top:43px; display:flex; justify-content:flex-start;
+                width:auto; min-width:0; max-width:calc(100vw - 146px); height:20px; padding:0; gap:5px;
+                border:0; background:transparent; color:#c6d6ed; font-size:.68rem; font-weight:500; box-shadow:none;
+            }
+            .topbar #connection-text {
+                position:static; display:inline; width:auto; height:auto; margin:0; padding:0;
+                overflow:hidden; clip:auto; text-overflow:ellipsis; white-space:nowrap;
+            }
+            .topbar .status-dot { flex:0 0 8px; width:8px; height:8px; }
+            .mobile-header-clock { display:inline; white-space:nowrap; }
+            .mobile-header-clock::before { content:"· "; }
+            .topbar .theme-btn {
+                width:37px; height:37px; flex:0 0 37px; border:1px solid rgba(255,255,255,.16);
+                border-radius:13px; background:rgba(255,255,255,.08); color:#fff;
+            }
+            .topbar .theme-btn { margin-left:auto; order:2; }
+            .mobile-roster-summary {
+                position:relative; z-index:2; display:block; margin:-45px 0 14px; padding:16px 18px;
+                border:1px solid #e5eaf1; border-radius:21px; background:#fff;
+                box-shadow:0 14px 30px rgba(20,43,76,.11);
+            }
+            body.mobile-form-view .mobile-roster-summary,
+            body.class-browser-view .mobile-roster-summary,
+            body.report-page .mobile-roster-summary { display:none; }
+            .mobile-roster-summary-top { display:flex; align-items:flex-end; justify-content:space-between; gap:8px; }
+            .mobile-roster-summary-top > div { display:grid; gap:1px; }
+            .mobile-roster-caption { color:#73839a; font-size:.75rem; font-weight:700; }
+            .mobile-roster-summary-top strong { color:#102849; font:800 2.05rem/1.05 system-ui,sans-serif; letter-spacing:-.04em; }
+            .mobile-roster-status { display:inline-flex; align-items:center; gap:5px; padding:5px 10px; border-radius:999px; background:#eff4fb; color:#16345b; font-size:.7rem; font-weight:700; white-space:nowrap; }
+            .mobile-roster-status svg { width:15px; height:15px; flex:0 0 15px; }
+            .mobile-gender-progress { display:flex; height:10px; margin:16px 0 13px; overflow:hidden; border-radius:999px; background:#e7edf6; }
+            .mobile-gender-progress-male { width:var(--male-share,0%); background:#2864ed; }
+            .mobile-gender-progress-female { width:var(--female-share,0%); background:#922ae8; }
+            .mobile-gender-stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+            .mobile-gender-stat { position:relative; display:grid; gap:1px; min-height:58px; padding:10px 10px 9px 31px; border-radius:12px; }
+            .mobile-gender-stat::before { content:""; position:absolute; left:12px; top:24px; width:9px; height:9px; border-radius:3px; }
+            .mobile-gender-stat.male { background:#edf2ff; color:#2457d7; }
+            .mobile-gender-stat.female { background:#f5eefe; color:#7c20d8; }
+            .mobile-gender-stat.male::before { background:#2864ed; }
+            .mobile-gender-stat.female::before { background:#922ae8; }
+            .mobile-gender-stat span { color:#6b7990; font-size:.68rem; }
+            .mobile-gender-stat strong { font:800 1rem/1.1 system-ui,sans-serif; }
+            .metrics { display:none !important; }
+            .mobile-tabs {
+                position:fixed; z-index:28; top:auto; bottom:0; left:0; right:0;
+                display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0;
+                min-height:70px; margin:0; padding:5px 8px calc(5px + env(safe-area-inset-bottom));
+                border:0; border-top:1px solid #e0e7f1; border-radius:0; background:#fff;
+                box-shadow:0 -5px 18px rgba(25,49,80,.06);
+            }
+            .mobile-tab-btn { min-width:0; min-height:58px; padding:3px 0; border:0; border-radius:0; background:transparent; color:#718098; font-size:.7rem; font-weight:700; }
+            .mobile-tab-btn.active { border:0; background:transparent; color:#102849; box-shadow:none; }
+            .mobile-tab-btn svg { box-sizing:content-box; width:20px; height:20px; padding:4px 17px; border-radius:999px; }
+            .mobile-tab-btn.active svg { background:#e3edff; }
+            .list-panel { margin:0; border:0; border-radius:0; background:transparent; box-shadow:none; overflow:visible; }
+            .list-panel > .panel-header { min-height:0; padding:0 0 12px; border:0; background:transparent; box-shadow:none; }
+            .list-panel > .panel-header > div { display:flex; align-items:baseline; justify-content:space-between; width:100%; gap:8px; }
+            .list-panel .panel-title { color:#102849; font-size:1.05rem; font-weight:800; }
+            .list-panel .panel-sub { margin:0; color:#7e8ba2; font-size:.7rem; text-align:right; }
+            .toolbar { position:relative; top:auto; z-index:1; display:grid; grid-template-columns:minmax(0,1fr); gap:10px; margin:0; padding:0; border:0; background:transparent; box-shadow:none; }
+            .search-wrap { grid-column:1; width:100%; }
+            .search-wrap input { width:100%; height:48px; padding:0 50px 0 43px; border:1px solid #d7e0ec; border-radius:13px; background:#fff; color:#102849; box-shadow:none; }
+            .search-wrap > svg { left:16px; width:19px; height:19px; }
+            .filters-toggle-btn { position:absolute; top:6px; right:6px; width:36px; height:36px; min-height:36px; border:0; border-radius:9px; background:transparent; color:#667993; }
+            .filters-toggle-btn .filter-count { top:-3px; right:-3px; }
+            .clear-filters-btn { display:none !important; }
+            .mobile-quick-filters { display:flex; grid-column:1; gap:7px; width:100%; overflow-x:auto; scrollbar-width:none; }
+            .mobile-quick-filters::-webkit-scrollbar { display:none; }
+            .mobile-quick-filters button { flex:0 0 auto; min-height:40px; padding:7px 14px; border:1px solid #dbe3ee; border-radius:999px; background:#fff; color:#172f52; font-family:inherit; font-size:.78rem; font-weight:700; white-space:nowrap; cursor:pointer; }
+            .mobile-quick-filters button[aria-pressed="true"] { border-color:#102849; background:#102849; color:#fff; }
+            .toolbar-filters-pane { grid-column:1; margin:0; border-radius:12px; }
+            .cards-list { display:flex; flex-direction:column; gap:10px; margin:15px 0 0; padding:0 0 16px; }
+            .student-card, .student-card.student-data-partial, .student-card.student-data-empty {
+                margin:0; padding:0; overflow:hidden; border:1px solid #dfe6ef; border-radius:16px;
+                background:#fff; box-shadow:none;
+            }
+            .mobile-card-header { display:grid; grid-template-columns:44px minmax(0,1fr) auto; align-items:center; gap:12px; min-height:85px; padding:12px 14px; }
+            .mobile-card-toggle { display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between; align-self:stretch; gap:5px; min-width:48px; padding:1px 0; border:0; background:transparent; color:#102849; cursor:pointer; }
+            .mobile-card-toggle:focus-visible { outline:2px solid #2864ed; outline-offset:-3px; }
+            .mobile-card-identity { display:grid; gap:2px; min-width:0; padding:0; border:0; background:transparent; color:inherit; font-family:inherit; text-align:left; cursor:pointer; }
+            .mobile-card-identity:focus-visible { outline:2px solid #2864ed; outline-offset:2px; border-radius:4px; }
+            .mobile-card-avatar { position:relative; display:grid; place-items:center; flex:0 0 44px; width:44px; height:44px; overflow:hidden; border-radius:50%; font-size:1.2rem; font-weight:800; }
+            .mobile-card-avatar img { position:absolute; inset:0; width:100%; height:100%; border-radius:inherit; object-fit:cover; object-position:center 32%; cursor:zoom-in; }
+            .mobile-card-avatar.is-male { background:#e5edff; color:#275be0; }
+            .mobile-card-avatar.is-female { background:#f4e9ff; color:#8523d6; }
+            .mobile-card-identity .mobile-student-title { display:flex; align-items:center; gap:4px; min-width:0; flex-wrap:wrap; }
+            .mobile-card-identity .student-index { color:#102849; font-size:.89rem; }
+            .mobile-card-identity .student-name { color:#102849; font-size:.89rem; font-weight:800; line-height:1.35; white-space:normal; overflow-wrap:anywhere; }
+            .mobile-card-identity .badge { height:20px; padding:0 7px; border:0; border-radius:999px; font-size:.68rem; }
+            .mobile-card-identity .student-latin-name { display:block; margin:0; color:#74839a; font:500 .69rem/1.3 system-ui,sans-serif; letter-spacing:.03em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            .mobile-card-identity .student-meta { display:block; margin:0; color:#667791; font-size:.7rem; line-height:1.3; white-space:normal; }
+            .mobile-card-toggle .data-status-badge { min-height:20px; padding:2px 7px; border:0; background:#fff0d5; color:#a15b0c; font-size:.65rem; }
+            .mobile-card-toggle .data-status-badge svg { width:12px; height:12px; flex:0 0 12px; }
+            .mobile-card-toggle .data-status-badge.status-complete { visibility:hidden; }
+            .mobile-card-chevron { display:block; width:16px; height:16px; color:#64748b; transition:transform .18s ease; }
+            .mobile-card-chevron svg { display:block; width:16px; height:16px; }
+            .student-card.is-expanded .mobile-card-chevron { transform:rotate(180deg); }
+            .mobile-card-details[hidden] { display:none !important; }
+            .mobile-card-details { padding:10px 14px 12px; border-top:1px solid #e9edf4; }
+            .mobile-quick-actions { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+            .mobile-quick-actions button { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-width:0; min-height:55px; padding:5px 2px; border:1px solid #dce5f0; border-radius:11px; background:#f8faff; color:#17345c; font-family:inherit; font-size:.68rem; font-weight:700; line-height:1.2; cursor:pointer; }
+            .mobile-quick-actions button svg { width:19px; height:19px; }
+            .mobile-quick-actions .delete-btn { border-color:#facaca; background:#fff5f5; color:#ce2929; }
+            .list-panel .pager { padding:10px 0 12px; border:0; background:transparent; box-shadow:none; }
+            body.mobile-form-view:not(.mobile-editing) .form-panel .form-save-bar { position:fixed; left:0; right:0; z-index:35; bottom:calc(70px + env(safe-area-inset-bottom)); padding-bottom:9px; }
+            body.mobile-form-view:not(.mobile-editing) .form-panel .form-body { padding-bottom:calc(170px + env(safe-area-inset-bottom)); }
+            html[data-theme="dark"] body { background:#101d30; }
+            html[data-theme="dark"] .mobile-roster-summary, html[data-theme="dark"] .student-card,
+            html[data-theme="dark"] .student-card.student-data-partial, html[data-theme="dark"] .student-card.student-data-empty,
+            html[data-theme="dark"] .mobile-tabs, html[data-theme="dark"] .search-wrap input,
+            html[data-theme="dark"] .mobile-quick-filters button:not([aria-pressed="true"]) { background:#1d2c42; border-color:#344861; color:#f0f5fb; }
+            html[data-theme="dark"] .mobile-roster-summary-top strong, html[data-theme="dark"] .list-panel .panel-title,
+            html[data-theme="dark"] .mobile-card-identity .student-name, html[data-theme="dark"] .mobile-card-identity .student-index { color:#f0f5fb; }
+        }
+
         /* Keep the full 23-field record available, but start with the nine fields
            staff use to identify a student. Printed reports use a separate layout. */
         @media screen and (min-width: 861px) {
+            #students-table.compact-view { min-width: 960px; }
             #students-table.compact-view thead tr:nth-child(2),
             #students-table.compact-view thead tr:first-child > th:nth-child(7),
             #students-table.compact-view thead tr:first-child > th:nth-child(8),
@@ -3875,10 +4022,11 @@
         <div class="brand">
             <div class="brand-mark">
                 <img src="./assets/school-emblem.png" alt="និមិត្តសញ្ញាវិទ្យាល័យសុខអានព្រៃមេលង">
+                <button id="mobile-menu-btn" class="mobile-menu-btn" type="button" title="ម៉ឺនុយកម្មវិធី" aria-label="បើកម៉ឺនុយសកម្មភាព" aria-controls="mobile-actions-sheet" aria-expanded="false">ស</button>
             </div>
             <div class="brand-text">
                 <div class="brand-kicker">រដ្ឋបាលសាលារៀន</div>
-                <div class="brand-title">វិទ្យាល័យសុខអានព្រៃមេលង</div>
+                <h1 class="brand-title">វិទ្យាល័យសុខអានព្រៃមេលង</h1>
                 <div class="brand-sub">ប្រព័ន្ធគ្រប់គ្រងការចុះឈ្មោះ និងបញ្ជីសិស្ស</div>
             </div>
         </div>
@@ -3886,13 +4034,11 @@
         <div id="connection-status" class="status-pill" role="status" aria-live="polite">
             <span class="status-dot"></span>
             <span id="connection-text">កំពុងភ្ជាប់...</span>
+            <span id="mobile-header-clock" class="mobile-header-clock" aria-hidden="true"></span>
         </div>
         <button id="theme-toggle" class="theme-btn" type="button" aria-label="Toggle dark mode">
-            <ion-icon class="icon-sun" name="sunny-outline"></ion-icon>
-            <ion-icon class="icon-moon" name="moon-outline"></ion-icon>
-        </button>
-        <button id="mobile-menu-btn" class="btn btn-ghost mobile-menu-btn" type="button" title="សកម្មភាពបន្ថែម" aria-label="បើកម៉ឺនុយសកម្មភាព" aria-controls="mobile-actions-sheet" aria-expanded="false">
-            <ion-icon name="ellipsis-vertical-outline" aria-hidden="true"></ion-icon>
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M20.8 14.3A9 9 0 0 1 9.7 3.2 9 9 0 1 0 20.8 14.3Z"/></svg>
         </button>
     </header>
 
@@ -3954,12 +4100,17 @@
 
     </nav>
 
-    <!-- ======================== ADMINISTRATION OVERVIEW ======================== -->
-    <section class="admin-overview" aria-labelledby="admin-overview-title">
-        <div class="admin-overview-copy">
-            <div class="admin-eyebrow"><span></span> ការិយាល័យរដ្ឋបាលសិស្ស</div>
-            <h1 id="admin-overview-title">ផ្ទាំងគ្រប់គ្រងព័ត៌មានសិស្ស</h1>
-            <p>ចុះឈ្មោះ កែសម្រួល ស្វែងរក និងរៀបចំបញ្ជីសិស្សនៅកន្លែងតែមួយ</p>
+    <section class="mobile-roster-summary" aria-label="ស្ថិតិសិស្សសង្ខេប">
+        <div class="mobile-roster-summary-top">
+            <div><span class="mobile-roster-caption">សិស្សសរុប</span><strong id="mobile-total-students">--</strong></div>
+            <span class="mobile-roster-status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M2.8 19v-1.2a6.2 6.2 0 0 1 12.4 0V19M16.7 5.3a3 3 0 0 1 0 5.4M17.5 13a5.7 5.7 0 0 1 3.7 5.3V19"/></svg> សិស្សទាំងអស់</span>
+        </div>
+        <div id="mobile-gender-progress" class="mobile-gender-progress" role="img" aria-label="សមាមាត្រសិស្សប្រុស និងស្រី">
+            <span class="mobile-gender-progress-male"></span><span class="mobile-gender-progress-female"></span>
+        </div>
+        <div class="mobile-gender-stats">
+            <div class="mobile-gender-stat male"><span>ប្រុស · <span id="mobile-male-percent">0%</span></span><strong id="mobile-male-students">--</strong></div>
+            <div class="mobile-gender-stat female"><span>ស្រី · <span id="mobile-female-percent">0%</span></span><strong id="mobile-female-students">--</strong></div>
         </div>
     </section>
 
@@ -4053,19 +4204,19 @@
     <!-- ======================== MOBILE TABS ======================== -->
     <div class="mobile-tabs" aria-label="Mobile view tabs">
         <button id="tab-list-btn" class="mobile-tab-btn active" type="button">
-            <ion-icon name="list-outline" aria-hidden="true"></ion-icon>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
             <span>បញ្ជីសិស្ស</span>
         </button>
         <button id="tab-form-btn" class="mobile-tab-btn" type="button">
-            <ion-icon name="person-add-outline" aria-hidden="true"></ion-icon>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="8" r="3.2"/><path d="M3.5 20v-1.3a6.5 6.5 0 0 1 13 0V20M19 6v7m-3.5-3.5h7"/></svg>
             <span>ចុះឈ្មោះថ្មី</span>
         </button>
         <button id="tab-classes-btn" class="mobile-tab-btn" type="button">
-            <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="m2 9 10-5 10 5-10 5L2 9Z"/><path d="M6 11v5c3.5 3 8.5 3 12 0v-5M22 9v7"/></svg>
             <span>តាមថ្នាក់</span>
         </button>
         <button id="tab-report-btn" class="mobile-tab-btn" type="button">
-            <ion-icon name="bar-chart-outline" aria-hidden="true"></ion-icon>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3 21h18M6 18v-7m6 7V4m6 14v-10"/></svg>
             <span>របាយការណ៍</span>
         </button>
     </div>
@@ -4435,8 +4586,14 @@
             <!-- Toolbar -->
             <div class="toolbar">
                 <div class="search-wrap">
-                    <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m16 16 4.7 4.7"/></svg>
                     <input id="search-input" type="search" placeholder="ស្វែងរកឈ្មោះ លេខពាក្យ លេខសិស្ស ទូរស័ព្ទ..." aria-label="ស្វែងរកតាមឈ្មោះ លេខពាក្យ លេខសិស្ស ឬទូរស័ព្ទ">
+                </div>
+                <div id="mobile-quick-filters" class="mobile-quick-filters" role="group" aria-label="តម្រងសិស្សរហ័ស">
+                    <button type="button" data-quick-filter="all" aria-pressed="true">ទាំងអស់</button>
+                    <button type="button" data-quick-filter="male" aria-pressed="false">ប្រុស</button>
+                    <button type="button" data-quick-filter="female" aria-pressed="false">ស្រី</button>
+                    <button type="button" data-quick-filter="missing" aria-pressed="false">ខ្វះរូបថត</button>
                 </div>
                 <button id="toggle-filters-btn" class="filters-toggle-btn" type="button" title="តម្រង" aria-label="បង្ហាញតម្រង" aria-controls="toolbar-filters" aria-expanded="false">
                     <ion-icon name="funnel-outline" aria-hidden="true"></ion-icon>
@@ -5022,6 +5179,7 @@
     let lastGoogleSettingsRevision = localStorage.getItem(GOOGLE_SETTINGS_REVISION_STORAGE_KEY) || "";
     let appSettings = loadAppSettingsFromLocal();
     let storageReturnToSettings = false;
+    let settingsDraftSnapshot = "";
     let googleLatinNameCapabilityUrl = "";
     let googleLatinNameCapabilityCheck = null;
     let googleLatinNameCapabilityCheckUrl = "";
@@ -5393,7 +5551,7 @@
             try {
                 const inClassView = document.body.classList.contains("class-browser-view");
                 const container = inClassView ? els.classBrowserContent : (isMobileView() ? els.studentCards : els.studentList);
-                const viewportIds = [...container.querySelectorAll(".view-photo-btn, .view-photo-img")]
+                const viewportIds = [...container.querySelectorAll(".view-photo-btn, .view-photo-img, .mobile-card-avatar[data-id]")]
                     .filter(element => {
                         const box = element.getBoundingClientRect();
                         return box.width > 0 && box.height > 0 && box.top < innerHeight + 400 && box.bottom > -200;
@@ -5567,10 +5725,17 @@
         actionsToggleBtn: document.getElementById("actions-toggle-btn"),
         status: document.getElementById("connection-status"),
         statusText: document.getElementById("connection-text"),
+        mobileHeaderClock: document.getElementById("mobile-header-clock"),
         totalStudents: document.getElementById("total-students"),
         maleStudents: document.getElementById("male-students"),
         femaleStudents: document.getElementById("female-students"),
         lastSync: document.getElementById("last-sync"),
+        mobileTotalStudents: document.getElementById("mobile-total-students"),
+        mobileMaleStudents: document.getElementById("mobile-male-students"),
+        mobileFemaleStudents: document.getElementById("mobile-female-students"),
+        mobileMalePercent: document.getElementById("mobile-male-percent"),
+        mobileFemalePercent: document.getElementById("mobile-female-percent"),
+        mobileGenderProgress: document.getElementById("mobile-gender-progress"),
         reportView: document.getElementById("report-view"),
         reportBackBtn: document.getElementById("report-back-btn"),
         reportModeClassBtn: document.getElementById("report-mode-class"),
@@ -5603,6 +5768,7 @@
         clearFiltersBtn: document.getElementById("clear-filters-btn"),
         activeFilterCount: document.getElementById("active-filter-count"),
         searchInput: document.getElementById("search-input"),
+        mobileQuickFilters: document.getElementById("mobile-quick-filters"),
         genderFilter: document.getElementById("gender-filter"),
         classFilter: document.getElementById("class-filter"),
         schoolFilter: document.getElementById("school-filter"),
@@ -5761,6 +5927,7 @@
     let visibleStudents = [];
     let selectedClassName = null;
     let totalStudentsCount = 0;
+    let expandedMobileCardId = null;
     let pageSize = 25; // Keep the initial DOM small for smooth table and mobile rendering.
     let tableDetailsExpanded = false; // Presentation only; no student fields are changed.
     let currentPageIndex = 0;
@@ -6251,6 +6418,19 @@
         });
     }
 
+    function currentSettingsDraftSnapshot() {
+        return JSON.stringify({
+            issueDate: els.cardIssueDateInput.value,
+            principalName: els.principalNameInput.value,
+            principalPhone: els.principalPhoneInput.value,
+            cardLunarDate: els.cardLunarDateInput.value,
+            academicYearStart: els.academicYearStartInput.value,
+            ictPhone: els.ictPhoneInput.value,
+            teachers: [...els.teacherSettingsList.querySelectorAll("input[data-class-name]")]
+                .map(input => [input.dataset.className, input.value])
+        });
+    }
+
     function openAppSettings() {
         els.cardIssueDateInput.value = appSettings.issueDate;
         els.principalNameInput.value = appSettings.principalName;
@@ -6262,14 +6442,18 @@
         selectSettingsTab("card");
         els.teacherSettingsSearch.value = "";
         renderTeacherSettings();
+        settingsDraftSnapshot = currentSettingsDraftSnapshot();
         els.appSettingsModal.classList.add("is-open");
         els.appSettingsModal.querySelector(".modal-body")?.scrollTo(0, 0);
         document.getElementById("app-settings-title")?.focus({ preventScroll:true });
     }
 
-    function closeAppSettings() {
+    function closeAppSettings(force=false) {
+        if (!force && currentSettingsDraftSnapshot() !== settingsDraftSnapshot &&
+            !window.confirm("ការកំណត់មិនទាន់រក្សាទុក។ តើចង់បោះបង់ការផ្លាស់ប្តូរទេ?")) return false;
         els.appSettingsModal.classList.remove("is-open");
         (isMobileView() ? els.mobileMenuBtn : els.appSettingsBtn)?.focus({ preventScroll:true });
+        return true;
     }
 
     async function syncAppSettingsToGoogleSheet() {
@@ -6313,7 +6497,7 @@
         storeAppSettings();
         updateStudentCodeHint();
         els.saveAppSettingsBtn.disabled = true;
-        closeAppSettings();
+        closeAppSettings(true);
         showToast("បានរក្សាទុក Settings ក្នុងឧបករណ៍នេះ");
         try {
             await syncAppSettingsToGoogleSheet();
@@ -6329,6 +6513,7 @@
     function setStatus(text, state = "") {
         els.status.className = `status-pill ${state}`.trim();
         els.statusText.textContent = text;
+        if (els.mobileHeaderClock) els.mobileHeaderClock.textContent = formatTime();
     }
 
     // ===================== CLOUD STORAGE =====================
@@ -9261,10 +9446,23 @@
     // ===================== STATS =====================
     async function updateStats() {
         totalStudentsCount = allStudents.length;
+        const maleCount = allStudents.filter(s => s.gender === "ប្រុស").length;
+        const femaleCount = allStudents.filter(s => s.gender === "ស្រី").length;
+        const knownGenderCount = maleCount + femaleCount;
+        const malePercent = knownGenderCount ? Math.round(maleCount / knownGenderCount * 100) : 0;
         els.totalStudents.textContent = totalStudentsCount;
-        els.maleStudents.textContent = allStudents.filter(s => s.gender==="ប្រុស").length;
-        els.femaleStudents.textContent = allStudents.filter(s => s.gender==="ស្រី").length;
+        els.maleStudents.textContent = maleCount;
+        els.femaleStudents.textContent = femaleCount;
         els.lastSync.textContent = formatTime();
+        els.mobileTotalStudents.textContent = totalStudentsCount.toLocaleString("en-US");
+        els.mobileMaleStudents.textContent = maleCount.toLocaleString("en-US");
+        els.mobileFemaleStudents.textContent = femaleCount.toLocaleString("en-US");
+        els.mobileMalePercent.textContent = `${malePercent}%`;
+        els.mobileFemalePercent.textContent = `${knownGenderCount ? 100 - malePercent : 0}%`;
+        els.mobileGenderProgress.style.setProperty("--male-share", `${malePercent}%`);
+        els.mobileGenderProgress.style.setProperty("--female-share", `${knownGenderCount ? 100 - malePercent : 0}%`);
+        els.mobileGenderProgress.setAttribute("aria-label", `សិស្សប្រុស ${maleCount} នាក់ និងសិស្សស្រី ${femaleCount} នាក់`);
+        if (els.mobileHeaderClock) els.mobileHeaderClock.textContent = formatTime();
         els.deleteAllBtn.disabled = totalStudentsCount === 0;
         setCloudControlsLoading(googleSheetLoadsInFlight > 0);
         renderClassReport();
@@ -9680,6 +9878,23 @@
         els.clearFiltersBtn.hidden = !active;
         const expanded = els.toggleFiltersBtn.getAttribute("aria-expanded") === "true";
         els.toggleFiltersBtn.setAttribute("aria-label", `${expanded ? "លាក់" : "បង្ហាញ"}តម្រង${selectedCount ? ` (${selectedCount} កំពុងប្រើ)` : ""}`);
+        const quickMode = els.photoFilter.value === "missing" ? "missing"
+            : els.genderFilter.value === "ប្រុស" ? "male"
+            : els.genderFilter.value === "ស្រី" ? "female" : "all";
+        els.mobileQuickFilters?.querySelectorAll("[data-quick-filter]").forEach(button => {
+            button.setAttribute("aria-pressed", String(button.dataset.quickFilter === quickMode));
+        });
+    }
+
+    function applyMobileQuickFilter(mode) {
+        if (!["all", "male", "female", "missing"].includes(mode)) return;
+        els.genderFilter.value = mode === "male" ? "ប្រុស" : mode === "female" ? "ស្រី" : "";
+        els.photoFilter.value = mode === "missing" ? "missing" : "";
+        els.classFilter.value = "";
+        els.schoolFilter.value = "";
+        resetPagination();
+        if (mode === "missing") void refreshMissingPhotoCodes({ force:true });
+        else applyFilters();
     }
 
     function clearAllListFilters() {
@@ -9794,6 +10009,18 @@
     function genderBadge(gender) {
         const cls = gender==="ស្រី" ? "badge-violet" : "badge-blue";
         return `<span class="badge ${cls}">${esc(gender)}</span>`;
+    }
+
+    function mobileActionIcon(name) {
+        const paths = {
+            photo:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 18 5-5 3 3 3-4 5 6"/>',
+            print:'<path d="M6 8V3h12v5M6 17H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6zM17 11h1"/>',
+            card:'<rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M4.5 17c.7-2 6.3-2 7 0M14 9h5m-5 4h5"/>',
+            delete:'<path d="M3 6h18M8 6V4h8v2m3 0-1 15H6L5 6m5 4v7m4-7v7"/>',
+            warning:'<path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5m0 3h.01"/>',
+            chevron:'<path d="m5 9 7 7 7-7"/>'
+        };
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || ""}</svg>`;
     }
 
     function skeletonRows(n) {
@@ -9916,62 +10143,41 @@
                 </tr>${rows}`;
         }).join("");
 
-        let cardNum = 0;
-        const cardGroups = groupedByClass(visibleStudents).map(([cls, students]) => {
-            const cards = students.map(s => {
-                cardNum++;
-                const status = getStudentDataStatus(s);
-                const photoSrc = safePhotoSrc(s.photo);
-                const miniInfo = [
-                    s.className ? `ថ្នាក់ ${s.className}` : "មិនទាន់មានថ្នាក់",
-                    s.contact ? `ទូរស័ព្ទ ${s.contact}` : "ខ្វះលេខទូរស័ព្ទ",
-                    s.applicationNumber ? `លេខពាក្យ ${s.applicationNumber}` : ""
-                ].filter(Boolean).join(" · ");
-                return `
-                    <article class="student-card ${esc(status.rowClass)}" title="${esc(status.title)}">
-                        <div class="mobile-student-row">
-                            <button class="student-name-button mobile-student-main edit-btn" type="button" data-id="${esc(s.id)}" aria-label="កែព័ត៌មាន ${esc(studentFullName(s))}">
-                                <span class="mobile-student-title" style="display: flex; align-items: center;">
-                                    ${photoSrc ? `<img src="${esc(photoSrc)}" class="student-photo-thumbnail view-photo-img" style="margin-right: 8px; width: 26px; height: 26px;" data-id="${esc(s.id)}" alt="មើលរូបថត ${esc(studentFullName(s))}" loading="lazy" decoding="async">` : ''}
-                                    <span class="student-index">${cardNum}.</span>
-                                    <span class="student-name">${esc(studentFullName(s))}</span>
-                                </span>
-                                <span class="student-meta">${esc(studentVisibleId(s)||"–")} · ${esc(formatDate(s.dob)||"–")}</span>
-                                ${s.studentLatinName ? `<span lang="en" class="student-latin-name">${esc(s.studentLatinName)}</span>` : ""}
-                                <span class="mobile-student-mini">${esc(miniInfo)}</span>
-                            </button>
-                            <div class="mobile-student-side">
-                                ${dataStatusBadge(status)}
-                                ${genderBadge(s.gender||"")}
-                                <div class="mobile-quick-actions" aria-label="សកម្មភាពសិស្ស">
-                                    <button class="btn btn-icon view-photo-btn" type="button" title="មើលរូបថត" data-id="${esc(s.id)}">
-                                        <ion-icon name="image-outline" aria-hidden="true"></ion-icon>
-                                    </button>
-                                    <button class="btn btn-icon print-student-btn" type="button" title="Print" data-id="${esc(s.id)}">
-                                        <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
-                                    </button>
-                                    <button class="btn btn-icon print-student-card-btn" type="button" title="កាតសិស្ស" data-id="${esc(s.id)}">
-                                        <ion-icon name="id-card-outline" aria-hidden="true"></ion-icon>
-                                    </button>
-                                    <button class="btn btn-icon delete-btn" type="button" title="លុប" data-id="${esc(s.id)}" style="color:var(--red)">
-                                        <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <button class="btn btn-ghost transfer-class-btn" type="button" data-id="${esc(s.id)}" aria-label="ប្ដូរថ្នាក់ ${esc(studentFullName(s))}"><ion-icon name="swap-horizontal-outline" aria-hidden="true"></ion-icon> ប្ដូរថ្នាក់</button>
-                    </article>`;
-            }).join("");
+        if (expandedMobileCardId === null || (expandedMobileCardId && !visibleStudents.some(s => s.id === expandedMobileCardId))) {
+            expandedMobileCardId = visibleStudents[0]?.id || "";
+        }
+        const firstVisibleNumber = isShowAll() ? 0 : currentPageIndex * pageSize;
+        els.studentCards.innerHTML = visibleStudents.map((s, index) => {
+            const status = getStudentDataStatus(s);
+            const expanded = expandedMobileCardId === s.id;
+            const actionsId = `mobile-card-actions-${index}`;
+            const name = studentFullName(s) || "មិនមានឈ្មោះ";
+            const initial = Array.from(name.trim())[0] || "ស";
+            const photoSrc = safePhotoSrc(s.photo);
             return `
-                <div>
-                    <div class="class-card-header">
-                        <span>ថ្នាក់ ${esc(cls)}</span>
-                        <span>${students.length} នាក់</span>
+                <article class="student-card ${esc(status.rowClass)}${expanded ? " is-expanded" : ""}" data-id="${esc(s.id)}">
+                    <div class="mobile-card-header">
+                        <span class="mobile-card-avatar ${s.gender === "ស្រី" ? "is-female" : "is-male"}" data-id="${esc(s.id)}" aria-hidden="true">${esc(initial)}${photoSrc ? `<img src="${esc(photoSrc)}" class="view-photo-img" data-id="${esc(s.id)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ""}</span>
+                        <button class="mobile-card-identity edit-btn" type="button" data-id="${esc(s.id)}" aria-label="កែព័ត៌មាន ${esc(name)}">
+                            <span class="mobile-student-title"><span class="student-index">${firstVisibleNumber + index + 1}.</span><span class="student-name">${esc(name)}</span>${genderBadge(s.gender||"")}</span>
+                            ${s.studentLatinName ? `<span lang="en" class="student-latin-name">${esc(s.studentLatinName)}</span>` : ""}
+                            <span class="student-meta">${esc(studentVisibleId(s)||"–")} · ${esc(formatDate(s.dob)||"–")}</span>
+                        </button>
+                        <button class="mobile-card-toggle" type="button" data-id="${esc(s.id)}" aria-expanded="${expanded}" aria-controls="${actionsId}" aria-label="${expanded ? "លាក់" : "បង្ហាញ"}សកម្មភាពសម្រាប់ ${esc(name)}">
+                            <span class="data-status-badge status-${esc(status.level)}" title="${esc(status.title)}">${mobileActionIcon("warning")}<span>${esc(status.label)}</span></span>
+                            <span class="mobile-card-chevron">${mobileActionIcon("chevron")}</span>
+                        </button>
                     </div>
-                    ${cards}
-                </div>`;
-        });
-        els.studentCards.innerHTML = cardGroups.join("");
+                    <div id="${actionsId}" class="mobile-card-details" ${expanded ? "" : "hidden"}>
+                        <div class="mobile-quick-actions" aria-label="សកម្មភាពសិស្ស ${esc(name)}">
+                            <button class="view-photo-btn" type="button" data-id="${esc(s.id)}">${mobileActionIcon("photo")}<span>រូបថត</span></button>
+                            <button class="print-student-btn" type="button" data-id="${esc(s.id)}">${mobileActionIcon("print")}<span>បោះពុម្ព</span></button>
+                            <button class="print-student-card-btn" type="button" data-id="${esc(s.id)}">${mobileActionIcon("card")}<span>កាតសិស្ស</span></button>
+                            <button class="delete-btn" type="button" data-id="${esc(s.id)}">${mobileActionIcon("delete")}<span>លុប</span></button>
+                        </div>
+                    </div>
+                </article>`;
+        }).join("");
         hydrateVisibleStudentPhotos();
     }
 
@@ -10951,12 +11157,29 @@
     }
 
     // ===================== INIT =====================
+    function toggleMobileStudentCard(id) {
+        if (!id) return;
+        expandedMobileCardId = expandedMobileCardId === id ? "" : id;
+        els.studentCards.querySelectorAll(".student-card[data-id]").forEach(card => {
+            const expanded = card.dataset.id === expandedMobileCardId;
+            const toggle = card.querySelector(".mobile-card-toggle");
+            const details = card.querySelector(".mobile-card-details");
+            card.classList.toggle("is-expanded", expanded);
+            if (toggle) {
+                toggle.setAttribute("aria-expanded", String(expanded));
+                toggle.setAttribute("aria-label", `${expanded ? "លាក់" : "បង្ហាញ"}សកម្មភាពសម្រាប់ ${card.querySelector(".student-name")?.textContent || "សិស្ស"}`);
+            }
+            if (details) details.hidden = !expanded;
+        });
+    }
+
     function handleStudentAction(e){
         const photo = e.target.closest(".view-photo-img");
         if (photo?.dataset.id) { openStudentPhotoViewer(photo.dataset.id); return; }
         const btn=e.target.closest("button");if(!btn) return;
         if(btn.classList.contains("clear-empty-filters-btn")) { clearAllListFilters(); return; }
         const id=btn.dataset.id;
+        if(btn.classList.contains("mobile-card-toggle")) { toggleMobileStudentCard(id); return; }
         if(btn.classList.contains("view-photo-btn")) { openStudentPhotoViewer(id); return; }
         if(btn.classList.contains("print-student-btn")) printStudent(id);
         if(btn.classList.contains("print-student-card-btn")) {
@@ -11070,6 +11293,10 @@
         const filterSoon = debounce(() => { resetPagination(); applyFilters(); }, 120);
         const filterNow = () => { resetPagination(); applyFilters(); };
         els.searchInput.addEventListener("input",filterSoon);
+        els.mobileQuickFilters?.addEventListener("click", event => {
+            const button = event.target.closest("[data-quick-filter]");
+            if (button && els.mobileQuickFilters.contains(button)) applyMobileQuickFilter(button.dataset.quickFilter);
+        });
         els.genderFilter.addEventListener("change",filterNow);
         els.classFilter.addEventListener("change",filterNow);
         els.schoolFilter.addEventListener("change",filterNow);
@@ -11122,7 +11349,7 @@
         // App settings modal
         els.appSettingsBtn.addEventListener("click",openAppSettings);
         els.saveAppSettingsBtn.addEventListener("click",saveAppSettings);
-        els.cancelAppSettingsBtn.addEventListener("click",closeAppSettings);
+        els.cancelAppSettingsBtn.addEventListener("click",()=>closeAppSettings());
         els.settingsTabs.addEventListener("click", e => {
             const tab = e.target.closest('[role="tab"]');
             if (tab && els.settingsTabs.contains(tab)) selectSettingsTab(tab.dataset.settingsTab);
@@ -11149,6 +11376,8 @@
         [els.sheetAccessKeyInput, els.supabaseUrlInput, els.supabaseKeyInput].forEach(input => input.addEventListener("input",clearStorageTestResult));
         els.clearSheetUrlBtn.addEventListener("click",()=>{
             const provider = els.storageProviderSelect.value;
+            const item = provider === GOOGLE_SHEET_PROVIDER ? "Access Key របស់ Google Sheet" : "ការភ្ជាប់ Supabase";
+            if (!window.confirm(`តើចង់លុប ${item} ចេញពីឧបករណ៍នេះមែនទេ? ទិន្នន័យសិស្សក្នុង Cloud មិនត្រូវបានលុបទេ។`)) return;
             clearCloudSettings(provider);
             els.sheetUrlInput.value=DEFAULT_GOOGLE_SCRIPT_URL;
             els.sheetAccessKeyInput.value="";
