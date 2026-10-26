@@ -4077,6 +4077,10 @@
                     <ion-icon name="images-outline" aria-hidden="true"></ion-icon>
                     <span>ស្ដាររូបថត</span>
                 </button>
+                <button id="migrate-photos-btn" class="btn btn-ghost" type="button" title="Move embedded Sheet photos to private Google Drive storage">
+                    <ion-icon name="folder-open-outline" aria-hidden="true"></ion-icon>
+                    <span>ផ្ទេររូបទៅ Drive</span>
+                </button>
                 <p class="advanced-label">នាំចូលឯកសារ</p>
                 <button id="download-template-btn" class="btn btn-ghost" type="button" title="Download Excel Template">
                     <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
@@ -4737,7 +4741,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.69</span>
+        <span class="footer-version">កំណែ 2.1.70</span>
     </footer>
 
 </main><!-- end .app -->
@@ -5077,6 +5081,10 @@
         <button id="m-recover-photos-btn" class="sheet-menu-item" type="button">
             <ion-icon name="images-outline" aria-hidden="true"></ion-icon>
             <span>ស្ដាររូបថត</span>
+        </button>
+        <button id="m-migrate-photos-btn" class="sheet-menu-item" type="button">
+            <ion-icon name="folder-open-outline" aria-hidden="true"></ion-icon>
+            <span>ផ្ទេររូបទៅ Drive</span>
         </button>
         <button id="m-download-template-btn" class="sheet-menu-item" type="button">
             <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
@@ -5824,6 +5832,7 @@
         printListBtn: document.getElementById("print-list-btn"),
         printPhotoListBtn: document.getElementById("print-photo-list-btn"),
         recoverPhotosBtn: document.getElementById("recover-photos-btn"),
+        migratePhotosBtn: document.getElementById("migrate-photos-btn"),
         printCardListBtn: document.getElementById("print-card-list-btn"),
         downloadPhotosBtn: document.getElementById("download-photos-btn"),
         cardExportDialog: document.getElementById("card-export-dialog"),
@@ -7082,13 +7091,13 @@
                 const correctRecord = checked?.ok === true && checked.found && String(checked.recordId || "") === recordId;
                 const savedLatest = !expectedUpdatedAt || String(checked.updatedAt || "") === expectedUpdatedAt;
                 const photoSaved = !safePhotoSrc(student.photo)
-                    || (checked.hasPhoto && Number(checked.photoLength) === body.student.photo.length);
+                    || (checked.hasPhoto && checked.photoStorage === "drive");
                 if (correctRecord && checked.studentCode && savedLatest && photoSaved) break;
                 if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 650));
             }
             if (!checked?.found || String(checked.recordId || "") !== recordId || !checked.studentCode
                 || (expectedUpdatedAt && String(checked.updatedAt || "") !== expectedUpdatedAt)
-                || (safePhotoSrc(student.photo) && (!checked.hasPhoto || Number(checked.photoLength) !== body.student.photo.length))) {
+                || (safePhotoSrc(student.photo) && (!checked.hasPhoto || checked.photoStorage !== "drive"))) {
                 throw new Error("Server មិនទាន់បញ្ជាក់អត្តលេខ ឬរូបថតសិស្ស។ កំពុងរង់ចាំ Sync ម្ដងទៀត");
             }
             const localStudent = allStudents.find(row => String(row.id) === recordId);
@@ -9258,6 +9267,7 @@
             const nowIso = new Date().toISOString();
             if (editingId) {
                 const existing = allStudents.find(i => i.id === editingId);
+                const photoWasSelected = photoSelectedByUser;
                 payload.photo = await studentEditPhoto(payload.photo, existing, editingId);
                 const idx = allStudents.findIndex(i => i.id === editingId);
                 if (idx !== -1) {
@@ -9271,7 +9281,7 @@
                 }
                 await saveToLocalStorage(allStudents);
                 await logHistory("edited", payload.studentName, { studentId: payload.studentCode, recordId: editingId });
-                if (idx !== -1) enqueueCloudMutation("upsert", {...allStudents[idx], recordId: editingId}, editingId);
+                if (idx !== -1) enqueueCloudMutation("upsert", {...allStudents[idx], recordId: editingId, __photoChanged:photoWasSelected}, editingId);
                 showToast("បានកែសម្រួលព័ត៌មានសិស្ស");
             } else {
                 const newId = `stu-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -10813,6 +10823,78 @@
         }
     }
 
+    async function migratePhotosToDrive() {
+        if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl()) {
+            showToast("សូមភ្ជាប់ Google Sheet ជាមុន", "warning");
+            return;
+        }
+        let status;
+        try {
+            status = await readGoogleSheetJsonp({ action:"photostorage" }, 20000);
+        } catch (error) {
+            showToast("Apps Script មិនទាន់បាន Deploy កំណែ Google Drive", "warning");
+            return;
+        }
+        if (status?.ok !== true || !Number.isFinite(Number(status.embedded))) {
+            showToast(status?.error || "មិនអាចពិនិត្យកន្លែងផ្ទុករូបថតបាន", "error");
+            return;
+        }
+        const embedded = Number(status.embedded) || 0;
+        if (!embedded) {
+            showToast(`រូបថតក្នុង Sheet បានផ្ទេរទៅ Drive រួចហើយ · Drive ${Number(status.drive) || 0} រូប`, "success");
+            return;
+        }
+        if (!window.confirm(`មានរូបថត ${embedded} សន្លឹកនៅក្នុង Google Sheet។ ផ្ទេរទៅ Google Drive ឥឡូវនេះទេ?\n\nរូបក្នុង Sheet នីមួយៗត្រូវជំនួសដោយ Drive File ID តែបន្ទាប់ពីរក្សាទុកក្នុង Drive ជោគជ័យ។`)) return;
+        const button = els.migratePhotosBtn;
+        const original = button.innerHTML;
+        button.disabled = true;
+        let cursor = 2;
+        let migrated = 0;
+        try {
+            const total = Number(status.total) || allStudents.length;
+            while (cursor <= total + 1) {
+                button.innerHTML = `<span class="spinner"></span><span>ផ្ទេរ ${Math.min(cursor - 2, total)}/${total}</span>`;
+                const body = {
+                    action:"migratephotos",
+                    cursor,
+                    limit:12,
+                    accessKey:getGoogleSheetAccessKey(),
+                    sentAt:new Date().toISOString()
+                };
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 30000);
+                try {
+                    await fetch(getGoogleScriptUrl(), {
+                        method:"POST", mode:"no-cors", cache:"no-cache",
+                        headers:{"Content-Type":"text/plain;charset=utf-8"},
+                        body:JSON.stringify(body), redirect:"follow", signal:controller.signal
+                    });
+                } finally {
+                    clearTimeout(timeout);
+                }
+                cursor += 12;
+                if ((cursor - 2) % 120 === 0 || cursor > total + 1) {
+                    const progress = await readGoogleSheetJsonp({ action:"photostorage" }, 20000);
+                    if (progress?.ok !== true) throw new Error(progress?.error || "ពិនិត្យការផ្ទេររូបមិនបាន");
+                    migrated = Math.max(0, embedded - Number(progress.embedded || 0));
+                    if (!Number(progress.embedded)) break;
+                }
+            }
+            const after = await readGoogleSheetJsonp({ action:"photostorage" }, 20000);
+            if (after?.ok !== true) throw new Error(after?.error || "ពិនិត្យលទ្ធផលមិនបាន");
+            migrated = Math.max(migrated, embedded - Number(after.embedded || 0));
+            showToast(Number(after.embedded)
+                ? `បានផ្ទេរ ${migrated} រូប · នៅសល់ ${after.embedded} រូប សូមចុចបន្តម្ដងទៀត`
+                : `បានផ្ទេររូប ${migrated} សន្លឹកទៅ Google Drive ដោយសុវត្ថិភាព`, Number(after.embedded) ? "warning" : "success");
+        } catch (error) {
+            console.error("Drive photo migration failed:", error);
+            showToast(`ការផ្ទេរបានផ្អាកដោយសុវត្ថិភាព${migrated ? ` បន្ទាប់ពី ${migrated} រូប` : ""} · អាចចុចបន្តម្ដងទៀត`, "warning");
+        } finally {
+            button.innerHTML = original;
+            button.disabled = false;
+        }
+    }
+
     // ===================== IMPORT =====================
     const importAliases = {
         studentCode:["អត្តលេខ","លេខសម្គាល់សិស្ស","លេខសិស្ស","studentCode","student id","id"],
@@ -11424,6 +11506,7 @@
         els.loadSheetBtn.addEventListener("click",()=>loadStudentsFromCloudStorage({ silent:false, keepLocalWhenCloudEmpty:false }));
         els.backupNowBtn.addEventListener("click",backupAllStudents);
         els.recoverPhotosBtn?.addEventListener("click",recoverMissingPhotos);
+        els.migratePhotosBtn?.addEventListener("click",migratePhotosToDrive);
 
         // App settings modal
         els.appSettingsBtn.addEventListener("click",openAppSettings);
@@ -11549,6 +11632,7 @@
             "m-load-sheet-btn": els.loadSheetBtn,
             "m-backup-now-btn": els.backupNowBtn,
             "m-recover-photos-btn": els.recoverPhotosBtn,
+            "m-migrate-photos-btn": els.migratePhotosBtn,
             "m-download-template-btn": els.downloadTemplateBtn,
             "m-import-file-btn": els.importFileBtn,
             "m-delete-all-btn": els.deleteAllBtn

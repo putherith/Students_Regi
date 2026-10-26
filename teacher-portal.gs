@@ -278,8 +278,8 @@ function teacherPortalPhotos(token, className, studentIds) {
     if (actualClass !== cls) throw new Error("មិនមានសិទ្ធិមើលរូបថតថ្នាក់ផ្សេង");
   });
   return rows.map(function(item) {
-    const value = String(sheet.getRange(item.rowNumber, HEADERS.indexOf("photo") + 1).getValue() || "").trim();
-    return { id:item.id, photo:/^(data:image\/(?:png|jpe?g|webp);base64,|https:\/\/)/i.test(value) ? value : "" };
+    const value = sheet.getRange(item.rowNumber, HEADERS.indexOf("photo") + 1).getValue();
+    return { id:item.id, photo:photoForClient_(value) };
   });
 }
 

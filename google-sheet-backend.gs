@@ -6,6 +6,10 @@ const SETTINGS_SHEET_NAME = "_App Settings";
 const ACCESS_KEY_PROPERTY = "STUDENT_APP_ACCESS_KEY";
 const DATA_REVISION_PROPERTY = "STUDENT_DATA_REVISION";
 const SETTINGS_REVISION_PROPERTY = "STUDENT_SETTINGS_REVISION";
+const PHOTO_FOLDER_PROPERTY = "STUDENT_PHOTO_FOLDER_ID";
+const PHOTO_FOLDER_NAME = "Student Registration Photos";
+const PHOTO_REFERENCE_PREFIX = "drive:";
+const PHOTO_MIGRATION_BATCH_LIMIT = 12;
 const WRITE_LOCK_TIMEOUT_MS = 30000;
 const STUDENT_SCHOOL_CODE = "902";
 
@@ -157,7 +161,7 @@ function doGet(e) {
     if (action === "status") {
       return output_({
         ok: true,
-        capabilities: { studentLatinName:true, portalRememberLogin:true },
+        capabilities: { studentLatinName:true, portalRememberLogin:true, drivePhotoStorage:true },
         revision: getRevision_(DATA_REVISION_PROPERTY),
         settingsRevision: getRevision_(SETTINGS_REVISION_PROPERTY)
       }, e);
@@ -193,7 +197,8 @@ function doGet(e) {
       return output_({ ok: true, found: !!rowNumber, recordId:String(row[0] || ""),
         studentCode:String(row[1] || ""), className:String(row[HEADERS.indexOf("className")] || ""),
         updatedAt:String(row[HEADERS.indexOf("updatedAt")] || ""),
-        hasPhoto: !!photo.trim(), photoLength: photo.length }, e);
+        hasPhoto: !!photo.trim(), photoLength: photoStoredSourceLength_(photo),
+        photoStorage: photoStorageKind_(photo) }, e);
     }
     if (action === "list") {
       ensureMissingStudentCodes_();
@@ -263,7 +268,7 @@ function doGet(e) {
         return {
           id:student.id,
           studentCode:student.studentCode,
-          photo:String(sheet.getRange(student.rowNumber, photoColumn).getValue() || "")
+          photo:photoForClient_(sheet.getRange(student.rowNumber, photoColumn).getValue())
         };
       }).filter(Boolean);
       return output_({ ok:true, students:students, revision:getRevision_(DATA_REVISION_PROPERTY) }, e);
@@ -281,6 +286,9 @@ function doGet(e) {
         };
       }).filter(function(student) { return student.id || student.studentCode || student.studentName; });
       return output_({ ok:true, students:students, revision:getRevision_(DATA_REVISION_PROPERTY) }, e);
+    }
+    if (action === "photostorage") {
+      return output_(photoStorageStatus_(), e);
     }
     if (action === "setup" || action === "design" || action === "format") {
       const count = withWriteLock_(function() {
@@ -344,6 +352,14 @@ function doPost(e) {
         return restored;
       });
       return output_({ ok: true, action: action, restored: result }, e);
+    }
+    if (action === "migratephotos") {
+      const result = withWriteLock_(function() {
+        const migrated = migratePhotoBatch_(body.cursor, body.limit);
+        if (migrated.migrated) touchRevision_(DATA_REVISION_PROPERTY);
+        return migrated;
+      });
+      return output_(Object.assign({ ok:true, action:action }, result), e);
     }
     if (action === "delete") {
       const deleted = withWriteLock_(function() {
@@ -431,6 +447,151 @@ function touchRevision_(propertyName) {
   const revision = Utilities.getUuid();
   PropertiesService.getScriptProperties().setProperty(propertyName, revision);
   return revision;
+}
+
+function photoDriveFileId_(value) {
+  const text = String(value || "").trim();
+  if (text.indexOf(PHOTO_REFERENCE_PREFIX) === 0) {
+    const id = text.slice(PHOTO_REFERENCE_PREFIX.length).trim();
+    return /^[A-Za-z0-9_-]{10,}$/.test(id) ? id : "";
+  }
+  const driveUrl = text.match(/(?:\/d\/|[?&]id=)([A-Za-z0-9_-]{10,})/);
+  return driveUrl ? driveUrl[1] : "";
+}
+
+function photoStorageKind_(value) {
+  const text = String(value || "").trim();
+  if (!text) return "missing";
+  if (photoDriveFileId_(text)) return "drive";
+  if (/^data:image\/(?:png|jpe?g|webp);base64,/i.test(text)) return "sheet";
+  if (/^https:\/\//i.test(text)) return "url";
+  return "unknown";
+}
+
+function photoStoredSourceLength_(value) {
+  const text = String(value || "").trim();
+  const fileId = photoDriveFileId_(text);
+  if (!fileId) return text.length;
+  try {
+    const details = JSON.parse(String(DriveApp.getFileById(fileId).getDescription() || "{}"));
+    const length = Number(details.sourceLength);
+    return Number.isFinite(length) && length > 0 ? length : text.length;
+  } catch (err) {
+    return text.length;
+  }
+}
+
+function photoFolder_() {
+  const properties = PropertiesService.getScriptProperties();
+  const savedId = String(properties.getProperty(PHOTO_FOLDER_PROPERTY) || "").trim();
+  if (savedId) {
+    try { return DriveApp.getFolderById(savedId); }
+    catch (err) { console.warn("Saved student photo folder is unavailable; creating a replacement", err); }
+  }
+  const folder = DriveApp.createFolder(PHOTO_FOLDER_NAME);
+  try { folder.setDescription("Private student photos managed by the Student Registration Apps Script. Do not make this folder public."); }
+  catch (err) { console.warn("Cannot label the student photo folder", err); }
+  properties.setProperty(PHOTO_FOLDER_PROPERTY, folder.getId());
+  return folder;
+}
+
+function photoFileName_(student, mime) {
+  const extension = /png/i.test(mime) ? ".png" : /webp/i.test(mime) ? ".webp" : ".jpg";
+  const identity = String((student && (student.studentCode || student.id || student.studentName)) || "student")
+    .replace(/[\\\/:*?"<>|\u0000-\u001F]/g, "-")
+    .replace(/\s+/g, " ").trim().slice(0, 80) || "student";
+  const stamp = Utilities.formatDate(new Date(), "Asia/Phnom_Penh", "yyyyMMdd-HHmmss");
+  return identity + "-" + stamp + "-" + Utilities.getUuid().slice(0, 8) + extension;
+}
+
+function savePhotoToDrive_(value, student) {
+  const text = String(value || "").trim();
+  if (!text || photoDriveFileId_(text)) return text;
+  const match = text.match(/^data:image\/(png|jpe?g|webp);base64,([A-Za-z0-9+/=\s]+)$/i);
+  if (!match) return text;
+  const subtype = match[1].toLowerCase();
+  const mime = subtype === "png" ? "image/png" : subtype === "webp" ? "image/webp" : "image/jpeg";
+  const bytes = Utilities.base64Decode(match[2].replace(/\s+/g, ""));
+  if (!bytes.length) throw new Error("Student photo is empty");
+  if (bytes.length > 5 * 1024 * 1024) throw new Error("Student photo exceeds the 5 MB Drive limit");
+  const name = photoFileName_(student, mime);
+  const file = photoFolder_().createFile(Utilities.newBlob(bytes, mime, name));
+  try {
+    file.setDescription(JSON.stringify({
+      recordId:String((student && student.id) || ""),
+      studentCode:String((student && student.studentCode) || ""),
+      studentName:String((student && student.studentName) || ""),
+      sourceLength:text.length,
+      savedAt:new Date().toISOString()
+    }));
+  } catch (err) { console.warn("Cannot label student photo " + file.getId(), err); }
+  // Files remain private. The web app receives image bytes only through this
+  // access-key-protected Apps Script, never through a public Drive share link.
+  return PHOTO_REFERENCE_PREFIX + file.getId();
+}
+
+function photoForClient_(value) {
+  const text = String(value || "").trim();
+  const fileId = photoDriveFileId_(text);
+  if (!fileId) return /^(?:data:image\/(?:png|jpe?g|webp);base64,|https:\/\/)/i.test(text) ? text : "";
+  try {
+    const blob = DriveApp.getFileById(fileId).getBlob();
+    const mime = String(blob.getContentType() || "image/jpeg").toLowerCase();
+    if (!/^image\/(?:png|jpe?g|webp)$/.test(mime)) return "";
+    return "data:" + mime + ";base64," + Utilities.base64Encode(blob.getBytes());
+  } catch (err) {
+    console.error("Cannot read student photo " + fileId, err);
+    return "";
+  }
+}
+
+function photoStorageStatus_() {
+  const sheet = getStudentsSheet_();
+  const total = Math.max(0, sheet.getLastRow() - 1);
+  const values = total ? sheet.getRange(2, HEADERS.indexOf("photo") + 1, total, 1).getDisplayValues() : [];
+  const counts = { drive:0, sheet:0, url:0, missing:0, unknown:0 };
+  values.forEach(function(row) { counts[photoStorageKind_(row[0])]++; });
+  return {
+    ok:true,
+    total:total,
+    drive:counts.drive,
+    legacy:counts.sheet + counts.url,
+    embedded:counts.sheet,
+    url:counts.url,
+    missing:counts.missing,
+    unknown:counts.unknown,
+    nextCursor:2,
+    revision:getRevision_(DATA_REVISION_PROPERTY)
+  };
+}
+
+function migratePhotoBatch_(cursor, requestedLimit) {
+  const sheet = getStudentsSheet_();
+  const lastRow = sheet.getLastRow();
+  const start = Math.min(Math.max(2, Math.floor(Number(cursor) || 2)), Math.max(2, lastRow + 1));
+  const limit = Math.min(PHOTO_MIGRATION_BATCH_LIMIT, Math.max(1, Math.floor(Number(requestedLimit) || 6)));
+  const end = Math.min(lastRow, start + limit - 1);
+  let migrated = 0;
+  let failed = 0;
+  if (start <= end) {
+    const rows = sheet.getRange(start, 1, end - start + 1, HEADERS.length).getValues();
+    rows.forEach(function(row, index) {
+      const student = rowToStudent_(row);
+      if (photoStorageKind_(student.photo) !== "sheet") return;
+      try {
+        const reference = savePhotoToDrive_(student.photo, student);
+        if (!photoDriveFileId_(reference)) throw new Error("Drive did not return a valid photo reference");
+        // Replace the Sheet cell only after Drive confirms the new file.
+        sheet.getRange(start + index, HEADERS.indexOf("photo") + 1).setValue(reference);
+        migrated++;
+      } catch (err) {
+        failed++;
+        console.error("Photo migration failed for row " + (start + index), err);
+      }
+    });
+  }
+  return { cursor:start, nextCursor:end + 1, scanned:Math.max(0, end - start + 1), migrated:migrated,
+    failed:failed, done:end >= lastRow || start > lastRow, total:Math.max(0, lastRow - 1) };
 }
 
 function getSettingsSheet_() {
@@ -612,7 +773,11 @@ function replaceStudents_(students) {
   });
   writeStudents_(students.map(function(student) {
     const previous = oldByKey[String(student.id || "").trim()] || oldByKey[String(student.studentCode || "").trim()];
-    if (!previous) return student;
+    if (!previous) {
+      student.photo = savePhotoToDrive_(student.photo, student);
+      return student;
+    }
+    student.photo = photoForStoredRecord_(student, previous);
     const merged = mergeStudentRecord_(previous, student);
     merged.studentCode = previous.studentCode;
     return merged;
@@ -632,6 +797,7 @@ function mergeStudents_(incomingStudents) {
     if (keyIndex >= 0) {
       const createdAt = students[keyIndex].createdAt;
       const assignedCode = students[keyIndex].studentCode;
+      student.photo = photoForStoredRecord_(student, students[keyIndex]);
       students[keyIndex] = mergeStudentRecord_(students[keyIndex], student);
       students[keyIndex].studentCode = assignedCode;
       if (createdAt) students[keyIndex].createdAt = createdAt;
@@ -639,6 +805,7 @@ function mergeStudents_(incomingStudents) {
     }
     // A different record with the same normalized Khmer name is a duplicate.
     if (students.some(function(existing) { return sameStudentName_(existing, student); })) return;
+    student.photo = savePhotoToDrive_(student.photo, student);
     students.push(student);
   });
   writeStudents_(students);
@@ -658,6 +825,7 @@ function upsertStudent_(student) {
     const count = lastRow - 1;
     if (matchingIndex >= 0) {
         const existing = rowToStudent_(sheet.getRange(matchingIndex + 2, 1, 1, HEADERS.length).getValues()[0]);
+        student.photo = photoForStoredRecord_(student, existing);
         const merged = mergeStudentRecord_(existing, student);
         merged.studentCode = allocateStudentCode_(merged.className, existing.studentCode,
           identityRows.filter(function(_row, index) { return index !== matchingIndex; }).map(function(row) { return row[1]; }), academicYear);
@@ -675,6 +843,7 @@ function upsertStudent_(student) {
       }, student)) return;
     }
   }
+  student.photo = savePhotoToDrive_(student.photo, student);
   student.studentCode = allocateStudentCode_(student.className, "", identityRows.map(function(row) { return row[1]; }), academicYear);
   ensureRows_(sheet, Math.max(2, lastRow + 1));
   sheet.getRange(Math.max(2, lastRow + 1), 1, 1, HEADERS.length).setValues([studentToRow_(student)]);
@@ -754,6 +923,21 @@ function mergeStudentRecord_(existing, incoming) {
   return merged;
 }
 
+function photoForStoredRecord_(incoming, existing) {
+  const next = String((incoming && incoming.photo) || "").trim();
+  const previous = String((existing && existing.photo) || "").trim();
+  if (!next) return previous;
+  // An opaque no-cors reply can make the client retry the same mutation. If
+  // this exact update already reached the Sheet, reuse its Drive file.
+  if (photoDriveFileId_(previous) && String((incoming && incoming.updatedAt) || "")
+      && String(incoming.updatedAt) === String((existing && existing.updatedAt) || "")) return previous;
+  // Bulk backups often contain a hydrated copy of a photo already stored in
+  // Drive. Do not create duplicates unless the edit form explicitly selected
+  // a replacement portrait.
+  if (photoDriveFileId_(previous) && !(incoming && incoming.__photoChanged === true)) return previous;
+  return savePhotoToDrive_(next, incoming);
+}
+
 function restoreMissingPhotos_(incomingStudents) {
   const sheet = getStudentsSheet_();
   const lastRow = sheet.getLastRow();
@@ -770,7 +954,7 @@ function restoreMissingPhotos_(incomingStudents) {
   function addCandidate(student) {
     const code = String(student.studentCode || "").trim();
     const photo = String(student.photo || "").trim();
-    if (!code || !/^(data:image\/(png|jpe?g|webp);base64,|https:\/\/)/i.test(photo)) return;
+    if (!code || (!photoDriveFileId_(photo) && !/^(data:image\/(png|jpe?g|webp);base64,|https:\/\/)/i.test(photo))) return;
     if (!candidates[code]) candidates[code] = [];
     candidates[code].push({ name: studentNameKey_(student), photo: photo });
   }
@@ -803,7 +987,8 @@ function restoreMissingPhotos_(incomingStudents) {
     const uniquePhotos = Array.from(new Set(matches.map(function(candidate) { return candidate.photo; })));
     // Conflicting photos require human review; never guess which student photo is right.
     if (uniquePhotos.length !== 1) return;
-    sheet.getRange(item.rowNumber, HEADERS.indexOf("photo") + 1).setValue(uniquePhotos[0]);
+    const reference = savePhotoToDrive_(uniquePhotos[0], item.student);
+    sheet.getRange(item.rowNumber, HEADERS.indexOf("photo") + 1).setValue(reference);
     restored++;
   });
   return restored;
@@ -887,6 +1072,7 @@ function normalizeIncomingStudent_(item) {
   normalized.__hasStudentLatinName = Object.prototype.hasOwnProperty.call(student, "__hasStudentLatinName")
     ? student.__hasStudentLatinName === true
     : Object.prototype.hasOwnProperty.call(student, "studentLatinName");
+  normalized.__photoChanged = student.__photoChanged === true || student.photoChanged === true;
   normalized.id = cell_(student.recordId || student.id || student.studentCode || item.studentId);
   normalized.studentCode = cell_(student.studentCode || item.studentId || student.studentId);
   normalized.studentSurname = cell_(student.studentSurname);
