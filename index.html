@@ -3995,10 +3995,124 @@
             .table-detail-toggle[aria-pressed="true"] { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
         }
 
+        /* Class browser: grouped, readable cards with restrained institutional color. */
+        .class-browser-panel { overflow:hidden; background:var(--surface); }
+        .class-browser-panel > .panel-header { position:relative; gap:14px; padding:23px 26px; border-bottom:0; background:radial-gradient(circle at 82% 5%,rgba(93,213,213,.2),transparent 34%),linear-gradient(112deg,#0c3559,#155679 72%,#167783); color:#fff; }
+        .class-browser-panel > .panel-header::after { content:""; position:absolute; width:190px; height:190px; right:15%; top:-115px; border:1px solid rgba(255,255,255,.18); border-radius:50%; pointer-events:none; }
+        .class-browser-panel .panel-title { color:#fff; font-size:1.28rem; }
+        .class-browser-panel .panel-sub { color:#d7e9f2; }
+        .class-browser-panel .panel-header .btn { color:#fff; border-color:rgba(255,255,255,.3); background:rgba(255,255,255,.1); }
+        .class-browser-panel .panel-header .btn:hover { background:rgba(255,255,255,.2); }
+        .class-browser-search-wrap { display:flex; align-items:center; gap:14px; padding:17px 26px 0; background:var(--surface-2); }
+        .class-browser-search-wrap label { display:flex; align-items:center; gap:7px; min-width:max-content; color:var(--text-2); font-size:.84rem; font-weight:800; }
+        .class-browser-search-wrap label svg { width:18px; height:18px; color:var(--primary); }
+        .class-browser-search-wrap input { width:min(360px,100%); height:43px; padding:0 15px; border:1px solid var(--border); border-radius:12px; background:var(--surface); box-shadow:var(--shadow-sm); }
+        .class-browser-content { padding:20px 26px 27px; background:var(--surface-2); }
+        .class-overview { display:grid; gap:23px; }
+        .class-overview-summary { display:flex; align-items:stretch; gap:12px; flex-wrap:wrap; padding:13px; border:1px solid var(--border); border-radius:19px; background:var(--surface); box-shadow:var(--shadow-sm); }
+        .class-overview-primary { display:flex; align-items:center; gap:11px; min-width:150px; margin-right:auto; }
+        .class-overview-icon { display:grid; place-items:center; width:48px; height:48px; border-radius:15px; background:linear-gradient(145deg,#dce9ff,#e7f8f7); color:#155479; box-shadow:inset 0 1px 0 #fff,0 6px 14px rgba(21,84,121,.1); }
+        .class-overview-icon svg { width:25px; height:25px; }
+        .class-overview-primary small,.class-overview-primary strong { display:block; }
+        .class-overview-primary small { color:var(--muted); font-size:.71rem; font-weight:700; }
+        .class-overview-primary strong { color:var(--text); font:800 1.55rem/1.1 system-ui,sans-serif; }
+        .class-overview-stat { display:flex; align-items:center; gap:8px; padding:8px 13px; border-radius:11px; background:var(--surface-2); color:var(--text-2); font-size:.79rem; }
+        .class-overview-stat strong { color:var(--text); font:800 .94rem/1 system-ui,sans-serif; }
+        .class-grade-picker { display:flex; gap:9px; overflow-x:auto; padding:2px 1px 7px; scrollbar-width:thin; scroll-snap-type:x proximity; }
+        .class-grade-pill { display:inline-flex; align-items:center; gap:9px; flex:0 0 auto; min-height:45px; padding:8px 13px; border:1px solid var(--border); border-radius:14px; background:var(--surface); color:var(--text-2); font:inherit; cursor:pointer; box-shadow:0 4px 12px rgba(18,47,79,.06),inset 0 1px 0 rgba(255,255,255,.7); scroll-snap-align:start; transition:transform .18s,border-color .18s,box-shadow .18s; }
+        .class-grade-pill b { color:var(--text); font-size:.82rem; white-space:nowrap; }
+        .class-grade-pill span { color:var(--muted); font-size:.69rem; white-space:nowrap; }
+        .class-grade-pill:hover,.class-grade-pill:focus-visible { transform:translateY(-2px); border-color:var(--primary); outline:none; }
+        .class-grade-pill[aria-pressed="true"] { border-color:#176d86; background:linear-gradient(120deg,#0d3d64,#147d85); color:#fff; box-shadow:0 8px 17px rgba(13,61,100,.2); }
+        .class-grade-pill[aria-pressed="true"] b,.class-grade-pill[aria-pressed="true"] span { color:#fff; }
+        .class-stat-dot,.class-tile-breakdown b { display:inline-block; flex:0 0 auto; width:8px; height:8px; border-radius:50%; background:#3c86df; }
+        .class-stat-dot.male,.class-tile-breakdown .male-dot { background:#3a75e8; }
+        .class-stat-dot.female,.class-tile-breakdown .female-dot { background:#ae62e9; }
+        .class-grade-section { --grade-accent:#2773b8; --grade-soft:#e7f2ff; }
+        .class-grade-section[data-grade="8"] { --grade-accent:#1c8b83; --grade-soft:#e1f6f2; }
+        .class-grade-section[data-grade="9"] { --grade-accent:#7460c9; --grade-soft:#eeeafa; }
+        .class-grade-section[data-grade="10"] { --grade-accent:#ab6a2b; --grade-soft:#fff1dd; }
+        .class-grade-section[data-grade="11"] { --grade-accent:#b45178; --grade-soft:#fcebf1; }
+        .class-grade-section[data-grade="12"] { --grade-accent:#4060a7; --grade-soft:#e9effd; }
+        .class-grade-section[data-grade="other"] { --grade-accent:#617287; --grade-soft:#ecf0f4; }
+        .class-grade-heading { display:flex; align-items:center; gap:12px; margin:0 1px 12px; }
+        .class-grade-emblem { display:grid; place-items:center; width:39px; height:39px; border-radius:13px; color:var(--grade-accent); background:var(--grade-soft); font:850 1.03rem/1 system-ui,sans-serif; box-shadow:inset 0 1px 0 #fff; }
+        .class-grade-heading h3 { color:var(--text); font-size:1.02rem; line-height:1.25; }
+        .class-grade-heading p { margin-top:2px; color:var(--muted); font-size:.76rem; }
+        .class-grade-count { margin-left:auto; padding:6px 10px; border-radius:999px; background:var(--surface); border:1px solid var(--border); color:var(--muted); font-size:.72rem; font-weight:700; }
+        .class-grid { grid-template-columns:repeat(auto-fill,minmax(215px,1fr)); gap:13px; }
+        .class-tile { position:relative; display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; gap:0; min-height:180px; padding:15px 17px 14px; border-radius:17px; border:1px solid var(--border); background:radial-gradient(circle at 105% -22%,var(--grade-soft) 0,transparent 45%),linear-gradient(150deg,var(--surface) 65%,var(--grade-soft)); box-shadow:0 5px 14px rgba(18,47,79,.06),inset 0 1px 0 rgba(255,255,255,.7); overflow:hidden; transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease; }
+        .class-tile::before { content:""; position:absolute; inset:0 auto 0 0; width:4px; background:var(--grade-accent); }
+        .class-tile:hover,.class-tile:focus-visible { transform:translateY(-3px); border-color:var(--grade-accent); background:linear-gradient(150deg,var(--surface) 48%,var(--grade-soft)); box-shadow:0 13px 24px rgba(18,47,79,.13); outline:none; }
+        .class-tile-top { display:flex; justify-content:space-between; align-items:start; }
+        .class-tile-symbol,.class-tile-arrow { display:grid; place-items:center; width:37px; height:37px; border-radius:12px; color:var(--grade-accent); background:var(--grade-soft); }
+        .class-tile-symbol { font:850 .78rem/1 system-ui,sans-serif; }
+        .class-tile-arrow { width:30px; height:30px; background:var(--surface-2); border:1px solid var(--border); font:700 1.03rem/1 system-ui,sans-serif; }
+        .class-tile-name { display:block; margin-top:12px; color:var(--text); font-size:1.02rem; font-weight:850; line-height:1.3; }
+        .class-tile-total { display:block; margin-top:1px; color:var(--muted); font-size:.77rem; }
+        .class-tile-total strong { display:inline; color:var(--grade-accent); font:850 .91rem/1 system-ui,sans-serif; }
+        .class-tile-progress { display:block; height:5px; margin:11px 0 8px; border-radius:5px; background:#d9b9f3; overflow:hidden; }
+        .class-tile-progress i { display:block; height:100%; background:#5091e5; }
+        .class-tile-breakdown { display:flex; align-items:center; gap:14px; color:var(--muted); font-size:.72rem; }
+        .class-tile-breakdown span { display:inline-flex; align-items:center; gap:5px; }
+        .class-tile-breakdown b { width:7px; height:7px; }
+        .class-detail-summary { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; padding:17px 20px; margin-bottom:15px; border-radius:17px; background:linear-gradient(115deg,#103e64,#1b7180); color:#fff; box-shadow:0 11px 24px rgba(11,72,105,.14); }
+        .class-detail-summary > div:first-child { display:grid; gap:2px; }
+        .class-detail-summary > div:first-child span { color:#d5e8ee; font-size:.75rem; }
+        .class-detail-summary > div:first-child strong { font-size:1.27rem; }
+        .class-detail-chips { display:flex; flex-wrap:wrap; gap:7px; }
+        .class-detail-chips span { padding:7px 10px; border:1px solid #ffffff36; border-radius:999px; background:#ffffff1b; font-size:.76rem; font-weight:700; }
+        .class-student-item { border-radius:16px; background:var(--surface); box-shadow:0 5px 14px rgba(18,47,79,.055); }
+        .class-student-photo { border-radius:11px; background:var(--surface-3); cursor:pointer; }
+        .class-student-info strong { color:var(--text); font-size:.94rem; }
+        .class-student-latin { display:block; margin-top:2px; color:var(--primary); font:700 .69rem/1.35 system-ui,sans-serif; letter-spacing:.025em; }
+        .class-student-actions .btn { display:inline-flex; align-items:center; gap:5px; border:1px solid var(--border); border-radius:9px; }
+        .class-student-actions .btn ion-icon { width:15px; height:15px; }
+        .latin-auto-assist { display:flex; justify-content:space-between; align-items:center; gap:9px; margin-top:5px; }
+        .latin-auto-assist small { color:var(--muted); font-size:.7rem; line-height:1.4; }
+        .latin-auto-assist button { border:0; background:transparent; color:var(--primary); font-family:inherit; font-size:.74rem; font-weight:750; line-height:1.4; white-space:nowrap; cursor:pointer; }
+        .latin-auto-assist button:hover { text-decoration:underline; }
+        @media (max-width:560px) {
+            .class-browser-panel { margin:10px -2px 0; border-radius:17px; }
+            .class-browser-panel > .panel-header { padding:20px 17px; }
+            .class-browser-panel .panel-title { font-size:1.14rem; }
+            .class-browser-search-wrap { display:grid; gap:7px; padding:14px 14px 0; }
+            .class-browser-search-wrap input { width:100%; height:44px; font-size:16px; }
+            .class-browser-content { padding:13px 14px 25px; }
+            .class-overview { gap:21px; }
+            .class-overview-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; padding:11px; }
+            .class-overview-primary { grid-column:1 / -1; margin:0 0 2px; }
+            .class-overview-stat { justify-content:center; padding:8px 4px; font-size:.7rem; text-align:center; }
+            .class-overview-stat strong { font-size:.77rem; }
+            .class-grade-heading { gap:9px; }
+            .class-grade-count { font-size:.67rem; }
+            .class-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+            .class-tile { min-height:150px; padding:11px 12px; }
+            .class-tile-top { position:static; }
+            .class-tile-symbol { width:32px; height:32px; border-radius:10px; font-size:.72rem; }
+            .class-tile-arrow { width:27px; height:27px; }
+            .class-tile-name { margin-top:8px; padding-right:0; font-size:.88rem; }
+            .class-tile-total { font-size:.69rem; }
+            .class-tile-progress { margin-top:auto; }
+            .class-tile-breakdown { gap:5px; flex-wrap:wrap; font-size:.62rem; }
+            .class-detail-summary { padding:15px; }
+            .class-student-grid { grid-template-columns:1fr; }
+            .class-student-item { padding:12px; }
+            .class-student-actions .btn { flex:1 1 auto; justify-content:center; min-height:36px; }
+            .latin-auto-assist { align-items:flex-start; }
+        }
+        html[data-theme="dark"] .class-grade-emblem { box-shadow:none; }
+        html[data-theme="dark"] .class-tile { background:linear-gradient(150deg,var(--surface) 58%,var(--surface-2)); box-shadow:var(--shadow-sm); }
+        html[data-theme="dark"] .class-tile:hover { background:var(--surface-2); }
+        html[data-theme="dark"] .class-tile-symbol { background:var(--surface-3); }
+        html[data-theme="dark"] .class-grade-pill { background:var(--surface-2); box-shadow:none; }
+        html[data-theme="dark"] .class-grade-pill[aria-pressed="true"] { background:linear-gradient(120deg,#0d3d64,#147d85); }
+        @media (max-width:370px) { .class-grid { grid-template-columns:1fr; } .class-tile { min-height:126px; } }
+
         @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
             .ambient-grid, body::before, body::after { animation: none !important; }
-            .btn, tbody tr, .metric, .student-card, .class-student-item, .class-tile, .history-item, .modal, .modal-dialog { transition: none !important; animation: none !important; }
+            .btn, tbody tr, .metric, .student-card, .class-student-item, .class-tile, .class-grade-pill, .history-item, .modal, .modal-dialog { transition: none !important; animation: none !important; }
             .btn:hover:not(:disabled), .metric:hover, .class-tile:hover { transform: none; }
         }
 
@@ -4300,8 +4414,9 @@
                                            placeholder="ឧ. ដារ៉ា">
                                 </div>
                                 <div class="field field-full">
-                                    <label for="studentLatinName">ឈ្មោះជាអក្សរឡាតាំង (អាចទុកទទេ)</label>
+                                    <label for="studentLatinName">ឈ្មោះជាអក្សរឡាតាំង</label>
                                     <input id="studentLatinName" name="studentLatinName" type="text" lang="en" autocomplete="off" placeholder="ឧ. SOK DARA">
+                                    <div class="latin-auto-assist"><small id="latin-auto-hint">បង្កើតស្វ័យប្រវត្តិសម្រាប់សិស្សថ្មី · សូមផ្ទៀងផ្ទាត់អក្ខរាវិរុទ្ធផ្លូវការ</small><button id="refresh-latin-name" type="button">បង្កើតឡើងវិញ</button></div>
                                 </div>
                                 <div class="field">
                                     <label class="required">ភេទ</label>
@@ -4720,6 +4835,10 @@
             </div>
             <button id="class-browser-close-btn" class="btn btn-ghost btn-sm" type="button">ត្រឡប់ទៅបញ្ជី</button>
         </div>
+        <div id="class-browser-search-wrap" class="class-browser-search-wrap">
+            <label for="class-browser-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><span>ស្វែងរកថ្នាក់</span></label>
+            <input id="class-browser-search" type="search" autocomplete="off" placeholder="ឧ. 7A ឬ ១២">
+        </div>
         <div id="class-browser-content" class="class-browser-content" aria-live="polite"></div>
     </section>
 
@@ -4741,7 +4860,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.70</span>
+        <span class="footer-version">កំណែ 2.1.71</span>
     </footer>
 
 </main><!-- end .app -->
@@ -5870,6 +5989,8 @@
         tabReportBtn: document.getElementById("tab-report-btn"),
         classBrowserPanel: document.getElementById("class-browser-panel"),
         classBrowserContent: document.getElementById("class-browser-content"),
+        classBrowserSearchWrap: document.getElementById("class-browser-search-wrap"),
+        classBrowserSearch: document.getElementById("class-browser-search"),
         classBrowserTitle: document.getElementById("class-browser-title"),
         classBrowserSummary: document.getElementById("class-browser-summary"),
         classBrowserBackBtn: document.getElementById("class-browser-back-btn"),
@@ -5937,6 +6058,7 @@
     let missingPhotoLookup = null;
     let visibleStudents = [];
     let selectedClassName = null;
+    let selectedClassGrade = "all";
     let totalStudentsCount = 0;
     let expandedMobileCardId = null;
     let pageSize = 25; // Keep the initial DOM small for smooth table and mobile rendering.
@@ -8988,6 +9110,117 @@
             : `បានចម្លងព័ត៌មាន${parentLabel}ដែលមាន · សូមពិនិត្យវាលដែលនៅទទេ`, name && phone ? "success" : "warning");
     }
 
+    // New registrations get a reviewable Latin suggestion. Existing spellings
+    // and any name typed manually by staff are never overwritten.
+    const COMMON_KHMER_LATIN = Object.freeze({
+        "សុខ":"SOK", "ចាន់":"CHAN", "ស្រី":"SREY", "ហ៊ុន":"HUN", "កែវ":"KEO", "គង់":"KONG",
+        "រុន":"RUN", "ផាន់":"PHAN", "ខន":"KHON", "ហេង":"HENG", "លី":"LY", "សាន":"SAN",
+        "ម៉ៅ":"MAO", "នួន":"NUON", "អ៊ុក":"OUK", "យ៉ុន":"YUN", "វ៉ាន់":"VAN", "ស៊ិន":"SIN",
+        "ពេជ្រ":"PICH", "ទេព":"TEP", "ជុំ":"CHUM", "យឹម":"YIM", "នាង":"NEANG", "ថា":"THA",
+        "ដារ៉ា":"DARA", "តារា":"TARA", "វិសាល":"VISAL", "សុភា":"SOPHEA", "សុភី":"SOPHY",
+        "កញ្ញា":"KANHA", "ពិសិដ្ឋ":"PISITH", "សក្កដា":"SAKADA", "មករា":"MAKARA", "ណារា":"NARA",
+        "ណារ៉ា":"NARA", "ចាន់និត":"CHANNIT", "សុវណ្ណ":"SOVANN", "សុវណ្ណា":"SOVANNA",
+        "សុវណ្ណារ៉ា":"SOVANNARA", "វណ្ណា":"VANNA", "វណ្ណៈ":"VANNAK", "បញ្ញា":"PANHA",
+        "ស្រីនាង":"SREYNEANG", "ស្រីពេជ្រ":"SREYPICH", "សុជាតា":"SOCHEATA", "សុធា":"SOTHEA",
+        "ស្រីល័ក្ខ":"SREYLEAK", "ស្រីលក្ខណ៍":"SREYLEAK", "ដាវី":"DAVY", "ចរិយា":"CHARYA",
+        "សុភ័ក្រ":"SOPHEAK", "សុភាព":"SOPHEAP", "វុទ្ធី":"VUTHY", "រ័ត្ន":"RATH",
+        "រតនា":"RATANA", "នីតា":"NITA", "បូរី":"BOREY", "ចិន្តា":"CHENDA", "សំណាង":"SAMNANG"
+    });
+    const KHMER_LATIN_CONSONANTS = Object.freeze({
+        "ក":"K","ខ":"KH","គ":"K","ឃ":"KH","ង":"NG","ច":"CH","ឆ":"CHH","ជ":"CH","ឈ":"CHH","ញ":"NH",
+        "ដ":"D","ឋ":"TH","ឌ":"D","ឍ":"TH","ណ":"N","ត":"T","ថ":"TH","ទ":"T","ធ":"TH","ន":"N",
+        "ប":"B","ផ":"PH","ព":"P","ភ":"PH","ម":"M","យ":"Y","រ":"R","ល":"L","វ":"V","ស":"S","ហ":"H","ឡ":"L","អ":"A"
+    });
+    const KHMER_LATIN_VOWELS = Object.freeze({
+        "ា":"A","ិ":"I","ី":"I","ឹ":"OE","ឺ":"OEU","ុ":"U","ូ":"OU","ួ":"UA","ើ":"OE","ឿ":"OEA","ៀ":"IE",
+        "េ":"E","ែ":"AE","ៃ":"AI","ោ":"O","ៅ":"AU","ំ":"M","ះ":"H","ៈ":"AK","់":"","៉":"","៊":"","៌":""
+    });
+    let latinNameReference = null;
+    let latinNameReferenceLength = -1;
+    let latinNameExact = new Map();
+    let latinNameParts = new Map();
+
+    function latinKhmerKey(value) { return String(value || "").normalize("NFC").replace(/\s+/g, " ").trim(); }
+    function romanizeKhmerToken(word) {
+        const original = latinKhmerKey(word);
+        if (!original) return "";
+        if (!/[\u1780-\u17ff]/.test(original)) return original.toUpperCase().replace(/[^A-Z' -]/g, "");
+        if (COMMON_KHMER_LATIN[original]) return COMMON_KHMER_LATIN[original];
+        const chars = Array.from(original);
+        let result = "";
+        for (let i=0; i<chars.length;) {
+            const consonant = KHMER_LATIN_CONSONANTS[chars[i]];
+            if (!consonant) { i++; continue; }
+            let segment = consonant;
+            i++;
+            while (chars[i] === "្" && KHMER_LATIN_CONSONANTS[chars[i+1]]) {
+                segment += KHMER_LATIN_CONSONANTS[chars[i+1]];
+                i += 2;
+            }
+            let vowel = "", hasVowel = false;
+            while (i < chars.length && Object.prototype.hasOwnProperty.call(KHMER_LATIN_VOWELS, chars[i])) {
+                vowel += KHMER_LATIN_VOWELS[chars[i]];
+                hasVowel = true;
+                i++;
+            }
+            if (consonant === "A" && vowel.startsWith("A")) segment = "";
+            result += segment + (hasVowel ? vowel : chars.slice(i).some(char => KHMER_LATIN_CONSONANTS[char]) ? "O" : "");
+        }
+        return result;
+    }
+
+    function buildLatinNameReferences(students) {
+        if (latinNameReference === students && latinNameReferenceLength === students.length) return;
+        latinNameReference = students;
+        latinNameReferenceLength = students.length;
+        latinNameExact = new Map();
+        const tokenCounts = new Map();
+        students.forEach(student => {
+            const identity = normalizeStudentIdentity(student);
+            const surname = latinKhmerKey(identity.studentSurname);
+            const given = latinKhmerKey(identity.studentGivenName);
+            const latin = String(identity.studentLatinName || "").trim().toUpperCase().replace(/\s+/g, " ");
+            if (!surname || !given || !latin || /[\u1780-\u17ff]/.test(latin)) return;
+            latinNameExact.set(`${surname}|${given}`, latin);
+            const khmerWords = `${surname} ${given}`.split(" ");
+            const latinWords = latin.split(" ");
+            if (khmerWords.length !== latinWords.length) return;
+            khmerWords.forEach((word, index) => {
+                const key = latinKhmerKey(word);
+                const transliteration = latinWords[index];
+                if (!key || !/^[A-Z'-]+$/.test(transliteration)) return;
+                const choices = tokenCounts.get(key) || new Map();
+                choices.set(transliteration, (choices.get(transliteration) || 0) + 1);
+                tokenCounts.set(key, choices);
+            });
+        });
+        latinNameParts = new Map([...tokenCounts].map(([word, choices]) =>
+            [word, [...choices].sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0]]));
+    }
+
+    function suggestStudentLatinName(surname, given, students=allStudents) {
+        const family = latinKhmerKey(surname), first = latinKhmerKey(given);
+        if (!family && !first) return "";
+        buildLatinNameReferences(students);
+        if (family && first && latinNameExact.has(`${family}|${first}`)) return latinNameExact.get(`${family}|${first}`);
+        return [family, first].filter(Boolean).join(" ").split(" ").filter(Boolean)
+            .map(word => latinNameParts.get(word) || COMMON_KHMER_LATIN[word] || romanizeKhmerToken(word))
+            .filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+    }
+
+    function updateLatinNameSuggestion(force=false) {
+        const input = document.getElementById("studentLatinName");
+        if (!force && (els.editingId.value || input.dataset.autoLatin === "manual")) return;
+        const suggestion = suggestStudentLatinName(getValue("studentSurname"), getValue("studentGivenName"));
+        if (force || !input.value.trim() || input.dataset.autoLatin === "auto") {
+            input.value = suggestion;
+            input.dataset.autoLatin = suggestion ? "auto" : "";
+            document.getElementById("latin-auto-hint").textContent = suggestion
+                ? "បង្កើតស្វ័យប្រវត្តិ · សូមផ្ទៀងផ្ទាត់តាមឯកសារផ្លូវការ"
+                : "បំពេញគោត្តនាម និងនាមខ្លួន ដើម្បីបង្កើតឈ្មោះឡាតាំង";
+        }
+    }
+
     function collectPayload() {
         if (els.sameAddress.checked) syncCurrentFromBirth();
         const studentSurname = getValue("studentSurname");
@@ -9114,6 +9347,8 @@
         photoSelectedByUser = false;
         closeMobileEditPanel();
         els.registrationForm.reset();
+        delete document.getElementById("studentLatinName").dataset.autoLatin;
+        document.getElementById("latin-auto-hint").textContent = "បង្កើតស្វ័យប្រវត្តិសម្រាប់សិស្សថ្មី · សូមផ្ទៀងផ្ទាត់អក្ខរាវិរុទ្ធផ្លូវការ";
         document.getElementById("family-details").open = false;
         for (const step of ["១", "៤", "៥"]) {
             setFormSectionExpanded(els.formPanel.querySelector(`.form-section[data-step="${step}"]`), true);
@@ -9144,6 +9379,7 @@
         const s = found ? normalizeStudentIdentity(found) : null;
         if (!s) { showToast("រកមិនឃើញទិន្នន័យសិស្ស","error"); return; }
         fieldIds.forEach(fid => setValue(fid, s[fid]||""));
+        document.getElementById("studentLatinName").dataset.autoLatin = "manual";
         updateStudentCodeHint();
         setDobSelectors(s.dob);
         setFamilyDobSelectors(s);
@@ -9230,22 +9466,15 @@
         if (!els.registrationForm.reportValidity()) return;
 
         const editingId = els.editingId.value;
+        if (!editingId) updateLatinNameSuggestion(!getValue("studentLatinName"));
         const payload = collectPayload();
 
         if (!payload.studentName) { showToast("សូមបំពេញឈ្មោះសិស្ស","warning"); return; }
         if (!payload.contact) { showToast("សូមបំពេញលេខទូរស័ព្ទ","warning"); return; }
         const serverAllocatesCode = getCloudProvider() === GOOGLE_SHEET_PROVIDER && hasGoogleScriptUrl();
-        if (payload.studentLatinName && serverAllocatesCode) {
-            try {
-                if (!await googleLatinNameReady()) {
-                    showToast("Google Sheet Script មិនទាន់គាំទ្រឈ្មោះឡាតាំង។ សូម Update Script មុនរក្សាទុក ដើម្បីកុំឱ្យបាត់ទិន្នន័យ។", "warning");
-                    return;
-                }
-            } catch (error) {
-                showToast("មិនអាចផ្ទៀងផ្ទាត់ការរក្សាទុកឈ្មោះឡាតាំងក្នុង Google Sheet បាន។ សូមពិនិត្យការភ្ជាប់ ហើយសាកម្តងទៀត។", "warning");
-                return;
-            }
-        }
+        // Save locally first even when the connection is unavailable. The
+        // sync path checks Latin-column support before sending and retains the
+        // mutation in the outbox until the Sheet can accept it.
         const duplicateOptions = { ignoreCode:serverAllocatesCode && !editingId };
         const localDuplicate = findDuplicate(payload, editingId, allStudents, duplicateOptions);
         if (localDuplicate) { showToast(duplicateMsg(localDuplicate), "warning"); return; }
@@ -10067,36 +10296,84 @@
         const selected = groups.find(([name]) => name === selectedClassName);
         if (selectedClassName !== null && !selected) selectedClassName = null;
         els.classBrowserBackBtn.hidden = selectedClassName === null;
+        els.classBrowserSearchWrap.hidden = selectedClassName !== null;
         if (selectedClassName === null) {
             els.classBrowserTitle.textContent = "សិស្សតាមថ្នាក់";
             els.classBrowserSummary.textContent = `${groups.length} ថ្នាក់ · សិស្សសរុប ${allStudents.length} នាក់`;
-            els.classBrowserContent.innerHTML = groups.length
-                ? `<div class="class-grid">${groups.map(([name, students]) => {
-                    const label = name === "មិនទាន់បញ្ចូលថ្នាក់" ? name : `ថ្នាក់ ${name}`;
-                    const boys = students.filter(student => student.gender === "ប្រុស").length;
-                    const girls = students.filter(student => student.gender === "ស្រី").length;
-                    return `<button class="class-tile" type="button" data-class="${esc(name)}" aria-label="មើលសិស្ស ${esc(label)}">
-                        <span><strong>${esc(label)}</strong><small>${students.length} នាក់ · ប្រុស ${boys} · ស្រី ${girls}</small></span>
-                        <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
-                    </button>`;
-                }).join("")}</div>`
-                : `<div class="empty"><ion-icon name="school-outline"></ion-icon><p>មិនទាន់មានទិន្នន័យសិស្ស</p></div>`;
+            const normalizeClassSearch = value => String(value || "").replace(/[០-៩]/g, digit => String(digit.charCodeAt(0) - 0x17E0)).trim().toLocaleLowerCase();
+            const search = normalizeClassSearch(els.classBrowserSearch.value);
+            const gradeCounts = new Map();
+            groups.forEach(([name]) => {
+                const grade = String(classGrade(name) || "other");
+                gradeCounts.set(grade, (gradeCounts.get(grade) || 0) + 1);
+            });
+            if (selectedClassGrade !== "all" && !gradeCounts.has(selectedClassGrade)) selectedClassGrade = "all";
+            const visibleGroups = groups.filter(([name]) =>
+                (!search || normalizeClassSearch(name).includes(search)) &&
+                (selectedClassGrade === "all" || String(classGrade(name) || "other") === selectedClassGrade));
+            const boysTotal = allStudents.filter(student => student.gender === "ប្រុស").length;
+            const girlsTotal = allStudents.filter(student => student.gender === "ស្រី").length;
+            const gradeGroups = new Map();
+            visibleGroups.forEach(group => {
+                const grade = classGrade(group[0]);
+                const key = grade ? String(grade) : "other";
+                if (!gradeGroups.has(key)) gradeGroups.set(key, []);
+                gradeGroups.get(key).push(group);
+            });
+            const sortedGrades = [...gradeGroups.entries()].sort(([a],[b]) => a === "other" ? 1 : b === "other" ? -1 : Number(a) - Number(b));
+            els.classBrowserContent.innerHTML = groups.length ? `<div class="class-overview">
+                <div class="class-overview-summary" aria-label="ស្ថិតិសិស្សតាមថ្នាក់">
+                    <div class="class-overview-primary"><span class="class-overview-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 9 10-5 10 5-10 5-10-5Z"/><path d="M6 11v5c4 3 8 3 12 0v-5M22 9v7"/></svg></span><span><small>ថ្នាក់ទាំងអស់</small><strong>${groups.length}</strong></span></div>
+                    <div class="class-overview-stat"><span class="class-stat-dot total"></span><span>សិស្សសរុប <strong>${allStudents.length}</strong></span></div>
+                    <div class="class-overview-stat"><span class="class-stat-dot male"></span><span>ប្រុស <strong>${boysTotal}</strong></span></div>
+                    <div class="class-overview-stat"><span class="class-stat-dot female"></span><span>ស្រី <strong>${girlsTotal}</strong></span></div>
+                </div>
+                <nav class="class-grade-picker" aria-label="ជ្រើសកម្រិតថ្នាក់">
+                    <button class="class-grade-pill" type="button" data-filter-grade="all" aria-pressed="${selectedClassGrade === "all"}"><b>ទាំងអស់</b><span>${groups.length} ថ្នាក់</span></button>
+                    ${[...gradeCounts.entries()].sort(([a],[b]) => a === "other" ? 1 : b === "other" ? -1 : Number(a) - Number(b)).map(([grade, count]) =>
+                        `<button class="class-grade-pill" type="button" data-filter-grade="${esc(grade)}" aria-pressed="${selectedClassGrade === grade}"><b>${grade === "other" ? "ផ្សេងៗ" : `ទី ${esc(grade)}`}</b><span>${count} ថ្នាក់</span></button>`).join("")}
+                </nav>
+                ${sortedGrades.map(([grade, classes]) => {
+                    const total = classes.reduce((sum, [, students]) => sum + students.length, 0);
+                    const gradeLabel = grade === "other" ? "ថ្នាក់ផ្សេងៗ" : `កម្រិតថ្នាក់ទី ${grade}`;
+                    return `<section class="class-grade-section" data-grade="${esc(grade)}" aria-label="${esc(gradeLabel)}">
+                        <div class="class-grade-heading"><span class="class-grade-emblem">${grade === "other" ? "•" : esc(grade)}</span><div><h3>${esc(gradeLabel)}</h3><p>${classes.length} ថ្នាក់ · សិស្ស ${total} នាក់</p></div><span class="class-grade-count">${classes.length} ថ្នាក់</span></div>
+                        <div class="class-grid">${classes.map(([name, students]) => {
+                            const label = name === "មិនទាន់បញ្ចូលថ្នាក់" ? name : `ថ្នាក់ ${name}`;
+                            const boys = students.filter(student => student.gender === "ប្រុស").length;
+                            const girls = students.filter(student => student.gender === "ស្រី").length;
+                            const maleShare = students.length ? Math.round(boys / students.length * 100) : 0;
+                            return `<button class="class-tile" type="button" data-class="${esc(name)}" aria-label="មើលសិស្ស ${esc(label)} ចំនួន ${students.length} នាក់">
+                                <span class="class-tile-top"><span class="class-tile-symbol">${grade === "other" ? "?" : esc(name)}</span><span class="class-tile-arrow" aria-hidden="true">→</span></span>
+                                <span class="class-tile-name">${esc(label)}</span>
+                                <span class="class-tile-total"><strong>${students.length}</strong> នាក់</span>
+                                <span class="class-tile-progress" aria-hidden="true"><i style="width:${maleShare}%"></i></span>
+                                <span class="class-tile-breakdown"><span><b class="male-dot"></b>ប្រុស ${boys}</span><span><b class="female-dot"></b>ស្រី ${girls}</span></span>
+                            </button>`;
+                        }).join("")}</div>
+                    </section>`;
+                }).join("")}
+                ${!visibleGroups.length ? '<div class="empty"><ion-icon name="search-outline"></ion-icon><p>រកមិនឃើញថ្នាក់ត្រូវនឹងការស្វែងរក</p></div>' : ""}
+            </div>` : `<div class="empty"><ion-icon name="school-outline"></ion-icon><p>មិនទាន់មានទិន្នន័យសិស្ស</p></div>`;
             return;
         }
         const [className, students] = selected;
+        const boys = students.filter(student => student.gender === "ប្រុស").length;
+        const girls = students.filter(student => student.gender === "ស្រី").length;
         els.classBrowserTitle.textContent = className === "មិនទាន់បញ្ចូលថ្នាក់" ? className : `ថ្នាក់ ${className}`;
         els.classBrowserSummary.textContent = `សិស្ស ${students.length} នាក់`;
-        els.classBrowserContent.innerHTML = `<div class="class-student-grid">${students.map((student, index) => {
+        els.classBrowserContent.innerHTML = `<div class="class-detail-summary"><div><span>បញ្ជីសិស្សក្នុងថ្នាក់</span><strong>${esc(className)}</strong></div><div class="class-detail-chips"><span>${students.length} នាក់</span><span>ប្រុស ${boys}</span><span>ស្រី ${girls}</span></div></div><div class="class-student-grid">${students.map((student, index) => {
             const photo = safePhotoSrc(student.photo);
             return `<article class="class-student-item">
                 ${photo ? `<img class="class-student-photo view-photo-img" src="${esc(photo)}" data-id="${esc(student.id)}" alt="មើលរូបថត ${esc(studentFullName(student))}" loading="lazy" decoding="async">` : `<button class="class-student-photo class-student-placeholder view-photo-btn" type="button" data-id="${esc(student.id)}" aria-label="មើលរូបថត ${esc(studentFullName(student))}"><ion-icon name="image-outline" aria-hidden="true"></ion-icon></button>`}
                 <div class="class-student-info">
                     <strong>${index + 1}. ${esc(studentFullName(student) || "មិនមានឈ្មោះ")}</strong>
+                    ${student.studentLatinName ? `<span class="class-student-latin" lang="en">${esc(student.studentLatinName)}</span>` : ""}
                     <small>${esc(studentVisibleId(student) || "–")} · ${esc(student.gender || "–")} · ${esc(formatDate(student.dob) || "–")}</small>
                     <div class="class-student-actions">
-                        <button class="btn btn-ghost print-student-btn" type="button" data-id="${esc(student.id)}">មើលឯកសារ</button>
-                        <button class="btn btn-ghost print-student-card-btn" type="button" data-id="${esc(student.id)}">មើលកាត</button>
-                        <button class="btn btn-ghost transfer-class-btn" type="button" data-id="${esc(student.id)}">ប្ដូរថ្នាក់</button>
+                        <button class="btn btn-ghost print-student-btn" type="button" data-id="${esc(student.id)}"><ion-icon name="document-text-outline" aria-hidden="true"></ion-icon> មើលឯកសារ</button>
+                        <button class="btn btn-ghost print-student-card-btn" type="button" data-id="${esc(student.id)}"><ion-icon name="card-outline" aria-hidden="true"></ion-icon> មើលកាត</button>
+                        <button class="btn btn-ghost transfer-class-btn" type="button" data-id="${esc(student.id)}"><ion-icon name="swap-horizontal-outline" aria-hidden="true"></ion-icon> ប្ដូរថ្នាក់</button>
                     </div>
                 </div>
             </article>`;
@@ -11085,13 +11362,13 @@
             if(!s.studentCode && !classGrade(s.className)){skipped.push({reason:"invalidClass",student:s});return;}
             const dup=findDuplicate(s,"",[...allStudents,...accepted.map((i,idx)=>({id:`new-${idx}`,...i}))]);
             if(dup){skipped.push({reason:dup.type,student:s});return;}
+            if (!String(s.studentLatinName || "").trim()) {
+                s.studentLatinName = suggestStudentLatinName(s.studentSurname, s.studentGivenName);
+            }
             accepted.push(s);
         });
-        if (accepted.some(student => student.studentLatinName) && getCloudProvider() === GOOGLE_SHEET_PROVIDER && hasGoogleScriptUrl()) {
-            if (!await googleLatinNameReady()) {
-                throw new Error("Google Sheet Script មិនទាន់គាំទ្រឈ្មោះឡាតាំង។ សូម Update Script មុន Import។");
-            }
-        }
+        // Keep imports in the local outbox if the Sheet Script is offline or
+        // outdated; syncGoogleSheet checks Latin-column support before upload.
         const withCodes=await assignCodes(accepted);
         const nowIso=new Date().toISOString();
         const saved=withCodes.map((st,idx)=>{
@@ -11408,6 +11685,12 @@
             });
         });
         els.registrationForm.addEventListener("submit",handleFormSubmit);
+        ["studentSurname", "studentGivenName"].forEach(id => document.getElementById(id).addEventListener("input", () => updateLatinNameSuggestion()));
+        document.getElementById("studentLatinName").addEventListener("input", event => {
+            event.target.dataset.autoLatin = "manual";
+            document.getElementById("latin-auto-hint").textContent = "ឈ្មោះដែលបានកែដោយផ្ទាល់នឹងត្រូវរក្សាទុកដដែល";
+        });
+        document.getElementById("refresh-latin-name").addEventListener("click", () => updateLatinNameSuggestion(true));
         els.registrationForm.addEventListener("invalid", event => {
             setFormSectionExpanded(event.target.closest(".form-section"), true);
             const details = event.target.closest("details");
@@ -11571,7 +11854,8 @@
         // Mobile UI
         els.tabListBtn?.addEventListener("click", () => setActiveTab("list"));
         els.tabFormBtn?.addEventListener("click", () => setActiveTab("form"));
-        els.tabClassesBtn?.addEventListener("click", () => { selectedClassName = null; setActiveTab("classes"); });
+        els.tabClassesBtn?.addEventListener("click", () => { selectedClassName = null; selectedClassGrade = "all"; setActiveTab("classes"); });
+        els.classBrowserSearch?.addEventListener("input", () => { selectedClassGrade = "all"; renderClassBrowser(); });
         els.tabReportBtn?.addEventListener("click", openReportView);
         els.reportBackBtn?.addEventListener("click", () => setActiveTab("list"));
         els.classBrowserCloseBtn?.addEventListener("click", () => setActiveTab("list"));
@@ -11581,6 +11865,13 @@
             els.classBrowserPanel.scrollIntoView({ block:"start" });
         });
         els.classBrowserContent?.addEventListener("click", event => {
+            const gradePill = event.target.closest("button[data-filter-grade]");
+            if (gradePill) {
+                selectedClassGrade = gradePill.dataset.filterGrade;
+                renderClassBrowser();
+                els.classBrowserSearchWrap.scrollIntoView({ block:"start" });
+                return;
+            }
             const tile = event.target.closest("button[data-class]");
             if (tile) {
                 selectedClassName = tile.dataset.class;
