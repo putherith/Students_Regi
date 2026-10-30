@@ -1,4 +1,4 @@
-const CACHE_NAME = "students-registration-web-v2.1.71";
+const CACHE_NAME = "students-registration-web-v2.1.72";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -7,7 +7,8 @@ const APP_SHELL = [
   "./assets/school-emblem.png",
   "./assets/kaoh-andaet-addresses.js",
   "./assets/student-card.js",
-  "./assets/student-export.js"
+  "./assets/student-export.js",
+  "./assets/monthly-attendance.js"
 ];
 
 self.addEventListener("install", event => {

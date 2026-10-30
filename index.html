@@ -22,6 +22,7 @@
 <script defer src="./assets/kaoh-andaet-addresses.js"></script>
 <script defer src="./assets/student-card.js"></script>
 <script defer src="./assets/student-export.js"></script>
+<script defer src="./assets/monthly-attendance.js"></script>
     <style>
         /* ========================
            DESIGN TOKENS
@@ -3360,6 +3361,21 @@
         .class-report-table-wrap > table tfoot td { font-weight:700; background:var(--surface-2); }
         .report-view h3 { margin:18px 0 8px; font-size:1rem; }
         .class-report-empty { padding: 12px; color: var(--muted); }
+        .attendance-export-section { margin-top:20px; padding:18px; border:1px solid var(--border); border-radius:14px; background:var(--surface-2); }
+        .attendance-export-section h2 { margin:0 0 5px; color:var(--text); font-size:1rem; }
+        .attendance-export-section > p { margin:0 0 14px; color:var(--muted); font-size:.82rem; line-height:1.65; }
+        .attendance-export-tools { display:flex; flex-wrap:wrap; align-items:end; gap:10px; }
+        .attendance-export-tools label { display:flex; flex-direction:column; gap:5px; min-width:100px; font-size:.82rem; font-weight:700; }
+        .attendance-export-tools label:first-child { min-width:200px; flex:1 1 200px; }
+        .attendance-export-tools select,.attendance-export-tools input { min-height:40px; padding:6px 9px; border:1px solid var(--border-strong); border-radius:8px; background:var(--surface); color:var(--text); font:inherit; }
+        .attendance-export-tools .btn { min-height:40px; }
+        .attendance-export-summary { margin:12px 0 0; color:var(--text-2); font-size:.8rem; }
+        @media (max-width:600px) {
+            .attendance-export-section { padding:13px; }
+            .attendance-export-tools label:first-child { flex-basis:100%; }
+            .attendance-export-tools label:not(:first-child) { flex:1 1 90px; }
+            .attendance-export-tools .btn { flex:1 1 100%; justify-content:center; }
+        }
         .roster-preview { margin-top:16px; overflow-x:auto; border-radius:10px; background:var(--surface-2); }
         .school-roster-page { box-sizing:border-box; width:100%; min-width:900px; max-width:1050px; min-height:1200px; margin:0 auto 18px; padding:22px 22px 18px; background:#fff; color:#111; box-shadow:var(--shadow-sm); font-family:"Khmer OS Siemreap","Siemreap",sans-serif; }
         .roster-document-header { display:grid; grid-template-columns:1fr 1fr; gap:14px; min-height:92px; font-size:12px; line-height:1.65; }
@@ -4318,6 +4334,18 @@
             <div id="class-report-table" class="class-report-table-wrap"></div>
             <div id="class-report-roster"></div>
         </div>
+        <section class="attendance-export-section" aria-labelledby="monthly-attendance-title">
+            <h2 id="monthly-attendance-title">តារាងវត្តមានសិស្សប្រចាំខែ</h2>
+            <p>ជ្រើសថ្នាក់ ខែ និងឆ្នាំ រួចទាញទម្រង់ទទេសម្រាប់ចុះវត្តមាន។ ថ្ងៃទី ១–៣១ មានគ្រប់ខែ; ថ្ងៃដែលមិនមានក្នុងខែនោះសម្គាល់ —។ ការបោះពុម្ព A4 ផ្ដេកបែងជា ២ ផ្នែក ដើម្បីឱ្យអាចសរសេរបានច្បាស់។</p>
+            <div class="attendance-export-tools">
+                <label for="monthly-attendance-class">ថ្នាក់<select id="monthly-attendance-class"><option value="">ជ្រើសថ្នាក់</option></select></label>
+                <label for="monthly-attendance-month">ខែ<select id="monthly-attendance-month"></select></label>
+                <label for="monthly-attendance-year">ឆ្នាំ<input id="monthly-attendance-year" type="number" min="2000" max="2100" step="1" inputmode="numeric"></label>
+                <button id="print-monthly-attendance" class="btn btn-secondary" type="button"><ion-icon name="print-outline" aria-hidden="true"></ion-icon> បោះពុម្ព / PDF</button>
+                <button id="download-monthly-attendance" class="btn btn-ghost" type="button"><ion-icon name="download-outline" aria-hidden="true"></ion-icon> ទាញ Excel</button>
+            </div>
+            <p id="monthly-attendance-summary" class="attendance-export-summary" aria-live="polite">សូមជ្រើសថ្នាក់មួយ</p>
+        </section>
     </section>
 
     <!-- ======================== MOBILE TABS ======================== -->
@@ -4860,7 +4888,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.71</span>
+        <span class="footer-version">កំណែ 2.1.72</span>
     </footer>
 
 </main><!-- end .app -->
@@ -5877,6 +5905,12 @@
         printClassReportBtn: document.getElementById("print-class-report-btn"),
         downloadClassReportBtn: document.getElementById("download-class-report-btn"),
         downloadClassRosterBtn: document.getElementById("download-class-roster-btn"),
+        monthlyAttendanceClass: document.getElementById("monthly-attendance-class"),
+        monthlyAttendanceMonth: document.getElementById("monthly-attendance-month"),
+        monthlyAttendanceYear: document.getElementById("monthly-attendance-year"),
+        monthlyAttendanceSummary: document.getElementById("monthly-attendance-summary"),
+        printMonthlyAttendanceBtn: document.getElementById("print-monthly-attendance"),
+        downloadMonthlyAttendanceBtn: document.getElementById("download-monthly-attendance"),
         loadSheetBtn: document.getElementById("load-sheet-btn"),
         backupNowBtn: document.getElementById("backup-now-btn"),
         registrationForm: document.getElementById("registration-form"),
@@ -9895,6 +9929,70 @@
         els.downloadClassRosterBtn.hidden = reportMode !== "class" || !rows.length;
         els.printClassReportBtn.disabled = !rows.length;
         els.downloadClassReportBtn.disabled = !rows.length;
+        renderMonthlyAttendanceControls();
+    }
+
+    function renderMonthlyAttendanceControls() {
+        if (!els.monthlyAttendanceClass || !window.StudentMonthlyAttendance) return;
+        if (!els.monthlyAttendanceMonth.options.length) {
+            window.StudentMonthlyAttendance.months.forEach((name, index) =>
+                els.monthlyAttendanceMonth.add(new Option(name, String(index + 1))));
+            els.monthlyAttendanceMonth.value = String(new Date().getMonth() + 1);
+        }
+        if (!els.monthlyAttendanceYear.value) els.monthlyAttendanceYear.value = String(new Date().getFullYear());
+        const groups = classReportGroups().filter(group => group.key !== "unassigned");
+        const previous = els.monthlyAttendanceClass.value;
+        els.monthlyAttendanceClass.replaceChildren(new Option("ជ្រើសថ្នាក់", ""));
+        groups.forEach(group => els.monthlyAttendanceClass.add(new Option(`${group.name} (${group.students.length} នាក់)`, group.key)));
+        const reportSelection = reportMode === "class" ? els.classReportSelect.value : "";
+        els.monthlyAttendanceClass.value = groups.some(group => group.key === previous) ? previous
+            : groups.some(group => group.key === reportSelection) ? reportSelection : "";
+        updateMonthlyAttendanceSummary();
+    }
+
+    function updateMonthlyAttendanceSummary() {
+        const group = classReportGroups().find(item => item.key === els.monthlyAttendanceClass.value);
+        els.monthlyAttendanceSummary.textContent = group
+            ? `ថ្នាក់ ${group.name} · សិស្ស ${group.students.length} នាក់ · តារាងទទេសម្រាប់ចុះវត្តមានដោយដៃ`
+            : "សូមជ្រើសថ្នាក់មួយ ដើម្បីទាញតារាងវត្តមានប្រចាំខែ";
+        els.printMonthlyAttendanceBtn.disabled = !group;
+        els.downloadMonthlyAttendanceBtn.disabled = !group;
+    }
+
+    function selectedMonthlyAttendance() {
+        const group = classReportGroups().find(item => item.key === els.monthlyAttendanceClass.value);
+        if (!group) { showToast("សូមជ្រើសថ្នាក់សម្រាប់តារាងវត្តមាន", "warning"); return null; }
+        try {
+            const { year, month } = window.StudentMonthlyAttendance.validate(els.monthlyAttendanceYear.value, els.monthlyAttendanceMonth.value);
+            return { className:group.name, year, month,
+                teacher:appSettings.classTeachers[group.name] || "",
+                students:sortedRosterStudents(group).map(student => ({
+                    code:studentVisibleId(student), name:studentFullName(student), gender:student.gender
+                })) };
+        } catch (error) {
+            showToast(error.message || "ខែ ឬឆ្នាំមិនត្រឹមត្រូវ", "warning");
+            return null;
+        }
+    }
+
+    function printMonthlyAttendance() {
+        const selected = selectedMonthlyAttendance();
+        if (!selected) return;
+        const title = `តារាងវត្តមានថ្នាក់ ${selected.className} ខែ ${selected.month}/${selected.year}`;
+        printWindow(title, window.StudentMonthlyAttendance.printHtml(selected));
+    }
+
+    function downloadMonthlyAttendance() {
+        const selected = selectedMonthlyAttendance();
+        if (!selected) return;
+        if (!window.StudentExport?.styledWorkbook) {
+            showToast("មុខងារ Excel មិនទាន់ផ្ទុក។ សូម Refresh ហើយសាកម្ដងទៀត។", "error");
+            return;
+        }
+        const blob = window.StudentExport.styledWorkbook(window.StudentMonthlyAttendance.excelSpec(selected));
+        const safeClass = selected.className.replace(/[\\/:*?"<>|]/g, "-");
+        downloadWorkbookFile(blob, `attendance-${safeClass}-${selected.year}-${String(selected.month).padStart(2, "0")}.xlsx`);
+        showToast(`ទាញតារាងវត្តមានថ្នាក់ ${selected.className} រួច`, "success");
     }
 
     function printClassReport() {
@@ -11783,6 +11881,9 @@
         els.printClassReportBtn?.addEventListener("click",printClassReport);
         els.downloadClassReportBtn?.addEventListener("click",downloadClassReport);
         els.downloadClassRosterBtn?.addEventListener("click",downloadClassRosterHtml);
+        els.monthlyAttendanceClass?.addEventListener("change",updateMonthlyAttendanceSummary);
+        els.printMonthlyAttendanceBtn?.addEventListener("click",printMonthlyAttendance);
+        els.downloadMonthlyAttendanceBtn?.addEventListener("click",downloadMonthlyAttendance);
         els.deleteAllBtn.addEventListener("click",openDeleteAllModal);
 
         // Backup
