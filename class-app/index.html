@@ -838,7 +838,7 @@ function applyRO(){
   if(!RO)return;const c=$('#content');
   c.querySelectorAll('input,textarea,select').forEach(e=>{if(!RO_KEEP.includes(e.id))e.disabled=true});
   c.querySelectorAll('[data-s]').forEach(b=>b.disabled=true);
-  c.querySelectorAll('.btn.pri,.btn.dng,#allP,[data-e]').forEach(b=>b.style.display='none');
+  c.querySelectorAll('.btn.pri:not(#xcopy),.btn.dng,#allP,[data-e]').forEach(b=>b.style.display='none');
 }
 function markStk(){
   $('#content').querySelectorAll('.tw table').forEach(t=>{const h=[...t.querySelectorAll('thead th')];if(h[1]&&/គោត្តនាម|ឈ្មោះ|សិស្ស/.test(h[1].textContent))t.classList.add('stk')})}
