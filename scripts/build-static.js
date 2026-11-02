@@ -13,6 +13,7 @@ const entries = [
   ".nojekyll",
   "README.md",
   "index.html",
+  "class-app",
   "teacher-portal.html",
   "manifest.webmanifest",
   "service-worker.js",

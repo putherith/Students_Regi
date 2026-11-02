@@ -1,0 +1,1768 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ថ្នាក់ឌីជីថល</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#12283d">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&family=Moul&display=swap">
+<style>
+@font-face{font-family:'SiemReapLocal';src:local('Khmer OS Siemreap'),local('KhmerOS_siemreap'),local('KhmerOS Siemreap'),local('KhmerOSsiemreap');font-weight:100 900;font-style:normal}
+/* Layout: left drawer nav + sticky top bar + card grid content. Palette: ink blue, jade, amber. */
+:root{
+  --bg:#eef3f6;--surface:#ffffff;--surface2:#f4f8fa;--fg:#14283a;--muted:#5d7283;--line:#d8e2e9;
+  --accent:#12906a;--accent-fg:#ffffff;--accent-soft:#dcf3ea;--gold:#c98a0b;--gold-soft:#fbeed0;
+  --danger:#c93a3a;--danger-soft:#fbe2e2;--ok:#12906a;--warn:#c98a0b;--blue:#2b6cb0;--blue-soft:#dcebf9;
+  --nav:#12283d;--nav-fg:#d5e2ec;--nav-active:#1d4261;--shadow:0 1px 2px rgba(20,40,58,.06),0 6px 18px rgba(20,40,58,.06);
+  --f-body:'SiemReapLocal','Khmer OS Siemreap','KhmerOS_siemreap','Kantumruy Pro','Noto Sans Khmer',system-ui,sans-serif;--f-head:'Khmer OS Muol Light','Khmer OS Muol','Moul','Kantumruy Pro',serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1b29;--surface:#142738;--surface2:#193045;--fg:#e6eef5;--muted:#93a9bb;--line:#264158;
+  --accent:#2fc294;--accent-fg:#06281e;--accent-soft:#12392f;--gold:#f0b73d;--gold-soft:#3a2f10;
+  --danger:#f06b6b;--danger-soft:#3d1c1f;--ok:#2fc294;--warn:#f0b73d;--blue:#6fb0f0;--blue-soft:#142f4a;
+  --nav:#091521;--nav-fg:#b9ccdb;--nav-active:#17354e;--shadow:0 1px 2px rgba(0,0,0,.3);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1b29;--surface:#142738;--surface2:#193045;--fg:#e6eef5;--muted:#93a9bb;--line:#264158;
+  --accent:#2fc294;--accent-fg:#06281e;--accent-soft:#12392f;--gold:#f0b73d;--gold-soft:#3a2f10;
+  --danger:#f06b6b;--danger-soft:#3d1c1f;--ok:#2fc294;--warn:#f0b73d;--blue:#6fb0f0;--blue-soft:#142f4a;
+  --nav:#091521;--nav-fg:#b9ccdb;--nav-active:#17354e;--shadow:0 1px 2px rgba(0,0,0,.3);color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.7;
+  padding-block:0;padding-left:0;padding-right:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{margin:0;line-height:1.5;text-wrap:balance}
+.num{font-variant-numeric:tabular-nums}
+
+/* login */
+#login{min-height:100%;display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));
+  background:radial-gradient(1200px 500px at 50% -10%,var(--accent-soft),transparent),var(--bg)}
+.login-card{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:28px 24px;box-shadow:var(--shadow)}
+.login-card h1{font-family:var(--f-head);font-size:22px;color:var(--accent);text-align:center;font-weight:400}
+.login-card .sub{text-align:center;color:var(--muted);margin:6px 0 20px}
+.seg{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;background:var(--surface2);padding:4px;border-radius:12px;margin-bottom:16px}
+.seg button{border:0;background:transparent;padding:8px 2px;border-radius:9px;font-weight:600;font-size:12px;line-height:1.35;color:var(--muted);min-width:0;word-break:keep-all}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:var(--shadow)}
+label.f{display:block;font-size:13px;color:var(--muted);margin:12px 0 4px}
+.in{width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;min-height:42px}
+.in:focus{border-color:var(--accent)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;font-weight:600;min-height:40px}
+.btn:hover{background:var(--surface2)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.pri:hover{filter:brightness(1.07)}
+.btn.dng{color:var(--danger);border-color:var(--danger-soft)}
+.btn.sm{padding:4px 10px;min-height:32px;font-size:13px}
+.err{color:var(--danger);font-size:13px;min-height:20px;margin-top:8px}
+.hint{font-size:12.5px;color:var(--muted);margin-top:14px;text-align:center}
+
+/* shell */
+#app{display:grid;grid-template-columns:268px 1fr;height:100%}
+#nav{background:var(--nav);color:var(--nav-fg);overflow:auto;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.brand{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand b{display:block;font-family:var(--f-head);font-weight:400;color:#fff;font-size:16px}
+.brand small{opacity:.75}
+#nav a{display:flex;gap:10px;align-items:center;padding:10px 16px;color:inherit;text-decoration:none;border-left:3px solid transparent;cursor:pointer}
+#nav a:hover{background:rgba(255,255,255,.05)}
+#nav a.on{background:var(--nav-active);border-left-color:var(--accent);color:#fff;font-weight:600}
+#nav .sp{flex:1}
+#nav .ver{padding:10px 16px;font-size:12px;opacity:.6}
+#main{display:flex;flex-direction:column;min-width:0;height:100%}
+#top{display:flex;gap:10px;align-items:center;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));
+  padding-top:calc(10px + env(safe-area-inset-top,0px));background:var(--surface);border-bottom:1px solid var(--line)}
+#top .in{flex:1;min-width:0}
+#burger{display:none}
+#content{flex:1;overflow:auto;padding:18px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+.page{max-width:1180px;margin:0 auto}
+.ph{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.ph h2{font-size:19px;font-weight:700}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);min-width:0}
+.card h3{font-size:15px;margin-bottom:10px}
+.stat .k{color:var(--muted);font-size:13px}
+.stat .v{font-size:30px;font-weight:700;line-height:1.3}
+.stat .s{font-size:13px;color:var(--accent)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap;font-size:14px}
+th{background:var(--surface2);font-weight:600;color:var(--muted);font-size:13px;position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+td.c,th.c{text-align:center}
+.cell{width:64px;text-align:center;padding:4px;min-height:32px;border-radius:8px}
+.pill{display:inline-block;padding:1px 10px;border-radius:99px;font-size:12.5px;font-weight:600;background:var(--surface2);color:var(--muted)}
+.pill.ok{background:var(--accent-soft);color:var(--ok)}
+.pill.warn{background:var(--gold-soft);color:var(--warn)}
+.pill.bad{background:var(--danger-soft);color:var(--danger)}
+.pill.blue{background:var(--blue-soft);color:var(--blue)}
+.bar{height:10px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tabs button{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 14px;font-weight:600;color:var(--muted)}
+.tabs button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
+.quick{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px}
+.quick button{display:flex;flex-direction:column;gap:2px;align-items:center;padding:14px 8px;border:1px solid var(--line);background:var(--surface2);border-radius:14px;font-weight:600}
+.quick button:hover{border-color:var(--accent)}
+.quick .ic{font-size:11px;color:var(--accent);letter-spacing:.06em;font-weight:700}
+.rank{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.rank:last-child{border:0}
+.rank .n{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--gold-soft);color:var(--warn);font-weight:700;font-size:13px;flex:none}
+.rank .nm{flex:1;min-width:0}
+.modal{position:fixed;inset:0;background:rgba(5,15,25,.55);display:grid;place-items:center;padding:16px;z-index:50}
+.modal>div{background:var(--surface);border-radius:18px;width:100%;max-width:520px;max-height:92%;overflow:auto;padding:20px;border:1px solid var(--line)}
+.modal h3{font-size:17px;margin-bottom:6px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 18px;border-radius:99px;font-weight:600;z-index:60}
+textarea.in{min-height:160px;font-family:ui-monospace,monospace;font-size:12px}
+.doc{background:var(--surface2);border:1px dashed var(--line);border-radius:12px;padding:16px;white-space:pre-wrap;line-height:1.9}
+.scrim{display:none}
+.sec{font-family:var(--f-head);font-weight:400;font-size:13px;color:var(--accent);margin:22px 0 8px}
+@media (max-width:860px){
+  #app{grid-template-columns:1fr}
+  #nav{position:fixed;inset:0 auto 0 0;width:282px;max-width:86%;z-index:40;transform:translateX(-102%);transition:transform .2s}
+  body.open #nav{transform:none}
+  body.open .scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:30}
+  #burger{display:inline-block}
+}
+@media (prefers-reduced-motion:reduce){#nav{transition:none}}
+@media print{
+  #nav,#top,.noprint,#login,.scrim,.toast{display:none!important}
+  html,body{height:auto;background:#fff}
+  #app{display:block;height:auto}#main{display:block;height:auto}
+  #content{overflow:visible;padding:0}
+  .page{max-width:none}
+  .paperwrap{overflow:visible!important;border:0!important;padding:0!important}
+  .paper{box-shadow:none!important;margin:0!important;width:auto!important;min-height:0!important;padding:0!important}
+}
+.paperwrap{overflow:auto;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:14px}
+.paper{background:#fff;color:#000;margin:0 auto;box-shadow:0 2px 14px rgba(0,0,0,.18);padding:14mm 14mm 12mm;font-family:var(--f-body);font-size:12.5px;line-height:1.55;min-width:0}
+.paper.p{width:210mm}.paper.l{width:297mm}
+
+#bnav{display:none}
+.stk td:nth-child(2),.stk th:nth-child(2){position:sticky;left:0;background:var(--surface);z-index:1;box-shadow:1px 0 0 var(--line)}
+.stk th:nth-child(2){background:var(--surface2);z-index:2}
+@media (max-width:860px){
+  #bnav{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--surface);border-top:1px solid var(--line);
+    padding:4px max(4px,env(safe-area-inset-right,0px)) calc(4px + env(safe-area-inset-bottom,0px)) max(4px,env(safe-area-inset-left,0px))}
+  #bnav button{border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 2px;min-height:52px;color:var(--muted);font-size:11.5px;font-weight:600;line-height:1.35;border-radius:12px}
+  #bnav button .i{font-size:21px;line-height:1.2}
+  #bnav button.on{color:var(--accent);background:var(--accent-soft)}
+  #content{padding-top:14px;padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+  .in{font-size:16px;min-height:46px}
+  textarea.in{font-size:13px}
+  .btn{min-height:44px}.btn.sm{min-height:40px;padding:6px 12px}
+  .cell{width:62px}
+  .stat .v{font-size:24px}.card{padding:14px;border-radius:14px}
+  .ph h2{font-size:17px}
+  th,td{padding:10px 10px}
+  .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+  .tabs button{white-space:nowrap;min-height:40px;flex:none}
+  .modal{align-items:end;padding:0}
+  .modal>div{max-width:none;border-radius:20px 20px 0 0;max-height:90%;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+  .toast{bottom:calc(88px + env(safe-area-inset-bottom,0px));max-width:92%;text-align:center}
+  .quick{grid-template-columns:repeat(2,1fr)}
+  .grid.g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #top .in{min-height:42px}
+}
+@media print{#bnav{display:none!important}}
+</style>
+<div id="login" hidden>
+  <form class="login-card" id="loginForm" autocomplete="off">
+    <h1>ថ្នាក់ឌីជីថល</h1>
+    <div class="sub">ប្រព័ន្ធគ្រប់គ្រងថ្នាក់រៀន · ទិន្នន័យរក្សាទុកក្នុងឧបករណ៍អ្នក</div>
+    <div class="seg" role="group" aria-label="តួនាទី" id="roleSeg">
+      <button type="button" data-r="teacher" aria-pressed="true">គ្រូបន្ទុកថ្នាក់</button>
+      <button type="button" data-r="subject" aria-pressed="false">គ្រូមុខវិជ្ជា</button>
+      <button type="button" data-r="student" aria-pressed="false">សិស្ស</button>
+      <button type="button" data-r="guardian" aria-pressed="false">អាណាព្យាបាល</button>
+      <button type="button" data-r="admin" aria-pressed="false">គណៈគ្រប់គ្រង</button>
+    </div>
+    <div id="classRow"><label class="f" for="loginClass" style="margin-top:0">ថ្នាក់</label><select class="in" id="loginClass"></select></div>
+    <div id="fTeacher" hidden><label class="f" for="loginTeacher" style="margin-top:0">ឈ្មោះគ្រូ</label><select class="in" id="loginTeacher"></select></div>
+    <div id="fStudent" hidden><label class="f" for="loginStudent">ឈ្មោះសិស្ស</label><select class="in" id="loginStudent"></select></div>
+    <label class="f" for="pw">លេខសម្ងាត់</label>
+    <input class="in" id="pw" type="password" inputmode="numeric" placeholder="••••">
+    <div class="err" id="loginErr"></div>
+    <button class="btn pri" style="width:100%;margin-top:8px" type="submit">ចូលប្រព័ន្ធ</button>
+    <div class="hint" id="loginHint"></div>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <nav id="nav" aria-label="ម៉ឺនុយ"></nav>
+  <div id="main">
+    <div id="top">
+      <button class="btn" id="burger" aria-label="បើកម៉ឺនុយ">☰</button>
+      <input class="in" id="gsearch" placeholder="ស្វែងរកសិស្ស…" aria-label="ស្វែងរកសិស្ស">
+      <button class="btn" id="themeBtn" aria-label="ប្តូរពណ៌">◐</button>
+    </div>
+    <main id="content"></main>
+  </div>
+  <nav id="bnav" aria-label="ម៉ឺនុយរហ័ស"></nav>
+</div>
+<div class="scrim" id="scrim"></div>
+<script>
+'use strict';
+/* ---------- helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const KH='០១២៣៤៥៦៧៨៩';
+const kh=n=>String(n).replace(/\d/g,d=>KH[d]);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const MONTHS=['តុលា','វិច្ឆិកា','ធ្នូ','មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា'];
+const TERMS=[{k:'s1',n:'ឆមាសទី១'},{k:'s2',n:'ឆមាសទី២'}];
+const KEY='classroom-khmer-v2';
+let AFTER=null;
+let DB=null, ROOT=null, CUR=null, ROLE='teacher', mem=null;
+
+/* ---------- storage ---------- */
+function load(){
+  try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r)}catch(e){}
+  try{const r=localStorage.getItem(OLDKEY);if(r){const o=JSON.parse(r);if(o&&o.students)return migrate(o)}}catch(e){}
+  return mem?JSON.parse(mem):null;
+}
+function save(){
+  const s=JSON.stringify(ROOT);mem=s;
+  try{localStorage.setItem(KEY,s)}catch(e){}
+}
+
+/* ---------- grading (scale of 10) ---------- */
+const GR=[[9,'A','ល្អប្រសើរ','ok'],[8,'B','ល្អណាស់','ok'],[7,'C','ល្អ','blue'],[6,'D','ល្អបង្គួរ','warn'],[5,'E','មធ្យម','warn'],[0,'F','ខ្សោយ','bad']];
+const grade=a=>a==null?null:GR.find(g=>a>=g[0]);
+const gpill=a=>{const g=grade(a);return g?`<span class="pill ${g[3]}">${g[1]} · ${g[2]}</span>`:'<span class="pill">—</span>'};
+const fx=(n,d=2)=>n==null?'—':Number(n).toFixed(d);
+
+/* weighted average of a student for a column key (month index "m0".. or "s1"/"s2") */
+function avgOf(sid,col){
+  let sum=0,w=0;
+  for(const sub of DB.subjects){
+    const v=DB.scores[sid]?.[sub.id]?.[col];
+    if(v!==undefined&&v!==''&&v!==null){sum+=Number(v)*sub.coef;w+=sub.coef}
+  }
+  return w?sum/w:null;
+}
+function yearAvg(sid){
+  const cols=[...MONTHS.map((_,i)=>'m'+i),'s1','s2'];
+  const vals=cols.map(c=>avgOf(sid,c)).filter(v=>v!=null);
+  return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+}
+function monthlyClassAvg(i){
+  const v=DB.students.map(s=>avgOf(s.id,'m'+i)).filter(x=>x!=null);
+  return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;
+}
+function bmi(s){
+  if(!s.w||!s.h)return null;
+  const h=s.h>3?s.h/100:s.h;return s.w/(h*h);
+}
+function bmiState(b){
+  if(b==null)return['—',''];
+  if(b<18.5)return['ស្គម','warn'];
+  if(b<25)return['ធម្មតា','ok'];
+  if(b<30)return['លើសទម្ងន់','warn'];
+  return['ធាត់','bad'];
+}
+function ageOf(s){
+  if(!s.dob)return null;const d=new Date(s.dob),n=new Date();
+  let a=n.getFullYear()-d.getFullYear();
+  if(n<new Date(n.getFullYear(),d.getMonth(),d.getDate()))a--;return a;
+}
+const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+
+/* ---------- ui helpers ---------- */
+function toast(t){
+  const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.append(e);
+  setTimeout(()=>e.remove(),1900);
+}
+function modal(html,onMount){
+  const m=document.createElement('div');m.className='modal';
+  m.innerHTML='<div role="dialog" aria-modal="true">'+html+'</div>';
+  m.addEventListener('click',e=>{if(e.target===m)m.remove()});
+  document.body.append(m);onMount&&onMount(m);return m;
+}
+function ask(msg,yes){
+  const m=modal(`<h3>បញ្ជាក់</h3><p>${esc(msg)}</p><div class="row" style="justify-content:flex-end"><button class="btn" data-x>បោះបង់</button><button class="btn dng" data-y>យល់ព្រម</button></div>`,m=>{
+    m.querySelector('[data-x]').onclick=()=>m.remove();
+    m.querySelector('[data-y]').onclick=()=>{m.remove();yes()};
+  });
+}
+function copyText(t){
+  const done=()=>toast('បានចម្លង');
+  try{navigator.clipboard.writeText(t).then(done,()=>fallback())}catch(e){fallback()}
+  function fallback(){const a=document.createElement('textarea');a.value=t;document.body.append(a);a.select();try{document.execCommand('copy');done()}catch(e){toast('សូមជ្រើសរើស និងចម្លងដោយដៃ')}a.remove()}
+}
+
+/* tiny charts (SVG, drawn to scale) */
+function barChart(labels,vals,max=10,h=170){
+  const W=Math.max(300,labels.length*44),pl=26,pb=26,pt=10,H=h;
+  const bw=(W-pl)/labels.length;let g='';
+  for(let t=0;t<=max;t+=max/5){const y=pt+(H-pb-pt)*(1-t/max);g+=`<line x1="${pl}" x2="${W}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="${pl-4}" y="${y+4}" text-anchor="end">${t}</text>`}
+  vals.forEach((v,i)=>{if(v==null){g+=`<text x="${pl+bw*i+bw/2}" y="${H-8}" text-anchor="middle">${labels[i]}</text>`;return}
+    const bh=(H-pb-pt)*v/max,x=pl+bw*i+bw*.18;
+    g+=`<rect x="${x}" y="${H-pb-bh}" width="${bw*.64}" height="${bh}" rx="4" fill="var(--accent)"/><text x="${x+bw*.32}" y="${H-pb-bh-3}" text-anchor="middle">${fx(v,1)}</text><text x="${x+bw*.32}" y="${H-8}" text-anchor="middle">${labels[i]}</text>`});
+  return `<div style="overflow-x:auto"><svg class="chart" style="min-width:${W}px" viewBox="0 0 ${W} ${H}">${g}</svg></div>`;
+}
+function donut(parts){ /* parts:[{label,value,color}] */
+  const tot=parts.reduce((a,p)=>a+p.value,0);
+  if(!tot)return '<div class="empty">មិនទាន់មានទិន្នន័យ</div>';
+  let a0=-Math.PI/2,paths='';const R=60,r=36,cx=70,cy=70;
+  parts.filter(p=>p.value).forEach(p=>{
+    const a1=a0+2*Math.PI*p.value/tot,big=a1-a0>Math.PI?1:0;
+    if(p.value===tot){paths+=`<circle cx="${cx}" cy="${cy}" r="${(R+r)/2}" fill="none" stroke="${p.color}" stroke-width="${R-r}"/>`}
+    else paths+=`<path d="M${cx+R*Math.cos(a0)} ${cy+R*Math.sin(a0)}A${R} ${R} 0 ${big} 1 ${cx+R*Math.cos(a1)} ${cy+R*Math.sin(a1)}L${cx+r*Math.cos(a1)} ${cy+r*Math.sin(a1)}A${r} ${r} 0 ${big} 0 ${cx+r*Math.cos(a0)} ${cy+r*Math.sin(a0)}Z" fill="${p.color}"/>`;
+    a0=a1});
+  const leg=parts.map(p=>`<div class="row" style="gap:6px"><i style="width:10px;height:10px;border-radius:3px;background:${p.color}"></i>${p.label} <b class="num">${kh(p.value)}</b></div>`).join('');
+  return `<div class="row" style="gap:18px"><svg width="140" height="140" viewBox="0 0 140 140">${paths}<text x="70" y="75" text-anchor="middle" style="font-size:16px;font-weight:700;fill:var(--fg)">${kh(tot)}</text></svg><div>${leg}</div></div>`;
+}
+const GCOL={A:'#12906a',B:'#3aa57f',C:'#2b6cb0',D:'#c98a0b',E:'#d97a2b',F:'#c93a3a'};
+</script>
+<script>
+/* ---------- views A: dashboard, people, health ---------- */
+const V={};
+function latestMonth(){
+  for(let i=MONTHS.length-1;i>=0;i--) if(DB.students.some(s=>avgOf(s.id,'m'+i)!=null))return i;
+  return -1;
+}
+function periodAvg(sid,mode){
+  const lm=latestMonth();
+  if(mode==='month')return lm<0?null:avgOf(sid,'m'+lm);
+  if(mode==='quarter'){const v=[lm,lm-1,lm-2].filter(i=>i>=0).map(i=>avgOf(sid,'m'+i)).filter(x=>x!=null);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null}
+  if(mode==='sem'){const a=avgOf(sid,'s1');if(a!=null)return a;const v=[0,1,2,3,4].map(i=>avgOf(sid,'m'+i)).filter(x=>x!=null);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null}
+  return yearAvg(sid);
+}
+function attRate(){
+  let p=0,t=0;
+  for(const d of Object.values(DB.att))for(const v of Object.values(d)){t++;if(v==='P'||v==='L')p++}
+  return t?p/t*100:null;
+}
+function absentCount(sid){let n=0;for(const d of Object.values(DB.att))if(d[sid]==='A')n++;return n}
+function atRisk(){
+  return DB.students.map(s=>{
+    const a=yearAvg(s.id),ab=absentCount(s.id),why=[];
+    if(a!=null&&a<5)why.push('ពិន្ទុទាប');
+    if(ab>=3)why.push('អវត្តមាន '+kh(ab)+' ដង');
+    return why.length?{s,a,why}:null}).filter(Boolean);
+}
+function khDate(){
+  const d=new Date(),days=['អាទិត្យ','ច័ន្ទ','អង្គារ','ពុធ','ព្រហស្បតិ៍','សុក្រ','សៅរ៍'];
+  const ms=['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
+  return `ថ្ងៃ${days[d.getDay()]} ទី${kh(d.getDate())} ខែ${ms[d.getMonth()]} ឆ្នាំ${kh(d.getFullYear())}`;
+}
+
+V.dash={title:'ផ្ទាំងគ្រប់គ្រង',render(el){
+  const st=DB.students,boys=st.filter(s=>s.sex==='ប្រុស').length,girls=st.length-boys;
+  const lm=latestMonth(),mavg=lm<0?null:monthlyClassAvg(lm),ar=attRate(),risk=atRisk();
+  const dist={A:0,B:0,C:0,D:0,E:0,F:0};
+  st.forEach(s=>{const a=periodAvg(s.id,'year');const g=grade(a);if(g)dist[g[1]]++});
+  const ages={};st.forEach(s=>{const a=ageOf(s);if(a!=null)ages[a]=(ages[a]||0)+1});
+  const ageKeys=Object.keys(ages).sort((a,b)=>a-b);
+  const maxAge=Math.max(1,...Object.values(ages));
+  el.innerHTML=`<div class="page">
+  <div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,var(--accent-soft),var(--surface))">
+    <h2 style="font-size:18px">សួស្តី ${esc(DB.settings.teacher)} 👋</h2>
+    <div style="color:var(--muted)">${esc(DB.settings.school)} · ${esc(DB.settings.className)} · ឆ្នាំសិក្សា ${esc(DB.settings.year)}</div>
+    <div style="margin-top:6px;font-weight:600;color:var(--accent)">${khDate()}</div>
+  </div>
+  <div class="grid g4">
+    <div class="card stat"><div class="k">សិស្សសរុប</div><div class="v num">${kh(st.length)}</div><div class="s">ប្រុស ${kh(boys)} · ស្រី ${kh(girls)}</div></div>
+    <div class="card stat"><div class="k">មុខវិជ្ជា</div><div class="v num">${kh(DB.subjects.length)}</div><div class="s">មេគុណសរុប ${kh(DB.subjects.reduce((a,s)=>a+s.coef,0))}</div></div>
+    <div class="card stat"><div class="k">មធ្យមភាគថ្នាក់ ${lm>=0?'ខែ'+MONTHS[lm]:''}</div><div class="v num">${mavg==null?'—':fx(mavg)}</div><div class="s">${mavg==null?'សូមបញ្ចូលពិន្ទុ':grade(mavg)[2]}</div></div>
+    <div class="card stat"><div class="k">អត្រាចូលរៀន</div><div class="v num">${ar==null?'—':fx(ar,1)+'%'}</div><div class="s">${ar==null?'មិនទាន់មានទិន្នន័យ':'ពីការកត់ត្រាទាំងអស់'}</div></div>
+  </div>
+  <div class="sec">ការចូលប្រើប្រាស់រហ័ស</div>
+  <div class="quick">
+    ${[['scores','ពិន្ទុ','បញ្ចូលពិន្ទុ'],['att','វត្តមាន','កត់ត្រាវត្តមាន'],['results','លទ្ធផល','មើលលទ្ធផលប្រឡង'],['health','BMI','សុខភាពសិក្សា'],['reports','របាយការណ៍','របាយការណ៍ និងផែនការ'],['people','សិស្ស','ព័ត៌មានគ្រូ និងសិស្ស']].map(q=>`<button data-go="${q[0]}"><span class="ic">${q[1]}</span>${q[2]}</button>`).join('')}
+  </div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h3>មធ្យមភាគប្រចាំខែ</h3>${barChart(MONTHS,MONTHS.map((_,i)=>monthlyClassAvg(i)))}</div>
+    <div class="card"><h3>ការបែងចែកនិទ្ទេស (មធ្យមភាគឆ្នាំ)</h3>${donut(Object.entries(dist).map(([k,v])=>({label:k+' · '+GR.find(g=>g[1]===k)[2],value:v,color:GCOL[k]})))}</div>
+    <div class="card"><h3>🏆 សិស្សពូកែកំពូល ១០នាក់</h3>
+      <div class="tabs" id="t10">${[['month','ប្រចាំខែ'],['quarter','ត្រីមាស'],['sem','ឆមាស'],['year','ប្រចាំឆ្នាំ']].map((t,i)=>`<button data-m="${t[0]}" class="${i?'':'on'}">${t[1]}</button>`).join('')}</div>
+      <div id="top10"></div></div>
+    <div class="card"><h3>🚨 សិស្សប្រឈមហានិភ័យបោះបង់ការសិក្សា</h3>
+      ${risk.length?risk.map(r=>`<div class="rank"><div class="nm"><b>${esc(r.s.name)}</b><div style="font-size:13px;color:var(--muted)">${r.why.join(' · ')}</div></div><span class="pill bad">${r.a==null?'—':fx(r.a)}</span></div>`).join(''):'<div class="empty">មិនមានសិស្សប្រឈមហានិភ័យទេ</div>'}
+    </div>
+    <div class="card"><h3>ការវិភាគអាយុ និងភេទ</h3>
+      ${ageKeys.length?ageKeys.map(a=>`<div class="row" style="flex-wrap:nowrap;margin:4px 0"><span style="width:64px">${kh(a)} ឆ្នាំ</span><div class="bar" style="flex:1"><i style="width:${ages[a]/maxAge*100}%"></i></div><b class="num" style="width:28px;text-align:right">${kh(ages[a])}</b></div>`).join(''):'<div class="empty">មិនទាន់មានអាយុសិស្ស</div>'}
+      <div style="margin-top:10px">${donut([{label:'ប្រុស',value:boys,color:'#2b6cb0'},{label:'ស្រី',value:girls,color:'#d6568a'}])}</div></div>
+    <div class="card"><h3>📣 សេចក្តីប្រកាសថ្មីៗ</h3>
+      ${DB.notices.slice(0,3).map(n=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><b>${esc(n.title)}</b><div style="font-size:13px;color:var(--muted)">${esc(n.date)}</div></div>`).join('')||'<div class="empty">មិនទាន់មានសេចក្តីប្រកាស</div>'}
+    </div>
+  </div></div>`;
+  const draw=m=>{
+    const rows=st.map(s=>({s,a:periodAvg(s.id,m)})).filter(r=>r.a!=null).sort((a,b)=>b.a-a.a).slice(0,10);
+    $('#top10').innerHTML=rows.length?rows.map((r,i)=>`<div class="rank"><div class="n">${kh(i+1)}</div><div class="nm"><b>${esc(r.s.name)}</b></div>${gpill(r.a)}<b class="num" style="width:44px;text-align:right">${fx(r.a)}</b></div>`).join(''):'<div class="empty">មិនទាន់មានពិន្ទុ</div>';
+  };
+  draw('month');
+  $('#t10').onclick=e=>{const b=e.target.closest('button');if(!b)return;[...$('#t10').children].forEach(x=>x.classList.toggle('on',x===b));draw(b.dataset.m)};
+  el.onclick=e=>{const b=e.target.closest('[data-go]');if(b)go(b.dataset.go)};
+}};
+
+/* people */
+let peopleTab='st',peopleQ='',peopleSort='name';
+V.people={title:'ព័ត៌មានគ្រូ និងសិស្ស',render(el){
+  const draw=()=>{
+    const q=(peopleQ||$('#gsearch').value||'').trim().toLowerCase();
+    let rows=DB.students.filter(s=>!q||[s.name,s.guardian,s.phone].join(' ').toLowerCase().includes(q));
+    rows.sort((a,b)=>peopleSort==='avg'?(yearAvg(b.id)??-1)-(yearAvg(a.id)??-1):a.name.localeCompare(b.name,'km'));
+    el.innerHTML=`<div class="page"><div class="ph"><h2>ព័ត៌មានសិស្ស · ${esc(DB.settings.className)}</h2><div class="row">
+      ${ROLE==='admin'?`<button class="btn sm pri" id="add">＋ បន្ថែម${peopleTab==='st'?'សិស្ស':'គ្រូ'}</button>`:'<span class="pill blue">ទិន្នន័យសិស្សបញ្ចូលដោយគណៈគ្រប់គ្រង</span>'}</div></div>
+            ${peopleTab==='st'?`<div class="row" style="margin-bottom:10px"><input class="in" id="pq" style="max-width:280px" placeholder="ស្វែងរក / តម្រង" value="${esc(peopleQ)}"><select class="in" id="ps" style="max-width:200px"><option value="name">តម្រៀបតាមឈ្មោះ</option><option value="avg" ${peopleSort==='avg'?'selected':''}>តម្រៀបតាមមធ្យមភាគ</option></select></div>
+      <div class="tw"><table><thead><tr><th class="c">ល.រ</th><th>គោត្តនាម និងនាម</th><th class="c">ភេទ</th><th class="c">អាយុ</th><th>អាណាព្យាបាល</th><th>ទូរស័ព្ទ</th><th class="c">មធ្យមភាគ</th><th></th></tr></thead><tbody>
+      ${rows.map((s,i)=>`<tr><td class="c num">${kh(i+1)}</td><td><b>${esc(s.name)}</b></td><td class="c">${esc(s.sex)}</td><td class="c num">${ageOf(s)==null?'—':kh(ageOf(s))}</td><td>${esc(s.guardian||'—')}</td><td>${esc(s.phone||'—')}</td><td class="c num">${fx(yearAvg(s.id))}</td><td>${ROLE==='admin'?`<button class="btn sm" data-e="${s.id}">កែ</button> <button class="btn sm dng" data-d="${s.id}">លុប</button>`:''}</td></tr>`).join('')||'<tr><td colspan="8" class="empty">មិនមានសិស្ស</td></tr>'}
+      </tbody></table></div>`:`<div class="tw"><table><thead><tr><th class="c">ល.រ</th><th>ឈ្មោះគ្រូ</th><th>មុខវិជ្ជាបង្រៀន</th><th>ទូរស័ព្ទ</th><th></th></tr></thead><tbody>
+      ${DB.teachers.map((t,i)=>`<tr><td class="c num">${kh(i+1)}</td><td><b>${esc(t.name)}</b></td><td>${esc(t.subject||'—')}</td><td>${esc(t.phone||'—')}</td><td><button class="btn sm" data-te="${t.id}">កែ</button> <button class="btn sm dng" data-td="${t.id}">លុប</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">មិនទាន់មានគ្រូ</td></tr>'}
+      </tbody></table></div>`}</div>`;
+    const pq=$('#pq');if(pq){pq.oninput=()=>{peopleQ=pq.value;const p=pq.selectionStart;draw();const n=$('#pq');n.focus();n.setSelectionRange(p,p)}}
+    const ps=$('#ps');if(ps)ps.onchange=()=>{peopleSort=ps.value;draw()};
+    el.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{peopleTab=b.dataset.t;draw()});
+    const ab=$('#add');if(ab)ab.onclick=()=>peopleTab==='st'?studentForm():teacherForm();
+    el.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>studentForm(b.dataset.e));
+    el.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>ask('លុបសិស្សនេះ និងពិន្ទុរបស់គាត់?',()=>{const id=b.dataset.d;DB.students=DB.students.filter(s=>s.id!==id);delete DB.scores[id];Object.values(DB.att).forEach(d=>delete d[id]);save();draw()}));
+    el.querySelectorAll('[data-te]').forEach(b=>b.onclick=()=>teacherForm(b.dataset.te));
+    el.querySelectorAll('[data-td]').forEach(b=>b.onclick=()=>ask('លុបគ្រូនេះ?',()=>{DB.teachers=DB.teachers.filter(t=>t.id!==b.dataset.td);save();draw()}));
+  };
+  AFTER=draw;V.people.redraw=draw;draw();
+}};
+function studentForm(id){
+  const s=id?DB.students.find(x=>x.id===id):{name:'',sex:'ប្រុស',dob:'',guardian:'',phone:''};
+  modal(`<h3>${id?'កែព័ត៌មានសិស្ស':'បន្ថែមសិស្ស'}</h3>
+  <label class="f" for="fn">គោត្តនាម និងនាម</label><input class="in" id="fn" value="${esc(s.name)}">
+  <label class="f" for="fs">ភេទ</label><select class="in" id="fs"><option ${s.sex==='ប្រុស'?'selected':''}>ប្រុស</option><option ${s.sex==='ស្រី'?'selected':''}>ស្រី</option></select>
+  <label class="f" for="fd">ថ្ងៃខែឆ្នាំកំណើត</label><input class="in" type="date" id="fd" value="${esc(s.dob)}">
+  <label class="f" for="fg">អាណាព្យាបាល</label><input class="in" id="fg" value="${esc(s.guardian)}">
+  <label class="f" for="fp">ទូរស័ព្ទ</label><input class="in" id="fp" value="${esc(s.phone)}">
+  <label class="f" for="fps">លេខសម្ងាត់សិស្ស (ទទេ = ៤ខ្ទង់ចុងនៃទូរស័ព្ទ)</label><input class="in" id="fps" value="${esc(s.pinS||'')}">
+  <label class="f" for="fpg">លេខសម្ងាត់អាណាព្យាបាល (ទទេ = ៦ខ្ទង់ចុងនៃទូរស័ព្ទ)</label><input class="in" id="fpg" value="${esc(s.pinG||'')}">
+  ${id?`<div class="hint" style="text-align:left">ប្រើបច្ចុប្បន្ន — សិស្ស៖ <b>${esc(pinOf(s,'S'))}</b> · អាណាព្យាបាល៖ <b>${esc(pinOf(s,'G'))}</b></div>`:''}
+  <div class="err" id="fe"></div>
+  <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn" data-x>បោះបង់</button><button class="btn pri" data-ok>រក្សាទុក</button></div>`,m=>{
+    m.querySelector('[data-x]').onclick=()=>m.remove();
+    m.querySelector('[data-ok]').onclick=()=>{
+      const name=$('#fn',m).value.trim();if(!name){$('#fe',m).textContent='សូមបញ្ចូលឈ្មោះ';return}
+      const o={name,sex:$('#fs',m).value,dob:$('#fd',m).value,guardian:$('#fg',m).value.trim(),phone:$('#fp',m).value.trim(),pinS:$('#fps',m).value.trim(),pinG:$('#fpg',m).value.trim()};
+      if(id)Object.assign(s,o);else DB.students.push({id:uid(),...o});
+      save();m.remove();AFTER&&AFTER();toast('បានរក្សាទុក')};
+  });
+}
+function teacherForm(id){
+  const t=id?DB.teachers.find(x=>x.id===id):{name:'',subject:'',phone:''};
+  modal(`<h3>${id?'កែព័ត៌មានគ្រូ':'បន្ថែមគ្រូ'}</h3>
+  <label class="f" for="tn">ឈ្មោះ</label><input class="in" id="tn" value="${esc(t.name)}">
+  <label class="f" for="ts">មុខវិជ្ជាបង្រៀន</label><input class="in" id="ts" value="${esc(t.subject)}">
+  <label class="f" for="tp">ទូរស័ព្ទ</label><input class="in" id="tp" value="${esc(t.phone)}">
+  <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-x>បោះបង់</button><button class="btn pri" data-ok>រក្សាទុក</button></div>`,m=>{
+    m.querySelector('[data-x]').onclick=()=>m.remove();
+    m.querySelector('[data-ok]').onclick=()=>{
+      const name=$('#tn',m).value.trim();if(!name)return;
+      const o={name,subject:$('#ts',m).value.trim(),phone:$('#tp',m).value.trim()};
+      if(id)Object.assign(t,o);else DB.teachers.push({id:uid(),...o});
+      save();m.remove();(window.teacherDone||(()=>{}))();toast('បានរក្សាទុក')};
+  });
+}
+
+/* health */
+V.health={title:'សុខភាពសិក្សាសិស្ស',render(el){
+  const rows=DB.students,cnt={};
+  rows.forEach(s=>{const k=bmiState(bmi(s))[0];cnt[k]=(cnt[k]||0)+1});
+  el.innerHTML=`<div class="page"><div class="ph"><h2>💚 សុខភាពសិក្សាសិស្ស</h2><span class="pill blue">BMI = ទម្ងន់ ÷ កម្ពស់²</span></div>
+  <div class="grid g4" style="margin-bottom:14px">${['ស្គម','ធម្មតា','លើសទម្ងន់','ធាត់'].map(k=>`<div class="card stat"><div class="k">${k}</div><div class="v num">${kh(cnt[k]||0)}</div></div>`).join('')}</div>
+  <div class="tw"><table><thead><tr><th class="c">ល.រ</th><th>គោត្តនាម និងនាម</th><th class="c">ភេទ</th><th class="c">ទម្ងន់ (kg)</th><th class="c">កម្ពស់ (cm)</th><th class="c">BMI</th><th class="c">លទ្ធផល</th></tr></thead><tbody>
+  ${rows.map((s,i)=>{const b=bmi(s),st=bmiState(b);return `<tr data-id="${s.id}"><td class="c num">${kh(i+1)}</td><td>${esc(s.name)}</td><td class="c">${esc(s.sex)}</td>
+  <td class="c"><input class="in cell" inputmode="decimal" data-f="w" value="${s.w??''}" aria-label="ទម្ងន់"></td>
+  <td class="c"><input class="in cell" inputmode="decimal" data-f="h" value="${s.h??''}" aria-label="កម្ពស់"></td>
+  <td class="c num" data-b>${b==null?'—':fx(b,1)}</td><td class="c" data-s><span class="pill ${st[1]}">${st[0]}</span></td></tr>`}).join('')}
+  </tbody></table></div></div>`;
+  el.querySelectorAll('input[data-f]').forEach(inp=>inp.onchange=()=>{
+    const tr=inp.closest('tr'),s=DB.students.find(x=>x.id===tr.dataset.id),v=parseFloat(inp.value);
+    s[inp.dataset.f]=isNaN(v)?null:v;save();
+    const b=bmi(s),st=bmiState(b);
+    tr.querySelector('[data-b]').textContent=b==null?'—':fx(b,1);
+    tr.querySelector('[data-s]').innerHTML=`<span class="pill ${st[1]}">${st[0]}</span>`;
+  });
+}};
+</script>
+<script>
+/* ---------- views B: subjects, scores, results, attendance ---------- */
+V.subjects={title:'គ្រប់គ្រងមេគុណមុខវិជ្ជា',render(el){
+  const draw=()=>{
+    el.innerHTML=`<div class="page"><div class="ph"><h2>📘 គ្រប់គ្រងពិន្ទុមេគុណតាមមុខវិជ្ជា</h2><button class="btn pri sm" id="addSub">＋ បន្ថែមមុខវិជ្ជា</button></div>
+    <div class="tw"><table><thead><tr><th class="c">ល.រ</th><th>មុខវិជ្ជា</th><th class="c">មេគុណ</th><th class="c">មធ្យមភាគថ្នាក់ (ខែចុងក្រោយ)</th><th></th></tr></thead><tbody>
+    ${DB.subjects.map((s,i)=>{const lm=latestMonth();const v=DB.students.map(x=>DB.scores[x.id]?.[s.id]?.['m'+lm]).filter(x=>x!==undefined&&x!=='');const a=v.length?v.reduce((p,c)=>p+Number(c),0)/v.length:null;
+      return `<tr><td class="c num">${kh(i+1)}</td><td><input class="in" style="min-width:160px" data-n="${s.id}" value="${esc(s.name)}" aria-label="ឈ្មោះមុខវិជ្ជា"></td><td class="c"><input class="in cell" inputmode="numeric" data-c="${s.id}" value="${s.coef}" aria-label="មេគុណ"></td><td class="c num">${fx(a)}</td><td><button class="btn sm dng" data-x="${s.id}">លុប</button></td></tr>`}).join('')}
+    </tbody></table></div>
+    <p style="color:var(--muted);font-size:13px">មធ្យមភាគ = ផលបូក(ពិន្ទុ × មេគុណ) ÷ ផលបូកមេគុណ។ ពិន្ទុគិតលើ ១០។</p></div>`;
+    el.querySelectorAll('[data-n]').forEach(i=>i.onchange=()=>{DB.subjects.find(s=>s.id===i.dataset.n).name=i.value.trim()||'—';save()});
+    el.querySelectorAll('[data-c]').forEach(i=>i.onchange=()=>{const v=Math.max(1,parseInt(i.value)||1);DB.subjects.find(s=>s.id===i.dataset.c).coef=v;i.value=v;save()});
+    el.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>ask('លុបមុខវិជ្ជានេះ និងពិន្ទុទាំងអស់របស់វា?',()=>{const id=b.dataset.x;DB.subjects=DB.subjects.filter(s=>s.id!==id);Object.values(DB.scores).forEach(o=>delete o[id]);save();draw()}));
+    $('#addSub').onclick=()=>{DB.subjects.push({id:uid(),name:'មុខវិជ្ជាថ្មី',coef:1});save();draw()};
+  };draw();
+}};
+
+const COLS=[...MONTHS.map((m,i)=>({k:'m'+i,n:'ខែ'+m})),{k:'s1',n:'ឆមាសទី១'},{k:'s2',n:'ឆមាសទី២'}];
+let scoreCol='m0';
+V.scores={title:'សម្រង់ពិន្ទុ',render(el){
+  if(scoreCol==='m0'&&latestMonth()>=0)scoreCol='m'+latestMonth();
+  const draw=()=>{
+    el.innerHTML=`<div class="page"><div class="ph"><h2>📝 សម្រង់ពិន្ទុនៃការប្រឡងនានា</h2>
+      <select class="in" id="colSel" style="max-width:200px" aria-label="ជ្រើសរើសខែ/ឆមាស">${COLS.map(c=>`<option value="${c.k}" ${c.k===scoreCol?'selected':''}>${c.n}</option>`).join('')}</select></div>
+    <div class="tw"><table><thead><tr><th class="c">ល.រ</th><th>គោត្តនាម និងនាម</th>${DB.subjects.map(s=>`<th class="c">${esc(s.name)}<br><small>×${kh(s.coef)}</small></th>`).join('')}<th class="c">មធ្យមភាគ</th><th>និទ្ទេស</th></tr></thead><tbody>
+    ${DB.students.map((s,i)=>`<tr data-id="${s.id}"><td class="c num">${kh(i+1)}</td><td>${esc(s.name)}</td>
+      ${DB.subjects.map(b=>`<td class="c"><input class="in cell" inputmode="decimal" data-sub="${b.id}" value="${DB.scores[s.id]?.[b.id]?.[scoreCol]??''}" aria-label="${esc(b.name)}"></td>`).join('')}
+      <td class="c num" data-a><b>${fx(avgOf(s.id,scoreCol))}</b></td><td data-g>${gpill(avgOf(s.id,scoreCol))}</td></tr>`).join('')||'<tr><td colspan="9" class="empty">សូមបន្ថែមសិស្សជាមុន</td></tr>'}
+    </tbody></table></div><p style="color:var(--muted);font-size:13px">ពិន្ទុ ០ ដល់ ១០ · រក្សាទុកដោយស្វ័យប្រវត្តិ។ ទុកទទេប្រសិនបើមិនទាន់មានពិន្ទុ។</p></div>`;
+    $('#colSel').onchange=e=>{scoreCol=e.target.value;draw()};
+    el.querySelectorAll('input[data-sub]').forEach(inp=>inp.onchange=()=>{
+      const tr=inp.closest('tr'),sid=tr.dataset.id,sub=inp.dataset.sub;
+      let v=inp.value.trim().replace(',','.');
+      if(v===''){if(DB.scores[sid]?.[sub])delete DB.scores[sid][sub][scoreCol]}
+      else{let n=parseFloat(v);if(isNaN(n)){inp.value='';return}n=Math.min(10,Math.max(0,n));inp.value=n;
+        ((DB.scores[sid]??={})[sub]??={})[scoreCol]=n}
+      save();const a=avgOf(sid,scoreCol);
+      tr.querySelector('[data-a]').innerHTML='<b>'+fx(a)+'</b>';tr.querySelector('[data-g]').innerHTML=gpill(a);
+    });
+  };draw();
+}};
+
+let resMode='m',resCol='m0';
+V.results={title:'លទ្ធផលនៃការប្រឡង',render(el){
+  if(resMode==='m'&&resCol==='m0'&&latestMonth()>=0)resCol='m'+latestMonth();
+  const draw=()=>{
+    const getA=s=>resMode==='y'?yearAvg(s.id):avgOf(s.id,resCol);
+    const rows=DB.students.map(s=>({s,a:getA(s)})).sort((x,y)=>(y.a??-1)-(x.a??-1));
+    let rk=0,last=null,pos=0;rows.forEach(r=>{pos++;if(r.a!==last){rk=pos;last=r.a}r.rank=r.a==null?null:rk});
+    const have=rows.filter(r=>r.a!=null),pass=have.filter(r=>r.a>=5).length;
+    el.innerHTML=`<div class="page"><div class="ph"><h2>🏁 លទ្ធផលនៃការប្រឡង</h2></div>
+    <div class="tabs"><button data-m="m" class="${resMode==='m'?'on':''}">ប្រចាំខែ</button><button data-m="s" class="${resMode==='s'?'on':''}">ឆមាស</button><button data-m="y" class="${resMode==='y'?'on':''}">ប្រចាំឆ្នាំ</button></div>
+    ${resMode!=='y'?`<select class="in" id="rc" style="max-width:220px;margin-bottom:12px" aria-label="រយៈពេល">${(resMode==='m'?COLS.slice(0,MONTHS.length):COLS.slice(MONTHS.length)).map(c=>`<option value="${c.k}" ${c.k===resCol?'selected':''}>${c.n}</option>`).join('')}</select>`:''}
+    <div class="grid g4" style="margin-bottom:14px">
+      <div class="card stat"><div class="k">មានពិន្ទុ</div><div class="v num">${kh(have.length)}</div></div>
+      <div class="card stat"><div class="k">ជាប់ (≥ ៥)</div><div class="v num">${kh(pass)}</div><div class="s">${have.length?fx(pass/have.length*100,0)+'%':''}</div></div>
+      <div class="card stat"><div class="k">ធ្លាក់</div><div class="v num" style="color:var(--danger)">${kh(have.length-pass)}</div></div>
+      <div class="card stat"><div class="k">មធ្យមភាគថ្នាក់</div><div class="v num">${have.length?fx(have.reduce((p,c)=>p+c.a,0)/have.length):'—'}</div></div></div>
+    <div class="tw"><table><thead><tr><th class="c">ចំណាត់ថ្នាក់</th><th>គោត្តនាម និងនាម</th><th class="c">ភេទ</th><th class="c">មធ្យមភាគ</th><th>និទ្ទេស</th><th>លទ្ធផល</th><th>កិត្តិយស</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td class="c num">${r.rank?kh(r.rank):'—'}</td><td>${esc(r.s.name)}</td><td class="c">${esc(r.s.sex)}</td><td class="c num"><b>${fx(r.a)}</b></td><td>${gpill(r.a)}</td>
+      <td>${r.a==null?'—':r.a>=5?'<span class="pill ok">ជាប់</span>':'<span class="pill bad">ធ្លាក់</span>'}</td><td>${r.a>=9?'🥇 ល្អប្រសើរ':r.a>=8?'🏅 ល្អណាស់':''}</td></tr>`).join('')}
+    </tbody></table></div></div>`;
+    el.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{resMode=b.dataset.m;resCol=resMode==='s'?'s1':'m'+Math.max(0,latestMonth());draw()});
+    const rc=$('#rc');if(rc)rc.onchange=()=>{resCol=rc.value;draw()};
+  };draw();
+}};
+
+let attDate=todayStr(),attTab='day';
+V.att={title:'វត្តមានសិស្ស',render(el){
+  const NEXT={P:'A',A:'L',L:'P'},LAB={P:['មក','ok'],A:['អវត្តមាន','bad'],L:['ច្បាប់','warn']};
+  const draw=()=>{
+    if(attTab==='day'){
+      const d=DB.att[attDate]||{};
+      el.innerHTML=`<div class="page"><div class="ph"><h2>🗓 វត្តមានសិស្ស</h2></div>
+      <div class="tabs"><button data-t="day" class="on">ប្រចាំថ្ងៃ</button><button data-t="sum">សង្ខេប</button></div>
+      <div class="row" style="margin-bottom:12px"><input type="date" class="in" id="ad" style="max-width:190px" value="${attDate}"><button class="btn sm" id="allP">ចុះឈ្មោះមកទាំងអស់</button><span class="pill blue">ចុចលើស្ថានភាពដើម្បីប្តូរ</span></div>
+      <div class="tw"><table><thead><tr><th class="c">ល.រ</th><th>គោត្តនាម និងនាម</th><th class="c">ស្ថានភាព</th></tr></thead><tbody>
+      ${DB.students.map((s,i)=>{const v=d[s.id];return `<tr><td class="c num">${kh(i+1)}</td><td>${esc(s.name)}</td><td class="c"><button class="btn sm" data-s="${s.id}">${v?`<span class="pill ${LAB[v][1]}">${LAB[v][0]}</span>`:'—'}</button></td></tr>`}).join('')}
+      </tbody></table></div></div>`;
+      $('#ad').onchange=e=>{attDate=e.target.value||todayStr();draw()};
+      $('#allP').onclick=()=>{DB.att[attDate]=Object.fromEntries(DB.students.map(s=>[s.id,'P']));save();draw()};
+      el.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{const id=b.dataset.s;const o=(DB.att[attDate]??={});o[id]=o[id]?NEXT[o[id]]:'P';save();draw()});
+    }else{
+      const days=Object.keys(DB.att).sort();
+      el.innerHTML=`<div class="page"><div class="ph"><h2>🗓 វត្តមានសិស្ស</h2></div>
+      <div class="tabs"><button data-t="day">ប្រចាំថ្ងៃ</button><button data-t="sum" class="on">សង្ខេប</button></div>
+      <div class="tw"><table><thead><tr><th class="c">ល.រ</th><th>គោត្តនាម និងនាម</th><th class="c">មក</th><th class="c">ច្បាប់</th><th class="c">អវត្តមាន</th><th class="c">អត្រា</th></tr></thead><tbody>
+      ${DB.students.map((s,i)=>{let p=0,l=0,a=0;days.forEach(k=>{const v=DB.att[k][s.id];if(v==='P')p++;else if(v==='L')l++;else if(v==='A')a++});const t=p+l+a;
+        return `<tr><td class="c num">${kh(i+1)}</td><td>${esc(s.name)}</td><td class="c num">${kh(p)}</td><td class="c num">${kh(l)}</td><td class="c num">${a>=3?`<span class="pill bad">${kh(a)}</span>`:kh(a)}</td><td class="c num">${t?fx((p+l)/t*100,0)+'%':'—'}</td></tr>`}).join('')}
+      </tbody></table></div><p style="color:var(--muted);font-size:13px">បានកត់ត្រា ${kh(days.length)} ថ្ងៃ។</p></div>`;
+    }
+    el.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{attTab=b.dataset.t;draw()});
+  };draw();
+}};
+</script>
+<script>
+/* ---------- views C: teacher work, reports, notices, tools, setup ---------- */
+const DAYS=['ច័ន្ទ','អង្គារ','ពុធ','ព្រហស្បតិ៍','សុក្រ'];
+let workTab='sec';
+const COMM_ROLES=['ប្រធានថ្នាក់','អនុប្រធានទី១','អនុប្រធានទី២','លេខា','ប្រធានក្រុមទី១','ប្រធានក្រុមទី២','ប្រធានក្រុមទី៣','ប្រធានក្រុមទី៤','ប្រធានអនាម័យ','ប្រធានវិន័យ','ប្រធានសិក្សា'];
+const COUNCIL_ROLES=['ប្រធានសាខា','អនុប្រធានសាខា','លេខាធិការ','ហិរញ្ញិក','ប្រធានផ្នែកសិក្សា','ប្រធានផ្នែកអនាម័យ-សុខភាព','ប្រធានផ្នែកកីឡា-សិល្បៈ'];
+const SEC_F=[['start','សិស្សដើមឆ្នាំ'],['newIn','ចូលថ្មី'],['transIn','ផ្លាស់ចូល'],['transOut','ផ្លាស់ចេញ'],['drop','បោះបង់']];
+V.work={title:'ការងារសម្រាប់គ្រូ',render(el){
+  const W=DB.work;W.sec??={};W.inv??=[];W.comm??={};W.council??={};W.councilMembers??=[];
+  const tabs=[['sec','🧮 SEC ចំនួនសិស្ស'],['clean','🧹 វេនសម្អាត'],['sheet','📋 បញ្ជីស្រង់ពិន្ទុ'],['sched','🗓 កាលវិភាគ'],['rules','📜 បទបញ្ជាផ្ទៃក្នុង'],['parents','📞 អាណាព្យាបាល'],['inv','📦 សារពើភ័ណ្ឌ'],['seat','🪑 ប្លង់តុ'],['comm','🏫 គ.គ.ថ'],['council','🧒 ក្រុមប្រឹក្សាកុមារ-យុវជន']];
+  const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+  let sheetSub=null;
+  const stuSel=(attr,cur)=>`<select class="in" style="min-width:170px" ${attr}><option value="">— មិនទាន់កំណត់ —</option>${DB.students.map(s=>`<option value="${s.id}" ${s.id===cur?'selected':''}>${esc(s.name)}</option>`).join('')}</select>`;
+  const roleTable=(key,roles)=>`<div class="tw"><table><thead><tr><th>តួនាទី</th><th>សិស្ស</th></tr></thead><tbody>${roles.map((r,i)=>`<tr><td>${r}</td><td>${stuSel(`data-role="${key}|${i}" aria-label="${r}"`,W[key][i])}</td></tr>`).join('')}</tbody></table></div>`;
+  const draw=()=>{
+    let body='';const t=workTab;
+    if(t==='sec'){
+      const n=DB.students.length,g=DB.students.filter(s=>s.sex==='ស្រី').length,sc=W.sec;
+      const exp=SEC_F.reduce((a,f,i)=>a+(i<3?1:-1)*(+sc[f[0]]||0),0);
+      body=`<div class="grid g4" style="margin-bottom:12px"><div class="card stat"><div class="k">សិស្សបច្ចុប្បន្ន</div><div class="v num">${kh(n)}</div><div class="s">ស្រី ${kh(g)} · ប្រុស ${kh(n-g)}</div></div>
+      <div class="card stat"><div class="k">តាមការគណនា</div><div class="v num">${kh(exp)}</div><div class="s">${exp===n?'ត្រូវគ្នា':'ខុសពីបញ្ជីឈ្មោះ '+kh(Math.abs(exp-n))}</div></div></div>
+      <div class="tw"><table style="min-width:420px"><thead><tr><th>${esc(CUR.name)}</th><th class="c">ចំនួន</th></tr></thead><tbody>${SEC_F.map(f=>`<tr><td>${f[1]}</td><td class="c"><input class="in cell" inputmode="numeric" data-sec="${f[0]}" value="${sc[f[0]]??''}" aria-label="${f[1]}"></td></tr>`).join('')}
+      <tr><td><b>សិស្សបច្ចុប្បន្ន (ស្វ័យប្រវត្តិ)</b></td><td class="c num"><b>${kh(n)}</b></td></tr></tbody></table></div>
+      <p style="color:var(--muted);font-size:13px">សិស្សបច្ចុប្បន្ន = ដើមឆ្នាំ + ចូលថ្មី + ផ្លាស់ចូល − ផ្លាស់ចេញ − បោះបង់។ ឯកសារបោះពុម្ពនៅ “ទាញចេញ និងបោះពុម្ព”។</p>`;
+    }else if(t==='clean'){
+      const names=W.clean||{};
+      body=`<div class="row" style="margin-bottom:10px"><button class="btn pri sm" id="gen">បែងចែកវេនសម្អាតថ្មី</button></div><div class="grid g2">${DAYS.map(d=>`<div class="card"><h3>ថ្ងៃ${d}</h3>${(names[d]||[]).map(n=>`<div>• ${esc(n)}</div>`).join('')||'<span style="color:var(--muted)">មិនទាន់បែងចែក</span>'}</div>`).join('')}</div>`;
+    }else if(t==='sheet'){
+      sheetSub=sheetSub||DB.subjects[0]?.id;
+      body=`<div class="row" style="margin-bottom:10px"><select class="in" id="shs" style="max-width:240px" aria-label="មុខវិជ្ជា">${DB.subjects.map(b=>`<option value="${b.id}" ${b.id===sheetSub?'selected':''}>${esc(b.name)}</option>`).join('')}</select><span class="pill blue">បញ្ចូលនៅទីនេះក៏បាន</span></div>
+      <div class="tw"><table style="min-width:900px"><thead><tr><th class="c">ល.រ</th><th>គោត្តនាម និងនាម</th>${COLS.map(c=>`<th class="c">${c.n.replace('ខែ','')}</th>`).join('')}<th class="c">មធ្យម</th></tr></thead><tbody>
+      ${DB.students.map((s,i)=>{const o=DB.scores[s.id]?.[sheetSub]||{};const v=Object.values(o).map(Number);return `<tr data-id="${s.id}"><td class="c num">${kh(i+1)}</td><td>${esc(s.name)}</td>${COLS.map(c=>`<td class="c"><input class="in cell" style="width:54px" inputmode="decimal" data-c="${c.k}" value="${o[c.k]??''}" aria-label="${c.n}"></td>`).join('')}<td class="c num" data-av>${v.length?fx(mean(v)):'—'}</td></tr>`}).join('')}</tbody></table></div>`;
+    }else if(t==='sched'){
+      const periods=['ម៉ោង ១','ម៉ោង ២','ម៉ោង ៣','ម៉ោង ៤','ម៉ោង ៥','ម៉ោង ៦'];
+      body=`<div class="tw"><table><thead><tr><th></th>${DAYS.map(d=>`<th class="c">${d}</th>`).join('')}</tr></thead><tbody>${periods.map((p,r)=>`<tr><th>${p}</th>${DAYS.map((d,c)=>`<td><input class="in" style="min-width:110px" data-k="${r}-${c}" value="${esc(W.sched?.[r+'-'+c]||'')}" aria-label="${p} ${d}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    }else if(t==='rules'){
+      body=`<textarea class="in" id="rules" style="min-height:260px;font-family:var(--f-body);font-size:15px">${esc(W.rules||'')}</textarea>`;
+    }else if(t==='parents'){
+      body=`<div class="tw"><table><thead><tr><th>សិស្ស</th><th>អាណាព្យាបាល</th><th>ទូរស័ព្ទ</th></tr></thead><tbody>${DB.students.map(s=>`<tr><td>${esc(s.name)}</td><td>${esc(s.guardian||'—')}</td><td>${esc(s.phone||'—')}</td></tr>`).join('')}</tbody></table></div>`;
+    }else if(t==='inv'){
+      body=`<div class="row" style="margin-bottom:10px"><button class="btn pri sm" id="addInv">＋ បន្ថែមសម្ភារៈ</button></div><div class="tw"><table><thead><tr><th class="c">ល.រ</th><th>ឈ្មោះសម្ភារៈ</th><th class="c">ចំនួន</th><th>ស្ថានភាព</th><th>កំណត់សម្គាល់</th><th></th></tr></thead><tbody>
+      ${W.inv.map((x,i)=>`<tr><td class="c num">${kh(i+1)}</td><td><input class="in" style="min-width:150px" data-i="${x.id}|name" value="${esc(x.name)}" aria-label="ឈ្មោះ"></td><td class="c"><input class="in cell" inputmode="numeric" data-i="${x.id}|qty" value="${x.qty}" aria-label="ចំនួន"></td>
+      <td><select class="in" data-i="${x.id}|state" aria-label="ស្ថានភាព">${['ល្អ','ប្រើបាន','ខូច'].map(o=>`<option ${o===x.state?'selected':''}>${o}</option>`).join('')}</select></td><td><input class="in" data-i="${x.id}|note" value="${esc(x.note||'')}" aria-label="កំណត់សម្គាល់"></td><td><button class="btn sm dng" data-di="${x.id}">លុប</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">មិនទាន់មានសម្ភារៈ ចុច “បន្ថែមសម្ភារៈ”</td></tr>'}</tbody></table></div>`;
+    }else if(t==='seat'){
+      const seats=W.seat||[];
+      body=`<div class="row" style="margin-bottom:10px"><button class="btn pri sm" id="gen">រៀបតុថ្មីដោយចៃដន្យ</button><span class="pill blue">តុ ២នាក់ក្នុងមួយ</span></div>
+      <div class="card" style="text-align:center;margin-bottom:10px;background:var(--surface2)">ក្តារខៀន</div>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr))">${seats.map((p,i)=>`<div class="card" style="padding:10px"><small style="color:var(--muted)">តុទី ${kh(i+1)}</small><div>${esc(p[0]||'')}</div><div>${esc(p[1]||'')}</div></div>`).join('')||'<div class="empty">ចុចប៊ូតុងដើម្បីរៀបតុ</div>'}</div>`;
+    }else if(t==='comm'){
+      body=`<p style="color:var(--muted);margin-top:0">គណៈគ្រប់គ្រងថ្នាក់ (គ.គ.ថ) ជ្រើសរើសពីសិស្សក្នុងថ្នាក់។</p>`+roleTable('comm',COMM_ROLES);
+    }else{
+      body=`<p style="color:var(--muted);margin-top:0">សាខាក្រុមប្រឹក្សាកុមារ-យុវជន ក្នុង${esc(CUR.name)}</p>`+roleTable('council',COUNCIL_ROLES)+
+      `<div class="sec">សមាជិក</div><div class="row" style="margin-bottom:8px">${stuSel('id="addMem" aria-label="បន្ថែមសមាជិក"','')}<button class="btn sm pri" id="addMemB">＋ បន្ថែម</button></div>
+      <div class="row">${W.councilMembers.map(id=>{const s=DB.students.find(x=>x.id===id);return s?`<span class="pill blue">${esc(s.name)} <a data-rm="${id}" style="cursor:pointer" role="button" tabindex="0" aria-label="ដកចេញ">✕</a></span>`:''}).join('')||'<span style="color:var(--muted)">មិនទាន់មានសមាជិក</span>'}</div>`;
+    }
+    el.innerHTML=`<div class="page"><div class="ph"><h2>🧰 ការងារសម្រាប់គ្រូ</h2></div><div class="tabs">${tabs.map(x=>`<button data-t="${x[0]}" class="${x[0]===t?'on':''}">${x[1]}</button>`).join('')}</div>${body}</div>`;
+    el.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{workTab=b.dataset.t;draw()});
+    const g=$('#gen');
+    if(g)g.onclick=()=>{
+      const names=shuffle(DB.students.map(s=>s.name));
+      if(workTab==='clean'){const o={};DAYS.forEach(d=>o[d]=[]);names.forEach((n,i)=>o[DAYS[i%5]].push(n));W.clean=o}
+      else{const s=[];for(let i=0;i<names.length;i+=2)s.push([names[i],names[i+1]]);W.seat=s}
+      save();draw();
+    };
+    el.querySelectorAll('input[data-sec]').forEach(i=>i.onchange=()=>{W.sec[i.dataset.sec]=Math.max(0,parseInt(i.value)||0);save();draw()});
+    const shs=$('#shs');if(shs)shs.onchange=()=>{sheetSub=shs.value;draw()};
+    if(workTab==='sheet')el.querySelectorAll('tr[data-id] input').forEach(inp=>inp.onchange=()=>{
+      const tr=inp.closest('tr'),sid=tr.dataset.id,sub=$('#shs').value,v=inp.value.trim().replace(',','.');
+      if(v===''){if(DB.scores[sid]?.[sub])delete DB.scores[sid][sub][inp.dataset.c]}
+      else{let n=parseFloat(v);if(isNaN(n)){inp.value='';return}n=Math.min(10,Math.max(0,n));inp.value=n;((DB.scores[sid]??={})[sub]??={})[inp.dataset.c]=n}
+      save();const vals=Object.values(DB.scores[sid]?.[sub]||{}).map(Number);tr.querySelector('[data-av]').textContent=vals.length?fx(mean(vals)):'—'});
+    el.querySelectorAll('input[data-k]').forEach(i=>i.onchange=()=>{(W.sched??={})[i.dataset.k]=i.value;save()});
+    const r=$('#rules');if(r)r.onchange=()=>{W.rules=r.value;save();toast('បានរក្សាទុក')};
+    const ai=$('#addInv');if(ai)ai.onclick=()=>{W.inv.push({id:uid(),name:'សម្ភារៈថ្មី',qty:1,state:'ល្អ',note:''});save();draw()};
+    el.querySelectorAll('[data-i]').forEach(i=>i.onchange=()=>{const [id,f]=i.dataset.i.split('|'),x=W.inv.find(y=>y.id===id);x[f]=f==='qty'?Math.max(0,parseInt(i.value)||0):i.value;save()});
+    el.querySelectorAll('[data-di]').forEach(b=>b.onclick=()=>{W.inv=W.inv.filter(x=>x.id!==b.dataset.di);save();draw()});
+    el.querySelectorAll('[data-role]').forEach(s=>s.onchange=()=>{const [k,i]=s.dataset.role.split('|');W[k][i]=s.value;save()});
+    const am=$('#addMemB');if(am)am.onclick=()=>{const v=$('#addMem').value;if(v&&!W.councilMembers.includes(v)){W.councilMembers.push(v);save();draw()}};
+    el.querySelectorAll('[data-rm]').forEach(a=>a.onclick=()=>{W.councilMembers=W.councilMembers.filter(x=>x!==a.dataset.rm);save();draw()});
+  };draw();
+}};
+
+let repTab='card',repSid=null,repCol='m0';
+V.reports={title:'របាយការណ៍ និងផែនការ',render(el){
+  if(!repSid||!DB.students.find(s=>s.id===repSid))repSid=DB.students[0]?.id;
+  if(repCol==='m0'&&latestMonth()>=0)repCol='m'+latestMonth();
+  const draw=()=>{
+    let body='';
+    if(repTab==='card'){
+      const s=DB.students.find(x=>x.id===repSid);
+      if(!s)body='<div class="empty">មិនមានសិស្ស</div>';
+      else{
+        const rows=DB.subjects.map(b=>({b,v:DB.scores[s.id]?.[b.id]?.[repCol]}));
+        const a=avgOf(s.id,repCol),all=DB.students.map(x=>avgOf(x.id,repCol)).filter(x=>x!=null).sort((x,y)=>y-x);
+        const rk=a==null?null:all.indexOf(a)+1;
+        body=`<div class="row" style="margin-bottom:10px"><select class="in" id="rs" style="max-width:260px" aria-label="សិស្ស">${DB.students.map(x=>`<option value="${x.id}" ${x.id===repSid?'selected':''}>${esc(x.name)}</option>`).join('')}</select>
+        <select class="in" id="rc" style="max-width:180px" aria-label="រយៈពេល">${COLS.map(c=>`<option value="${c.k}" ${c.k===repCol?'selected':''}>${c.n}</option>`).join('')}</select></div>
+        <div class="card"><h3>ព្រឹត្តិបត្រពិន្ទុ · ${esc(s.name)} · ${COLS.find(c=>c.k===repCol).n}</h3>
+        <div class="tw"><table><thead><tr><th>មុខវិជ្ជា</th><th class="c">មេគុណ</th><th class="c">ពិន្ទុ</th><th>និទ្ទេស</th></tr></thead><tbody>
+        ${rows.map(r=>`<tr><td>${esc(r.b.name)}</td><td class="c num">${kh(r.b.coef)}</td><td class="c num">${r.v===undefined?'—':fx(r.v,1)}</td><td>${r.v===undefined?'—':gpill(Number(r.v))}</td></tr>`).join('')}
+        <tr><td><b>មធ្យមភាគ</b></td><td></td><td class="c num"><b>${fx(a)}</b></td><td>${gpill(a)}</td></tr></tbody></table></div>
+        <p>ចំណាត់ថ្នាក់ក្នុងថ្នាក់៖ <b>${rk?kh(rk)+' / '+kh(all.length):'—'}</b> · អវត្តមាន <b>${kh(absentCount(s.id))}</b> ដង</p></div>`;
+      }
+    }else if(repTab==='sub'){
+      body=`<div class="tw"><table><thead><tr><th>មុខវិជ្ជា</th><th class="c">មធ្យមភាគឆ្នាំ</th>${GR.map(g=>`<th class="c">${g[1]}</th>`).join('')}</tr></thead><tbody>
+      ${DB.subjects.map(b=>{const vals=[];DB.students.forEach(s=>{const o=DB.scores[s.id]?.[b.id];if(o){const v=Object.values(o).map(Number);if(v.length)vals.push(v.reduce((p,c)=>p+c,0)/v.length)}});
+        const m=vals.length?vals.reduce((p,c)=>p+c,0)/vals.length:null;
+        return `<tr><td>${esc(b.name)}</td><td class="c num"><b>${fx(m)}</b></td>${GR.map(g=>`<td class="c num">${kh(vals.filter(v=>grade(v)[1]===g[1]).length)}</td>`).join('')}</tr>`}).join('')}</tbody></table></div>`;
+    }else{
+      const r=atRisk();
+      body=r.length?`<div class="tw"><table><thead><tr><th>សិស្ស</th><th>មធ្យមភាគឆ្នាំ</th><th>មូលហេតុ</th></tr></thead><tbody>${r.map(x=>`<tr><td>${esc(x.s.name)}</td><td class="num">${fx(x.a)}</td><td>${x.why.join(' · ')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="card empty">មិនមានសិស្សប្រឈមហានិភ័យទេ</div>';
+    }
+    el.innerHTML=`<div class="page"><div class="ph"><h2>📊 របាយការណ៍ និង ផែនការ</h2></div>
+    <div class="tabs">${[['card','ព្រឹត្តិបត្រពិន្ទុ'],['sub','ស្ថិតិតាមមុខវិជ្ជា'],['risk','សិស្សបោះបង់ការសិក្សា']].map(t=>`<button data-t="${t[0]}" class="${t[0]===repTab?'on':''}">${t[1]}</button>`).join('')}</div>${body}</div>`;
+    el.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{repTab=b.dataset.t;draw()});
+    const rs=$('#rs');if(rs)rs.onchange=()=>{repSid=rs.value;draw()};
+    const rc=$('#rc');if(rc)rc.onchange=()=>{repCol=rc.value;draw()};
+  };draw();
+}};
+
+V.notice={title:'សេចក្តីប្រកាស',render(el){
+  const draw=()=>{
+    el.innerHTML=`<div class="page"><div class="ph"><h2>📣 សេចក្តីប្រកាស</h2></div>
+    ${ROLE==='admin'&&!RO?`<div class="card" style="margin-bottom:14px"><label class="f" for="nt" style="margin-top:0">ចំណងជើង</label><input class="in" id="nt"><label class="f" for="nb">ខ្លឹមសារ</label><textarea class="in" id="nb" style="min-height:90px;font-family:var(--f-body);font-size:15px"></textarea>
+    <button class="btn pri" id="np" style="margin-top:10px">ផ្សាយ</button></div>`:''}
+    ${DB.notices.map(n=>`<div class="card" style="margin-bottom:10px"><div class="row" style="justify-content:space-between"><b>${esc(n.title)}</b><span style="color:var(--muted);font-size:13px">${esc(n.date)}</span></div><div style="white-space:pre-wrap">${esc(n.body)}</div>${ROLE==='admin'&&!RO?`<button class="btn sm dng" data-x="${n.id}" style="margin-top:8px">លុប</button>`:''}</div>`).join('')||'<div class="empty">មិនទាន់មានសេចក្តីប្រកាស</div>'}</div>`;
+    const np=$('#np');if(np)np.onclick=()=>{const t=$('#nt').value.trim();if(!t)return;DB.notices.unshift({id:uid(),title:t,body:$('#nb').value,date:todayStr()});save();draw()};
+    el.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{DB.notices=DB.notices.filter(n=>n.id!==b.dataset.x);save();draw()});
+  };draw();
+}};
+
+/* template helpers (fill-in documents, no external AI service) */
+const TOOLS={
+  lesson:{n:'កិច្ចតែងការបង្រៀន',f:[['subject','មុខវិជ្ជា','គណិតវិទ្យា'],['topic','ប្រធានបទ','ប្រភាគ'],['grade','ថ្នាក់','ថ្នាក់ទី៧'],['mins','រយៈពេល (នាទី)','45']],
+    t:v=>`កិច្ចតែងការបង្រៀន\nមុខវិជ្ជា៖ ${v.subject}   ថ្នាក់៖ ${v.grade}   រយៈពេល៖ ${v.mins} នាទី\nមេរៀន៖ ${v.topic}\n\nI. គោលបំណង\n   - សិស្សអាចពន្យល់អំពី ${v.topic}\n   - សិស្សអាចអនុវត្តលំហាត់ដោយខ្លួនឯង\n\nII. សម្ភារៈ\n   ក្តារខៀន ឆក់ សៀវភៅសិស្ស\n\nIII. សកម្មភាពបង្រៀន\n   ១. ការរៀបចំ និងស្វាគមន៍ (៥ នាទី)\n   ២. ត្រួតពិនិត្យមេរៀនចាស់ (៥ នាទី)\n   ៣. បង្ហាញមេរៀនថ្មី៖ ${v.topic} (${Math.max(10,v.mins-25)} នាទី)\n   ៤. លំហាត់អនុវត្តជាក្រុម (១០ នាទី)\n   ៥. សង្ខេប និងកិច្ចការផ្ទះ (៥ នាទី)\n\nIV. ការវាយតម្លៃ\n   សួរចម្លើយ និងពិនិត្យលំហាត់សិស្ស`},
+  leave:{n:'លិខិតសុំច្បាប់',f:[['name','ឈ្មោះអ្នកសុំ','លោកគ្រូ/អ្នកគ្រូ'],['to','ជូនចំពោះ','នាយកសាលា'],['days','ចំនួនថ្ងៃ','២'],['from','ចាប់ពីថ្ងៃ',todayStr()],['why','មូលហេតុ','ជំងឺ']],
+    t:v=>`ព្រះរាជាណាចក្រកម្ពុជា\nជាតិ សាសនា ព្រះមហាក្សត្រ\n\nកម្មវត្ថុ៖ សុំច្បាប់ឈប់សម្រាក\nជូនចំពោះ៖ ${v.to}\n\nខ្ញុំបាទ/នាងខ្ញុំ ${v.name} សូមគោរពសុំច្បាប់ឈប់សម្រាកចំនួន ${v.days} ថ្ងៃ ចាប់ពីថ្ងៃទី ${v.from} ដោយសារ${v.why}។\n\nសូម${v.to}មេត្តាអនុញ្ញាតតាមការគួរ។\n\nសូម${v.to}ទទួលនូវការគោរពដ៏ខ្ពង់ខ្ពស់ពីខ្ញុំ។\n\nថ្ងៃទី ${todayStr()}\nហត្ថលេខា`},
+  cert:{n:'វិញ្ញាបនបត្រ',f:[['name','ឈ្មោះសិស្ស',''],['title','ចំណងជើង','សិស្សឆ្នើមប្រចាំខែ'],['school','សាលា','']],
+    t:v=>`ព្រះរាជាណាចក្រកម្ពុជា\nជាតិ សាសនា ព្រះមហាក្សត្រ\n\n${v.school||DB.settings.school}\n\nវិញ្ញាបនបត្រ ${v.title}\n\nប្រគល់ជូន៖ ${v.name||'……………'}\n\nជាការទទួលស្គាល់ចំពោះការខិតខំប្រឹងប្រែង និងលទ្ធផលសិក្សាល្អប្រសើរ។\n\nថ្ងៃទី ${todayStr()}\nគ្រូបន្ទុកថ្នាក់ ${DB.settings.teacher}`},
+  card:{n:'កាតសិស្ស',f:[['sid','ជ្រើសរើសសិស្ស','__student']],
+    t:v=>{const s=DB.students.find(x=>x.id===v.sid)||DB.students[0];return s?`កាតសម្គាល់ខ្លួនសិស្ស\n${DB.settings.school}\n\nឈ្មោះ៖ ${s.name}\nភេទ៖ ${s.sex}\nថ្នាក់៖ ${DB.settings.className}\nឆ្នាំសិក្សា៖ ${DB.settings.year}\nអាណាព្យាបាល៖ ${s.guardian||'—'}  ទូរស័ព្ទ៖ ${s.phone||'—'}`:'មិនមានសិស្ស'}}
+};
+let toolKey='lesson';
+V.tools={title:'ឧបករណ៍ជំនួយគ្រូ',render(el){
+  const draw=()=>{
+    const T=TOOLS[toolKey];
+    el.innerHTML=`<div class="page"><div class="ph"><h2>📌 ឧបករណ៍ជំនួយសម្រាប់គ្រូបង្រៀន</h2><span class="pill blue">គំរូឯកសារ · មិនប្រើ AI</span></div>
+    <div class="tabs">${Object.entries(TOOLS).map(([k,t])=>`<button data-k="${k}" class="${k===toolKey?'on':''}">${t.n}</button>`).join('')}</div>
+    <div class="grid g2"><div class="card"><h3>បំពេញព័ត៌មាន</h3>${T.f.map(f=>f[2]==='__student'?`<label class="f" for="tf-${f[0]}">${f[1]}</label><select class="in" id="tf-${f[0]}">${DB.students.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>`:`<label class="f" for="tf-${f[0]}">${f[1]}</label><input class="in" id="tf-${f[0]}" value="${esc(f[2])}">`).join('')}
+    <button class="btn pri" id="mk" style="margin-top:14px">បង្កើតឯកសារ</button></div>
+    <div class="card"><h3>លទ្ធផល</h3><div class="doc" id="out">ចុច “បង្កើតឯកសារ”</div><button class="btn sm" id="cp" style="margin-top:10px">ចម្លង</button></div></div></div>`;
+    const make=()=>{const v={};T.f.forEach(f=>v[f[0]]=$('#tf-'+f[0]).value);v.mins=parseInt(v.mins)||45;$('#out').textContent=T.t(v)};
+    $('#mk').onclick=make;$('#cp').onclick=()=>copyText($('#out').textContent);
+    el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{toolKey=b.dataset.k;draw()});
+  };draw();
+}};
+
+</script>
+<script>
+/* ---------- data model: ROOT = school; ROOT.classes[] each hold their own students/scores/attendance ---------- */
+const DEF_SUBJ=()=>[
+  {id:'s_km',name:'ភាសាខ្មែរ',coef:4},{id:'s_ma',name:'គណិតវិទ្យា',coef:4},{id:'s_ph',name:'រូបវិទ្យា',coef:2},{id:'s_ch',name:'គីមីវិទ្យា',coef:2},
+  {id:'s_bi',name:'ជីវវិទ្យា',coef:2},{id:'s_hi',name:'ប្រវត្តិវិទ្យា',coef:2},{id:'s_en',name:'ភាសាអង់គ្លេស',coef:3},{id:'s_pe',name:'អប់រំកាយ',coef:1}];
+const RULES='១. មកដល់សាលាមុនម៉ោង ៦:៤៥ ព្រឹក។\n២. ស្លៀកពាក់ឯកសណ្ឋានស្អាតស្អំ។\n៣. រក្សាអនាម័យថ្នាក់រៀន។\n៤. គោរពគ្រូ និងមិត្តភក្តិ។';
+function emptyClass(name,teacher){
+  return {id:'c'+uid(),name,teacher:teacher||'',pw:'1234',students:[],subjects:DEF_SUBJ(),scores:{},att:{},work:{clean:{},seat:[],sched:{},rules:RULES}};
+}
+function emptyRoot(){
+  return {settings:{school:'វិទ្យាល័យគំរូ',year:'២០២៦-២០២៧',pwA:'0000',province:'',district:'',principal:'',place:''},classes:[emptyClass('ថ្នាក់ទី ៧ក','')],teachers:[],notices:[]};
+}
+function migrate(o){ /* v1 single-class data -> school with one class */
+  const c=emptyClass(o.settings?.className||'ថ្នាក់ទី ៧ក',o.settings?.teacher||'');
+  Object.assign(c,{students:o.students,subjects:o.subjects||c.subjects,scores:o.scores||{},att:o.att||{},work:o.work||c.work,pw:o.settings?.pwT||'1234'});
+  return {settings:{school:o.settings?.school||'វិទ្យាល័យគំរូ',year:o.settings?.year||'២០២៦-២០២៧',pwA:o.settings?.pwA||'0000'},classes:[c],teachers:o.teachers||[],notices:o.notices||[]};
+}
+function demoClass(name,teacher,n,seedv,q){
+  const c=emptyClass(name,teacher);
+  const L=['សុខ','ហេង','លី','ចាន់','គីម','ប៊ុន','សេង','ឈឹម','ម៉ៅ','ខូច','នួន','ពៅ','ស៊ឹម','យ៉ែម'];
+  const M=['វិបុល','សុភក្ត្រ','វិសាល','ឆេតា','ពិសី','វណ្ណៈ','រ័ត្ន','សុធា'],F=['មរកត','ស្រីនាង','ស្រីលីម','សុភា','ចិន្តា','ដារ៉ា','សោភា','ស្រីពៅ'];
+  let r=seedv*7919+12345;const rnd=()=>(r=(r*1103515245+12345)&0x7fffffff)/0x7fffffff;
+  for(let i=0;i<n;i++){
+    const boy=i%2===0,nm=L[(i+seedv)%L.length]+' '+(boy?M[(i*3+seedv)%M.length]:F[(i*3+seedv)%F.length]);
+    c.students.push({id:'s'+seedv+'_'+i,name:nm,sex:boy?'ប្រុស':'ស្រី',dob:`${2011+(i%3)}-0${1+(i%9)}-1${i%9}`,guardian:'អាណាព្យាបាល '+nm.split(' ')[0],phone:'012 '+(300+i*13)+' '+(100+i*37),
+      w:Math.round(38+rnd()*28),h:(boy?165:155)+Math.round(rnd()*12)});
+  }
+  c.students.forEach((s,i)=>{
+    const base=5.2+(i%6)*0.75+rnd()*0.8+q;c.scores[s.id]={};
+    c.subjects.forEach(b=>{c.scores[s.id][b.id]={};for(let m=0;m<3;m++)c.scores[s.id][b.id]['m'+m]=Math.max(2,Math.min(10,Math.round((base+(rnd()-.5)*2.4+m*.1)*2)/2))});
+  });
+  const t=new Date();
+  for(let k=1;k<=6;k++){const dt=new Date(t);dt.setDate(t.getDate()-k);const key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+    c.att[key]={};c.students.forEach((s,i)=>{const x=rnd();c.att[key][s.id]=(i===3&&k<5)?'A':x<.07?'A':x<.12?'L':'P'})}
+  return c;
+}
+function seed(){
+  const R=emptyRoot();
+  R.classes=[demoClass('ថ្នាក់ទី ៧ក','គ្រូ សុភាព',12,1,0),demoClass('ថ្នាក់ទី ៧ខ','គ្រូ វណ្ណា',14,2,-.5),demoClass('ថ្នាក់ទី ៨ក','គ្រូ ចន្ទ្រា',11,3,.6)];
+  R.teachers=[{id:'t1',name:'គ្រូ សុភាព',subject:'ភាសាខ្មែរ',phone:'012 111 222'},{id:'t2',name:'គ្រូ វណ្ណា',subject:'គណិតវិទ្យា',phone:'012 333 444'},
+    {id:'t3',name:'គ្រូ ចន្ទ្រា',subject:'រូបវិទ្យា',phone:'012 555 666'},{id:'t4',name:'គ្រូ សោភ័ណ',subject:'ភាសាអង់គ្លេស',phone:'012 777 888'}];
+  R.notices=[{id:'n1',title:'កាលបរិច្ឆេទប្រឡងប្រចាំខែ',body:'ការប្រឡងប្រចាំខែនឹងប្រព្រឹត្តទៅចុងសប្តាហ៍នេះ។ សូមគ្រូបន្ទុកថ្នាក់ជូនដំណឹងដល់សិស្ស។',date:todayStr()}];
+  return R;
+}
+
+/* bind DB (the class-level view used by all class screens) to one class of ROOT */
+function bind(cid){
+  const c=ROOT.classes.find(x=>x.id===cid);CUR=c;const o={};
+  ['students','subjects','scores','att','work'].forEach(k=>Object.defineProperty(o,k,{get:()=>c[k],set:v=>{c[k]=v},enumerable:true}));
+  Object.defineProperty(o,'rep',{get:()=>(c.rep??={}),enumerable:true});
+  ['teachers','notices'].forEach(k=>Object.defineProperty(o,k,{get:()=>ROOT[k],set:v=>{ROOT[k]=v},enumerable:true}));
+  o.settings={get school(){return ROOT.settings.school},get year(){return ROOT.settings.year},get className(){return c.name},get teacher(){return c.teacher||'គ្រូបន្ទុកថ្នាក់'}};
+  DB=o;
+}
+function withClass(c,fn){const od=DB,oc=CUR;bind(c.id);try{return fn()}finally{DB=od;CUR=oc}}
+
+/* ---------- navigation by role ---------- */
+const CLASS_NAV=[['dash','🏠','ផ្ទាំងគ្រប់គ្រង'],['people','👩‍🎓','ព័ត៌មានសិស្ស'],['health','💚','សុខភាពសិក្សាសិស្ស'],['work','🧰','ការងារសម្រាប់គ្រូ'],
+  ['subjects','📘','គ្រប់គ្រងមេគុណមុខវិជ្ជា'],['scores','📝','សម្រង់ពិន្ទុ'],['results','🏁','លទ្ធផលនៃការប្រឡង'],['att','🗓','វត្តមានសិស្ស'],
+  ['reports','📊','របាយការណ៍ និង ផែនការ'],['splan','📑','ផែនការគ្រូមុខវិជ្ជា'],['notice','📣','សេចក្តីប្រកាសពីសាលា'],['tools','📌','ឧបករណ៍ជំនួយគ្រូ'],['export','🖨','ទាញចេញ និងបោះពុម្ព'],['setup','⚙️','ការកំណត់ថ្នាក់']];
+const ADMIN_NAV=[['school','🏫','ទិដ្ឋភាពទូទៅនៃសាលា'],['classes','🗂','គ្រប់គ្រងថ្នាក់រៀន'],['sstudents','🎓','សិស្សទាំងអស់'],['import','📥','នាំចូលពី Google Sheet'],['staff','👥','បុគ្គលិក និងគ្រូ'],['sreports','📈','របាយការណ៍ទូទាំងសាលា'],['export','🖨','ទាញចេញ និងបោះពុម្ព'],['notice','📣','សេចក្តីប្រកាស'],['asetup','⚙️','ការកំណត់សាលា']];
+const ADMIN_VIEW_HIDE=['tools','setup','work'];
+const SUBJ_NAV=[['sdash','🏠','ថ្នាក់ដែលខ្ញុំបង្រៀន'],['ssheet','📝','បញ្ចូលពិន្ទុមុខវិជ្ជា'],['splan','📑','ផែនការគ្រូមុខវិជ្ជា'],['notice','📣','សេចក្តីប្រកាសពីសាលា']];
+const ME_NAV=[['mdash','🏠','ផ្ទាំងសង្ខេប'],['mscores','📝','ពិន្ទុ'],['matt','🗓','វត្តមាន'],['notice','📣','សេចក្តីប្រកាស']];
+function navList(){
+  if(ROLE==='subject')return SUBJ_NAV;
+  if(ROLE==='student'||ROLE==='guardian')return ME_NAV;
+  if(ROLE==='teacher')return CLASS_NAV;
+  return VIEWCLASS?CLASS_NAV:ADMIN_NAV;
+}
+const ROLE_LABEL={teacher:'គ្រូបន្ទុកថ្នាក់',subject:'គ្រូមុខវិជ្ជា',student:'សិស្ស',guardian:'អាណាព្យាបាល',admin:'គណៈគ្រប់គ្រង'};
+let cur='dash';
+function go(name){ if(location.hash==='#'+name)render(); else location.hash=name }
+function render(){
+  const list=navList(),home=list[0][0];
+  const name=(location.hash||'').slice(1);cur=(V[name]&&list.some(n=>n[0]===name))?name:home;
+  const sub=ROLE==='subject'?'គ្រូមុខវិជ្ជា · '+esc(SUBJT?.name||''):(ROLE==='student'||ROLE==='guardian')?esc(CUR.name)+(ROLE==='guardian'?' · អាណាព្យាបាល':' · សិស្ស'):ROLE==='admin'?(VIEWCLASS?`កំពុងគ្រប់គ្រងថ្នាក់ ${esc(CUR.name)}`:'គណៈគ្រប់គ្រង · '+esc(ROOT.settings.school)):esc(ROOT.settings.school)+' · '+esc(CUR.name);
+  $('#nav').innerHTML=`<div class="brand"><b>ថ្នាក់ឌីជីថល</b><small>${sub}</small></div>`+
+    (VIEWCLASS?`<div style="padding:10px 16px 2px"><select class="in" id="clsSw" aria-label="ប្តូរថ្នាក់" style="background:var(--nav-active);color:#fff;border-color:transparent">${ROOT.classes.map(c=>`<option value="${c.id}" ${c.id===CUR.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div><a data-n="__back" role="link" tabindex="0" style="background:var(--gold-soft);color:var(--warn)">← ត្រឡប់ទៅទិដ្ឋភាពសាលា</a>`:'')+
+    list.map(n=>`<a data-n="${n[0]}" class="${n[0]===cur?'on':''}" role="link" tabindex="0"><span>${n[1]}</span>${n[2]}</a>`).join('')+
+    `<div class="sp"></div><a data-n="__out" role="link" tabindex="0" style="color:#ffb4b4">🚪 ចាកចេញ</a><div class="ver">v1.1 · ${ROLE_LABEL[ROLE]}</div>`;
+  document.body.classList.remove('open');
+  const sw=$('#clsSw');if(sw)sw.onchange=()=>viewClass(sw.value);
+  $('#gsearch').hidden=!(ROLE==='teacher'||(ROLE==='admin'&&VIEWCLASS));
+  const bi=ROLE==='subject'?SUBJ_NAV.slice(0,2):(ROLE==='student'||ROLE==='guardian')?ME_NAV.slice(0,3):(ROLE==='teacher'||VIEWCLASS)?[['dash','🏠','ផ្ទាំង'],['people','👩‍🎓','សិស្ស'],['scores','📝','ពិន្ទុ'],['att','🗓','វត្តមាន']]:[['school','🏫','សាលា'],['classes','🗂','ថ្នាក់'],['sstudents','🎓','សិស្ស'],['sreports','📈','របាយការណ៍']];
+  $('#bnav').innerHTML=bi.map(b=>`<button data-b="${b[0]}" class="${b[0]===cur?'on':''}"><span class="i">${b[1]}</span>${b[2]}</button>`).join('')+`<button data-more><span class="i">☰</span>ម៉ឺនុយ</button>`;
+  const c=$('#content');c.onclick=null;if(ROLE==='teacher'&&CUR.published===false){c.innerHTML='<div class="page"><div class="card empty" style="padding:40px 20px"><div style="font-size:34px">🔒</div><h2 style="font-size:18px;margin:8px 0">គណៈគ្រប់គ្រងកំពុងរៀបចំទិន្នន័យថ្នាក់ '+esc(CUR.name)+'</h2><p style="margin:0">ទិន្នន័យនឹងបង្ហាញនៅពេលគណៈគ្រប់គ្រងបើកឱ្យអ្នក។</p></div></div>'}else V[cur].render(c);c.scrollTop=0;applyRO();markStk();
+}
+/* admin viewing a class: read-only (inputs disabled, edit buttons hidden) */
+const RO_KEEP=['colSel','rs','rc','ps','ad','pq'];
+function applyRO(){
+  if(!RO)return;const c=$('#content');
+  c.querySelectorAll('input,textarea,select').forEach(e=>{if(!RO_KEEP.includes(e.id))e.disabled=true});
+  c.querySelectorAll('[data-s]').forEach(b=>b.disabled=true);
+  c.querySelectorAll('.btn.pri,.btn.dng,#allP,[data-e]').forEach(b=>b.style.display='none');
+}
+function markStk(){
+  $('#content').querySelectorAll('.tw table').forEach(t=>{const h=[...t.querySelectorAll('thead th')];if(h[1]&&/គោត្តនាម|ឈ្មោះ|សិស្ស/.test(h[1].textContent))t.classList.add('stk')})}
+document.addEventListener('click',e=>{const b=e.target.closest('#bnav button');if(!b)return;if(b.dataset.more!==undefined)document.body.classList.toggle('open');else go(b.dataset.b)});
+new MutationObserver(()=>{applyRO();markStk()}).observe($('#content'),{childList:true,subtree:true});
+
+document.addEventListener('click',e=>{
+  const a=e.target.closest('#nav a');if(!a)return;
+  const n=a.dataset.n;
+  if(n==='__out'){logout();return}
+  if(n==='__back'){VIEWCLASS=null;RO=false;location.hash='school';render();return}
+  go(n);
+});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('#nav a'))e.target.click()});
+window.addEventListener('hashchange',()=>{if(!$('#app').hidden)render()});
+$('#burger').onclick=()=>document.body.classList.toggle('open');
+$('#scrim').onclick=()=>document.body.classList.remove('open');
+$('#gsearch').addEventListener('input',e=>{
+  peopleQ=e.target.value;peopleTab='st';
+  if(cur==='people'&&V.people.redraw)V.people.redraw();else go('people');
+});
+$('#themeBtn').onclick=()=>{
+  const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
+  r.dataset.theme=dark?'light':'dark';
+};
+
+/* ---------- login (5 roles) ---------- */
+let loginRole='teacher';
+const HINTS={teacher:'គ្រូបន្ទុកថ្នាក់ចូលតែថ្នាក់ខ្លួន ដើម្បីបញ្ចូលពិន្ទុ វត្តមាន។ លេខសម្ងាត់ដើម 1234',
+  subject:'គ្រូមុខវិជ្ជាបញ្ចូលពិន្ទុតែមុខវិជ្ជារបស់ខ្លួន ក្នុងគ្រប់ថ្នាក់។ លេខសម្ងាត់ដើម 1234',
+  student:'សិស្សមើលពិន្ទុ វត្តមាន និងសុខភាពរបស់ខ្លួន។ លេខសម្ងាត់ដើម = ៤ខ្ទង់ចុងនៃលេខទូរស័ព្ទ ឬសួរគ្រូ',
+  guardian:'អាណាព្យាបាលមើលពិន្ទុ វត្តមាន និងសុខភាពរបស់កូន។ លេខសម្ងាត់ដើម = ៦ខ្ទង់ចុងនៃលេខទូរស័ព្ទ ឬសួរគ្រូ',
+  admin:'គណៈគ្រប់គ្រងមើលទូទាំងសាលា គ្រប់គ្រងថ្នាក់ គ្រូ សិស្ស និងសេចក្តីប្រកាស។ លេខសម្ងាត់ដើម 0000'};
+function fillClassSelect(){
+  const list=loginRole==='teacher'?ROOT.classes:ROOT.classes.filter(c=>c.published!==false);
+  $('#loginClass').innerHTML=list.map(c=>`<option value="${c.id}">${esc(c.name)}${c.teacher&&loginRole==='teacher'?' · '+esc(c.teacher):''}</option>`).join('')||'<option value="">មិនទាន់មានថ្នាក់បង្ហាញ</option>';
+  $('#loginTeacher').innerHTML=ROOT.teachers.map(t=>`<option value="${t.id}">${esc(t.name)}${t.subject?' · '+esc(t.subject):''}</option>`).join('')||'<option value="">មិនទាន់មានគ្រូ</option>';
+  fillStudentSelect();
+}
+function fillStudentSelect(){
+  const c=ROOT.classes.find(x=>x.id===$('#loginClass').value);
+  $('#loginStudent').innerHTML=c?[...c.students].sort((a,b)=>a.name.localeCompare(b.name,'km')).map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join(''):'';
+}
+function setRole(r){
+  loginRole=r;
+  document.querySelectorAll('#roleSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===r));
+  $('#classRow').hidden=!['teacher','student','guardian'].includes(r);
+  $('#fTeacher').hidden=r!=='subject';
+  $('#fStudent').hidden=!['student','guardian'].includes(r);
+  $('#loginHint').textContent=HINTS[r];$('#loginErr').textContent='';
+  fillClassSelect();
+}
+$('#roleSeg').addEventListener('click',e=>{const b=e.target.closest('button[data-r]');if(b)setRole(b.dataset.r)});
+$('#loginClass').addEventListener('change',fillStudentSelect);
+$('#loginForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const pw=$('#pw').value,cid=$('#loginClass').value,c=ROOT.classes.find(x=>x.id===cid);
+  let ok=false;
+  if(loginRole==='admin')ok=pw===ROOT.settings.pwA;
+  else if(loginRole==='teacher')ok=!!c&&pw===c.pw;
+  else if(loginRole==='subject'){const t=ROOT.teachers.find(x=>x.id===$('#loginTeacher').value);ok=!!t&&pw===(t.pw||'1234');if(ok)SUBJT=t}
+  else{const s=c?.students.find(x=>x.id===$('#loginStudent').value);ok=!!s&&pw===pinOf(s,loginRole==='student'?'S':'G');if(ok)ME={cid,sid:s.id}}
+  if(!ok){$('#loginErr').textContent='លេខសម្ងាត់មិនត្រឹមត្រូវ';return}
+  ROLE=loginRole;VIEWCLASS=null;RO=false;
+  if(['teacher','student','guardian'].includes(ROLE))bind(cid);else bind(ROOT.classes[0].id);
+  $('#pw').value='';$('#loginErr').textContent='';
+  $('#login').hidden=true;$('#app').hidden=false;location.hash='';render();
+});
+function logout(){VIEWCLASS=null;RO=false;SUBJT=null;ME=null;$('#app').hidden=true;$('#login').hidden=false;setRole('teacher');$('#pw').focus()}
+
+/* ---------- boot ---------- */
+ROOT=load();
+if(!ROOT||!ROOT.classes){ROOT=seed();save()}
+ROOT.teachers??=[];ROOT.notices??=[];for(const k of ['province','district','principal','place'])ROOT.settings[k]??='';
+ROOT.classes.forEach(c=>{c.att??={};c.work??={clean:{},seat:[],sched:{},rules:RULES};c.pw??='1234'});
+bind(ROOT.classes[0].id);
+setRole('teacher');
+$('#login').hidden=false;
+</script>
+<script>
+/* ---------- admin (school-level) views + teacher class settings ---------- */
+function classStats(c){
+  return withClass(c,()=>{
+    const lm=latestMonth(),avg=lm<0?null:monthlyClassAvg(lm),ar=attRate();
+    const ya=DB.students.map(s=>yearAvg(s.id)).filter(x=>x!=null);
+    return {c,n:DB.students.length,boys:DB.students.filter(s=>s.sex==='ប្រុស').length,avg,ar,risk:atRisk().length,
+      pass:ya.length?ya.filter(a=>a>=5).length/ya.length*100:null,lm};
+  });
+}
+const mean=a=>a.length?a.reduce((p,c)=>p+c,0)/a.length:null;
+
+V.school={title:'ទិដ្ឋភាពទូទៅនៃសាលា',render(el){
+  const st=ROOT.classes.map(classStats);
+  const total=st.reduce((a,s)=>a+s.n,0),avg=mean(st.map(s=>s.avg).filter(x=>x!=null)),ar=mean(st.map(s=>s.ar).filter(x=>x!=null));
+  const risk=st.reduce((a,s)=>a+s.risk,0);
+  const noTeacher=ROOT.classes.filter(c=>!c.teacher).length;
+  el.innerHTML=`<div class="page"><div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,var(--blue-soft),var(--surface))">
+    <h2 style="font-size:18px">ទិដ្ឋភាពសាលា · ${esc(ROOT.settings.school)}</h2>
+    <div style="color:var(--muted)">ឆ្នាំសិក្សា ${esc(ROOT.settings.year)} · ${khDate()}</div></div>
+  <div class="grid g4">
+    <div class="card stat"><div class="k">ថ្នាក់រៀន</div><div class="v num">${kh(ROOT.classes.length)}</div><div class="s">${noTeacher?kh(noTeacher)+' ថ្នាក់មិនទាន់មានគ្រូ':'មានគ្រូគ្រប់ថ្នាក់'}</div></div>
+    <div class="card stat"><div class="k">សិស្សទូទាំងសាលា</div><div class="v num">${kh(total)}</div><div class="s">គ្រូ ${kh(ROOT.teachers.length)} នាក់</div></div>
+    <div class="card stat"><div class="k">មធ្យមភាគសាលា</div><div class="v num">${avg==null?'—':fx(avg)}</div></div>
+    <div class="card stat"><div class="k">សិស្សប្រឈមហានិភ័យ</div><div class="v num" style="color:${risk?'var(--danger)':'var(--ok)'}">${kh(risk)}</div><div class="s">អត្រាចូលរៀន ${ar==null?'—':fx(ar,1)+'%'}</div></div>
+  </div>
+  <div class="sec">ប្រៀបធៀបថ្នាក់នីមួយៗ</div>
+  <div class="card"><h3>មធ្យមភាគថ្នាក់ (ខែចុងក្រោយ)</h3>${barChart(st.map(s=>s.c.name.replace('ថ្នាក់ទី ','')),st.map(s=>s.avg))}</div>
+  <div class="tw" style="margin-top:14px"><table><thead><tr><th>ថ្នាក់</th><th>គ្រូបន្ទុក</th><th class="c">សិស្ស</th><th class="c">មធ្យមភាគ</th><th class="c">ជាប់</th><th class="c">ចូលរៀន</th><th class="c">ហានិភ័យ</th><th></th></tr></thead><tbody>
+  ${st.map(s=>`<tr><td><b>${esc(s.c.name)}</b></td><td>${esc(s.c.teacher||'—')}</td><td class="c num">${kh(s.n)}</td><td class="c num">${fx(s.avg)}</td><td class="c num">${s.pass==null?'—':fx(s.pass,0)+'%'}</td><td class="c num">${s.ar==null?'—':fx(s.ar,0)+'%'}</td><td class="c">${s.risk?`<span class="pill bad">${kh(s.risk)}</span>`:'<span class="pill ok">០</span>'}</td><td><button class="btn sm" data-v="${s.c.id}">គ្រប់គ្រងថ្នាក់</button></td></tr>`).join('')}
+  </tbody></table></div></div>`;
+  el.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>viewClass(b.dataset.v));
+}};
+function viewClass(id){VIEWCLASS=id;RO=false;bind(id);location.hash='dash';render()}
+
+V.classes={title:'គ្រប់គ្រងថ្នាក់រៀន',render(el){
+  const draw=()=>{
+    el.innerHTML=`<div class="page"><div class="ph"><h2>🗂 គ្រប់គ្រងថ្នាក់រៀន</h2><div class="row"><button class="btn sm" id="pubAll">បង្ហាញដល់គ្រូទាំងអស់</button><button class="btn sm" id="hideAll">លាក់ទាំងអស់</button><button class="btn pri sm" id="addC">＋ បង្កើតថ្នាក់ថ្មី</button></div></div>
+    <div class="tw"><table><thead><tr><th>ឈ្មោះថ្នាក់</th><th>គ្រូបន្ទុក</th><th class="c">សិស្ស</th><th class="c">បង្ហាញដល់គ្រូ</th><th>លេខសម្ងាត់គ្រូ</th><th></th></tr></thead><tbody>
+    ${ROOT.classes.map(c=>`<tr><td><input class="in" style="min-width:140px" data-n="${c.id}" value="${esc(c.name)}" aria-label="ឈ្មោះថ្នាក់"></td>
+      <td><select class="in" style="min-width:160px" data-t="${c.id}" aria-label="គ្រូបន្ទុក"><option value="">— មិនទាន់កំណត់ —</option>${ROOT.teachers.map(t=>`<option ${t.name===c.teacher?'selected':''}>${esc(t.name)}</option>`).join('')}</select></td>
+      <td class="c num">${kh(c.students.length)}</td>
+      <td class="c"><button class="btn sm ${c.published===false?'':'pri'}" data-pub="${c.id}" aria-pressed="${c.published!==false}">${c.published===false?'លាក់':'បង្ហាញ'}</button></td>
+      <td><button class="btn sm" data-p="${c.id}">កំណត់ថ្មី</button></td>
+      <td><button class="btn sm" data-v="${c.id}">គ្រប់គ្រងថ្នាក់</button> <button class="btn sm dng" data-x="${c.id}">លុប</button></td></tr>`).join('')}
+    </tbody></table></div><p style="color:var(--muted);font-size:13px">ចុច “គ្រប់គ្រងថ្នាក់” ដើម្បីចូលកែប្រែទិន្នន័យថ្នាក់នោះដោយផ្ទាល់ (ពិន្ទុ វត្តមាន សិស្ស ការកំណត់)។</p></div>`;
+    $('#pubAll').onclick=()=>{ROOT.classes.forEach(c=>c.published=true);save();toast('បានបង្ហាញទាំងអស់');draw()};
+    $('#hideAll').onclick=()=>{ROOT.classes.forEach(c=>c.published=false);save();toast('បានលាក់ទាំងអស់');draw()};
+    $('#addC').onclick=()=>{ROOT.classes.push(emptyClass('ថ្នាក់ថ្មី',''));save();draw()};
+    el.querySelectorAll('[data-n]').forEach(i=>i.onchange=()=>{ROOT.classes.find(c=>c.id===i.dataset.n).name=i.value.trim()||'ថ្នាក់';save()});
+    el.querySelectorAll('[data-t]').forEach(i=>i.onchange=()=>{ROOT.classes.find(c=>c.id===i.dataset.t).teacher=i.value;save();toast('បានកំណត់គ្រូ')});
+    el.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>viewClass(b.dataset.v));
+    el.querySelectorAll('[data-pub]').forEach(b=>b.onclick=()=>{const c=ROOT.classes.find(x=>x.id===b.dataset.pub);c.published=c.published===false;save();toast(c.published===false?'លាក់ពីគ្រូ':'បានបង្ហាញដល់គ្រូ');draw()});
+    el.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{
+      const c=ROOT.classes.find(x=>x.id===b.dataset.p);
+      modal(`<h3>លេខសម្ងាត់ថ្មី · ${esc(c.name)}</h3><div style="margin:6px 0">លេខសម្ងាត់បច្ចុប្បន្ន៖ <b class="num">${esc(c.pw)}</b></div><label class="f" for="np1">លេខសម្ងាត់ថ្មី (យ៉ាងតិច ៤ខ្ទង់)</label><input class="in" id="np1" type="password" inputmode="numeric"><div class="err" id="npe"></div>
+      <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" data-x>បោះបង់</button><button class="btn pri" data-ok>រក្សាទុក</button></div>`,m=>{
+        m.querySelector('[data-x]').onclick=()=>m.remove();
+        m.querySelector('[data-ok]').onclick=()=>{const v=$('#np1',m).value;if(v.length<4){$('#npe',m).textContent='ខ្លីពេក';return}c.pw=v;save();m.remove();toast('បានប្តូរលេខសម្ងាត់')}})});
+    el.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{
+      if(ROOT.classes.length<2){toast('ត្រូវមានយ៉ាងតិចមួយថ្នាក់');return}
+      const c=ROOT.classes.find(x=>x.id===b.dataset.x);
+      ask(`លុបថ្នាក់ “${c.name}” រួមទាំងសិស្ស ${c.students.length}នាក់ និងពិន្ទុទាំងអស់?`,()=>{ROOT.classes=ROOT.classes.filter(x=>x.id!==c.id);save();draw()})});
+  };draw();
+}};
+
+V.staff={title:'បុគ្គលិក និងគ្រូ',render(el){
+  const draw=()=>{
+    el.innerHTML=`<div class="page"><div class="ph"><h2>👥 បុគ្គលិក និងគ្រូ</h2><button class="btn pri sm" id="addT">＋ បន្ថែមគ្រូ</button></div>
+    <div class="tw"><table><thead><tr><th class="c">ល.រ</th><th>ឈ្មោះ</th><th>មុខវិជ្ជាបង្រៀន</th><th>ទូរស័ព្ទ</th><th>ថ្នាក់បន្ទុក</th><th></th></tr></thead><tbody>
+    ${ROOT.teachers.map((t,i)=>{const cl=ROOT.classes.filter(c=>c.teacher===t.name).map(c=>c.name).join(', ');return `<tr><td class="c num">${kh(i+1)}</td><td><b>${esc(t.name)}</b></td><td>${esc(t.subject||'—')}</td><td>${esc(t.phone||'—')}</td><td><select class="in" style="min-width:150px" data-as="${t.id}" aria-label="ថ្នាក់បន្ទុក"><option value="">— គ្មាន —</option>${ROOT.classes.map(c=>`<option value="${c.id}" ${c.teacher===t.name?'selected':''}>${esc(c.name)}</option>`).join('')}</select></td><td><button class="btn sm" data-te="${t.id}">កែ</button> <button class="btn sm" data-tp="${t.id}">លេខសម្ងាត់</button> <button class="btn sm dng" data-td="${t.id}">លុប</button></td></tr>`}).join('')||'<tr><td colspan="6" class="empty">មិនទាន់មានគ្រូ</td></tr>'}
+    </tbody></table></div></div>`;
+    $('#addT').onclick=()=>teacherForm();
+    el.querySelectorAll('[data-tp]').forEach(b=>b.onclick=()=>{const t=ROOT.teachers.find(x=>x.id===b.dataset.tp);
+      modal(`<h3>លេខសម្ងាត់គ្រូមុខវិជ្ជា · ${esc(t.name)}</h3><div style="margin:6px 0">បច្ចុប្បន្ន៖ <b class="num">${esc(t.pw||'1234')}</b></div><label class="f" for="tpw">លេខសម្ងាត់ថ្មី (យ៉ាងតិច ៤ខ្ទង់)</label><input class="in" id="tpw" type="password" inputmode="numeric"><div class="err" id="tpe"></div>
+      <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" data-x>បោះបង់</button><button class="btn pri" data-ok>រក្សាទុក</button></div>`,m=>{
+        m.querySelector('[data-x]').onclick=()=>m.remove();
+        m.querySelector('[data-ok]').onclick=()=>{const v=$('#tpw',m).value;if(v.length<4){$('#tpe',m).textContent='ខ្លីពេក';return}t.pw=v;save();m.remove();toast('បានប្តូរលេខសម្ងាត់')}})});
+    el.querySelectorAll('[data-as]').forEach(sel=>sel.onchange=()=>{const t=ROOT.teachers.find(x=>x.id===sel.dataset.as);ROOT.classes.forEach(c=>{if(c.teacher===t.name)c.teacher=''});if(sel.value)ROOT.classes.find(c=>c.id===sel.value).teacher=t.name;save();toast('បានកំណត់ថ្នាក់បន្ទុក');draw()});
+    el.querySelectorAll('[data-te]').forEach(b=>b.onclick=()=>teacherForm(b.dataset.te));
+    el.querySelectorAll('[data-td]').forEach(b=>b.onclick=()=>ask('លុបគ្រូនេះ?',()=>{const t=ROOT.teachers.find(x=>x.id===b.dataset.td);ROOT.classes.forEach(c=>{if(c.teacher===t.name)c.teacher=''});ROOT.teachers=ROOT.teachers.filter(x=>x!==t);save();draw()}));
+  };
+  AFTER=draw;V.staff.redraw=draw;draw();
+}};
+/* teacherForm (from the people view) redraws through V.people; point it at staff when on that page */
+const _tf=teacherForm;
+teacherForm=function(id){
+  const old=ROOT.teachers.find(t=>t.id===id)?.name;
+  _tf(id);
+  const m=document.querySelector('.modal [data-ok]');
+  if(m){const prev=m.onclick;m.onclick=()=>{
+    const nm=document.querySelector('#tn').value.trim();
+    if(old&&nm&&nm!==old)ROOT.classes.forEach(c=>{if(c.teacher===old)c.teacher=nm});
+    prev()}}
+};
+
+V.sreports={title:'របាយការណ៍ទូទាំងសាលា',render(el){
+  const all=[];ROOT.classes.forEach(c=>withClass(c,()=>DB.students.forEach(s=>{const a=yearAvg(s.id);if(a!=null)all.push({s,a,cn:c.name})})));
+  all.sort((a,b)=>b.a-a.a);
+  const risk=[];ROOT.classes.forEach(c=>withClass(c,()=>atRisk().forEach(r=>risk.push({...r,cn:c.name}))));
+  const subj={};ROOT.classes.forEach(c=>withClass(c,()=>DB.subjects.forEach(b=>{const v=[];DB.students.forEach(s=>{const o=DB.scores[s.id]?.[b.id];if(o){const x=Object.values(o).map(Number);if(x.length)v.push(mean(x))}});if(v.length)(subj[b.name]??={})[c.name]=mean(v)})));
+  const cn=ROOT.classes.map(c=>c.name);
+  el.innerHTML=`<div class="page"><div class="ph"><h2>📈 របាយការណ៍ទូទាំងសាលា</h2></div>
+  <div class="grid g2"><div class="card"><h3>🏆 សិស្សពូកែកំពូល ១០នាក់ទូទាំងសាលា</h3>
+    ${all.slice(0,10).map((r,i)=>`<div class="rank"><div class="n">${kh(i+1)}</div><div class="nm"><b>${esc(r.s.name)}</b><div style="font-size:13px;color:var(--muted)">${esc(r.cn)}</div></div><b class="num">${fx(r.a)}</b></div>`).join('')||'<div class="empty">មិនទាន់មានពិន្ទុ</div>'}</div>
+  <div class="card"><h3>🚨 សិស្សប្រឈមហានិភ័យទូទាំងសាលា (${kh(risk.length)})</h3>
+    ${risk.map(r=>`<div class="rank"><div class="nm"><b>${esc(r.s.name)}</b><div style="font-size:13px;color:var(--muted)">${esc(r.cn)} · ${r.why.join(' · ')}</div></div><span class="pill bad">${fx(r.a)}</span></div>`).join('')||'<div class="empty">គ្មាន</div>'}</div></div>
+  <div class="sec">មធ្យមភាគមុខវិជ្ជា តាមថ្នាក់</div>
+  <div class="tw"><table><thead><tr><th>មុខវិជ្ជា</th>${cn.map(n=>`<th class="c">${esc(n)}</th>`).join('')}</tr></thead><tbody>
+  ${Object.entries(subj).map(([b,o])=>`<tr><td>${esc(b)}</td>${cn.map(n=>`<td class="c num">${fx(o[n])}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+}};
+
+/* class settings for the homeroom teacher */
+V.setup={title:'ការកំណត់ថ្នាក់',render(el){
+  el.innerHTML=`<div class="page"><div class="ph"><h2>⚙️ ការកំណត់ថ្នាក់ · ${esc(CUR.name)}</h2></div><div class="grid g2">
+  <div class="card"><h3>លេខសម្ងាត់ចូលថ្នាក់</h3><label class="f" for="pw1" style="margin-top:0">លេខសម្ងាត់ថ្មី</label><input class="in" id="pw1" type="password" inputmode="numeric" placeholder="យ៉ាងតិច ៤ខ្ទង់">
+    <div class="err" id="pwe"></div><button class="btn pri" id="pws">ប្តូរលេខសម្ងាត់</button>
+    ${ROLE==='admin'?'':'<p style="color:var(--muted);font-size:13px">ឈ្មោះថ្នាក់ និងគ្រូបន្ទុក កំណត់ដោយគណៈគ្រប់គ្រង។</p>'}</div>
+  <div class="card"><h3>ព័ត៌មានថ្នាក់</h3>${ROLE==='admin'?`<label class="f" for="cn" style="margin-top:0">ឈ្មោះថ្នាក់</label><input class="in" id="cn" value="${esc(CUR.name)}"><label class="f" for="ct">គ្រូបន្ទុក</label><select class="in" id="ct"><option value="">— មិនទាន់កំណត់ —</option>${ROOT.teachers.map(t=>`<option ${t.name===CUR.teacher?'selected':''}>${esc(t.name)}</option>`).join('')}</select><div style="margin-top:8px">សិស្ស៖ <b>${kh(CUR.students.length)}</b> នាក់</div>`:`<div>ថ្នាក់៖ <b>${esc(CUR.name)}</b></div><div>គ្រូបន្ទុក៖ <b>${esc(CUR.teacher||'—')}</b></div><div>សិស្ស៖ <b>${kh(CUR.students.length)}</b> នាក់</div>`}</div>
+  <div class="card" style="grid-column:1/-1"><h3>💾 បម្រុងទុកទិន្នន័យថ្នាក់នេះ</h3>
+    <p style="margin:0 0 10px;color:var(--muted)">ទិន្នន័យនៅក្នុងកម្មវិធីរុករករបស់អ្នក។ ចម្លងអត្ថបទទុកជាបម្រុង ហើយបិទភ្ជាប់ដើម្បីស្តារវិញ។</p>
+    <textarea class="in" id="bk" aria-label="ទិន្នន័យបម្រុងទុក"></textarea>
+    <div class="row" style="margin-top:10px"><button class="btn" id="bkGen">បង្កើតបម្រុងទុក</button><button class="btn" id="bkCp">ចម្លង</button><button class="btn pri" id="bkIn">ស្តារពីអត្ថបទ</button><label class="btn" style="margin:0">ជ្រើសឯកសារ<input type="file" id="bkFile" accept=".json,.txt" hidden></label></div>
+    <div class="err" id="bkErr"></div></div></div></div>`;
+  if(ROLE==='admin'){$('#cn').onchange=e=>{CUR.name=e.target.value.trim()||CUR.name;save();render()};$('#ct').onchange=e=>{CUR.teacher=e.target.value;save();toast('បានកំណត់គ្រូ')}}
+  $('#pws').onclick=()=>{const v=$('#pw1').value;if(v.length<4){$('#pwe').textContent='លេខសម្ងាត់ខ្លីពេក';return}CUR.pw=v;save();$('#pw1').value='';$('#pwe').textContent='';toast('បានប្តូរលេខសម្ងាត់')};
+  $('#bkGen').onclick=()=>{$('#bk').value=JSON.stringify({classBackup:1,data:{students:CUR.students,subjects:CUR.subjects,scores:CUR.scores,att:CUR.att,work:CUR.work}})};
+  $('#bkCp').onclick=()=>{if(!$('#bk').value)$('#bkGen').click();copyText($('#bk').value)};
+  const restore=txt=>{try{const o=JSON.parse(txt);if(!o.classBackup||!o.data.students)throw 0;Object.assign(CUR,o.data);save();toast('បានស្តារទិន្នន័យ');go('dash')}catch(e){$('#bkErr').textContent='ទិន្នន័យមិនត្រឹមត្រូវ'}};
+  $('#bkIn').onclick=()=>restore($('#bk').value);
+  $('#bkFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>restore(r.result);r.readAsText(f)};
+}};
+
+/* school settings for the administration */
+V.asetup={title:'ការកំណត់សាលា',render(el){
+  el.innerHTML=`<div class="page"><div class="ph"><h2>⚙️ ការកំណត់សាលា</h2></div><div class="grid g2">
+  <div class="card"><h3>ព័ត៌មានសាលា</h3><label class="f" for="a-s" style="margin-top:0">ឈ្មោះសាលា</label><input class="in" id="a-s" value="${esc(ROOT.settings.school)}">
+    <label class="f" for="a-y">ឆ្នាំសិក្សា</label><input class="in" id="a-y" value="${esc(ROOT.settings.year)}"><label class="f" for="a-pr">ខេត្ត/ក្រុង</label><input class="in" id="a-pr" value="${esc(ROOT.settings.province)}">
+    <label class="f" for="a-d">ស្រុក/ខណ្ឌ</label><input class="in" id="a-d" value="${esc(ROOT.settings.district)}">
+    <label class="f" for="a-pn">នាយកសាលា</label><input class="in" id="a-pn" value="${esc(ROOT.settings.principal)}">
+    <label class="f" for="a-pl">ទីកន្លែងចុះហត្ថលេខា</label><input class="in" id="a-pl" value="${esc(ROOT.settings.place)}" placeholder="ឧ. សង្កែ">
+    <button class="btn pri" id="as" style="margin-top:12px">រក្សាទុក</button></div>
+  <div class="card"><h3>លេខសម្ងាត់គណៈគ្រប់គ្រង</h3><label class="f" for="a-p" style="margin-top:0">លេខសម្ងាត់ថ្មី</label><input class="in" id="a-p" type="password" inputmode="numeric" placeholder="យ៉ាងតិច ៤ខ្ទង់">
+    <div class="err" id="ape"></div><button class="btn pri" id="ap">ប្តូរលេខសម្ងាត់</button></div>
+  <div class="card" style="grid-column:1/-1"><h3>💾 បម្រុងទុកទិន្នន័យទូទាំងសាលា</h3>
+    <textarea class="in" id="bk" aria-label="ទិន្នន័យបម្រុងទុក"></textarea>
+    <div class="row" style="margin-top:10px"><button class="btn" id="bkGen">បង្កើតបម្រុងទុក</button><button class="btn" id="bkCp">ចម្លង</button><button class="btn pri" id="bkIn">ស្តារពីអត្ថបទ</button><label class="btn" style="margin:0">ជ្រើសឯកសារ<input type="file" id="bkFile" accept=".json,.txt" hidden></label></div>
+    <div class="err" id="bkErr"></div>
+    <div class="row" style="margin-top:14px"><button class="btn" id="demo">ផ្ទុកទិន្នន័យគំរូឡើងវិញ</button><button class="btn dng" id="wipe">សម្អាតទិន្នន័យទាំងអស់</button></div></div></div></div>`;
+  $('#as').onclick=()=>{ROOT.settings.school=$('#a-s').value.trim()||ROOT.settings.school;ROOT.settings.year=$('#a-y').value.trim();ROOT.settings.province=$('#a-pr').value.trim();ROOT.settings.district=$('#a-d').value.trim();ROOT.settings.principal=$('#a-pn').value.trim();ROOT.settings.place=$('#a-pl').value.trim();save();toast('បានរក្សាទុក')};
+  $('#ap').onclick=()=>{const v=$('#a-p').value;if(v.length<4){$('#ape').textContent='លេខសម្ងាត់ខ្លីពេក';return}ROOT.settings.pwA=v;save();$('#a-p').value='';$('#ape').textContent='';toast('បានប្តូរលេខសម្ងាត់')};
+  $('#bkGen').onclick=()=>{$('#bk').value=JSON.stringify(ROOT)};
+  $('#bkCp').onclick=()=>{if(!$('#bk').value)$('#bkGen').click();copyText($('#bk').value)};
+  const restore=txt=>{try{const o=JSON.parse(txt);if(!o.classes||!o.settings)throw 0;ROOT=o;save();bind(ROOT.classes[0].id);toast('បានស្តារទិន្នន័យ');go('school')}catch(e){$('#bkErr').textContent='ទិន្នន័យមិនត្រឹមត្រូវ'}};
+  $('#bkIn').onclick=()=>restore($('#bk').value);
+  $('#bkFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>restore(r.result);r.readAsText(f)};
+  $('#demo').onclick=()=>ask('ជំនួសទិន្នន័យទាំងអស់ដោយទិន្នន័យគំរូ?',()=>{ROOT=seed();save();bind(ROOT.classes[0].id);go('school')});
+  $('#wipe').onclick=()=>ask('លុបទិន្នន័យទាំងអស់? មិនអាចត្រឡប់វិញបានទេ។',()=>{const s=ROOT.settings;ROOT=emptyRoot();ROOT.settings=s;save();bind(ROOT.classes[0].id);go('school')});
+}};
+</script>
+<script>
+/* ---------- export & print: official A4 documents (inline styles so they paste cleanly into Word / Excel) ---------- */
+const TS='border-collapse:collapse;width:100%;font-size:12px;color:#000;margin-top:6px';
+const TD='border:1px solid #000;padding:3px 6px;vertical-align:middle;color:#000';
+const TH=(t,ex='')=>`<th style="${TD};background:#e9e9e9;font-weight:700;text-align:center;${ex}">${t}</th>`;
+const TC=(t,al='left',ex='')=>`<td style="${TD};text-align:${al};${ex}">${t}</td>`;
+const MOUL="font-family:'Khmer OS Muol Light','Khmer OS Muol','Moul',serif;font-weight:400";
+const KM_MONTH=['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
+const dots=(v,n='……………')=>v?esc(v):n;
+function khLong(d=new Date()){return `ថ្ងៃទី ${kh(d.getDate())} ខែ${KM_MONTH[d.getMonth()]} ឆ្នាំ${kh(d.getFullYear())}`}
+
+function docHeader(title,sub){
+  const s=ROOT.settings;
+  return `<table style="width:100%;border-collapse:collapse;color:#000"><tr>
+    <td style="width:50%;text-align:center;vertical-align:top;font-size:12px;line-height:1.7">
+      មន្ទីរអប់រំ យុវជន និងកីឡា ខេត្ត${dots(s.province)}<br>ការិយាល័យអប់រំ យុវជន និងកីឡា ស្រុក${dots(s.district)}<br><b>${esc(s.school)}</b></td>
+    <td style="width:50%;text-align:center;vertical-align:top;line-height:1.9">
+      <div style="${MOUL};font-size:13px">ព្រះរាជាណាចក្រកម្ពុជា</div><div style="${MOUL};font-size:12px">ជាតិ សាសនា ព្រះមហាក្សត្រ</div><div>❖ ❖ ❖</div></td></tr></table>
+    <div style="text-align:center;margin:10px 0 2px;${MOUL};font-size:15px;line-height:1.8">${title}</div>
+    <div style="text-align:center;font-size:12.5px;margin-bottom:6px">${sub}</div>`;
+}
+function docFooter(mode){
+  const s=ROOT.settings,place=dots(s.place,'………………');
+  const sign=(t1,t2,name)=>`<div>${t1}</div><div style="font-weight:700">${t2}</div><div style="height:58px"></div><div>${name}</div>`;
+  if(mode==='school')return `<table style="width:100%;border-collapse:collapse;color:#000;margin-top:18px;font-size:12.5px"><tr><td style="width:55%"></td><td style="text-align:center;vertical-align:top">ធ្វើនៅ${place} ${khLong()}<br>${sign('','នាយកសាលា',dots(s.principal))}</td></tr></table>`;
+  return `<table style="width:100%;border-collapse:collapse;color:#000;margin-top:18px;font-size:12.5px"><tr>
+    <td style="width:50%;text-align:center;vertical-align:top"><br>${sign('បានឃើញ និងឯកភាព','នាយកសាលា',dots(s.principal))}</td>
+    <td style="width:50%;text-align:center;vertical-align:top">ធ្វើនៅ${place} ${khLong()}<br>${sign('','គ្រូបន្ទុកថ្នាក់',dots(CUR.teacher))}</td></tr></table>`;
+}
+const clsSub=()=>`${esc(CUR.name)} · ឆ្នាំសិក្សា ${esc(ROOT.settings.year)}`;
+const colName=k=>COLS.find(c=>c.k===k)?.n||k;
+const sorted=()=>[...DB.students].sort((a,b)=>a.name.localeCompare(b.name,'km'));
+function rankMap(avgFn){
+  const rows=DB.students.map(s=>({id:s.id,a:avgFn(s.id)})).filter(r=>r.a!=null).sort((x,y)=>y.a-x.a);
+  const m={};let rk=0,last=null;rows.forEach((r,i)=>{if(r.a!==last){rk=i+1;last=r.a}m[r.id]=rk});return m;
+}
+const gl=a=>{const g=grade(a);return g?g[1]+' · '+g[2]:'—'};
+const attMonths=()=>[...new Set(Object.keys(DB.att).map(k=>k.slice(0,7)))].sort();
+
+const DOCS={
+ students:{n:'បញ្ជីឈ្មោះសិស្ស',o:'p',opts:[],build:()=>{
+   const st=sorted(),g=st.filter(s=>s.sex==='ស្រី').length;
+   return docHeader('បញ្ជីឈ្មោះសិស្ស',clsSub())+`<table style="${TS}"><thead><tr>${TH('ល.រ','width:36px')}${TH('គោត្តនាម និងនាម')}${TH('ភេទ')}${TH('ថ្ងៃខែឆ្នាំកំណើត')}${TH('អាណាព្យាបាល')}${TH('ទូរស័ព្ទ')}${TH('ផ្សេងៗ')}</tr></thead><tbody>
+   ${st.map((s,i)=>`<tr>${TC(kh(i+1),'center')}${TC(esc(s.name))}${TC(esc(s.sex),'center')}${TC(s.dob?kh(s.dob.split('-').reverse().join('/')):'','center')}${TC(esc(s.guardian||''))}${TC(esc(s.phone||''))}${TC('')}</tr>`).join('')}
+   <tr>${TC('<b>សរុប</b>','center','" colspan="2')}${TC('<b>'+kh(st.length)+' នាក់</b>','center','" colspan="5')}</tr></tbody></table>
+   <p style="margin:6px 0 0">ក្នុងនោះ ស្រី ${kh(g)} នាក់ · ប្រុស ${kh(st.length-g)} នាក់</p>`+docFooter()}},
+ scores:{n:'តារាងពិន្ទុតាមមុខវិជ្ជា',o:'l',opts:['col'],build:o=>{
+   const rk=rankMap(id=>avgOf(id,o.col));
+   return docHeader('តារាងពិន្ទុ '+colName(o.col),clsSub())+`<table style="${TS}"><thead><tr>${TH('ល.រ')}${TH('គោត្តនាម និងនាម')}${TH('ភេទ')}${DB.subjects.map(b=>TH(esc(b.name)+'<br><span style="font-weight:400">(×'+kh(b.coef)+')</span>')).join('')}${TH('មធ្យមភាគ')}${TH('ចំណាត់ថ្នាក់')}${TH('និទ្ទេស')}</tr></thead><tbody>
+   ${sorted().map((s,i)=>{const a=avgOf(s.id,o.col);return `<tr>${TC(kh(i+1),'center')}${TC(esc(s.name))}${TC(esc(s.sex),'center')}${DB.subjects.map(b=>{const v=DB.scores[s.id]?.[b.id]?.[o.col];return TC(v===undefined||v===''?'':kh(fx(v,1)),'center')}).join('')}${TC('<b>'+(a==null?'':kh(fx(a)))+'</b>','center')}${TC(rk[s.id]?kh(rk[s.id]):'','center')}${TC(a==null?'':grade(a)[1],'center')}</tr>`}).join('')}
+   </tbody></table><p style="margin:6px 0 0;font-size:11.5px">ពិន្ទុគិតលើ ១០ · មធ្យមភាគ = ផលបូក(ពិន្ទុ × មេគុណ) ÷ ផលបូកមេគុណ · A ≥ ៩, B ≥ ៨, C ≥ ៧, D ≥ ៦, E ≥ ៥, F &lt; ៥</p>`+docFooter()}},
+ results:{n:'តារាងលទ្ធផលប្រឡង',o:'p',opts:['per'],build:o=>{
+   const f=id=>o.per==='y'?yearAvg(id):avgOf(id,o.per);
+   const rows=DB.students.map(s=>({s,a:f(s.id)})).sort((x,y)=>(y.a??-1)-(x.a??-1)),rk=rankMap(f);
+   const have=rows.filter(r=>r.a!=null),pass=have.filter(r=>r.a>=5).length;
+   return docHeader('តារាងលទ្ធផលប្រឡង '+(o.per==='y'?'ប្រចាំឆ្នាំ':colName(o.per)),clsSub())+`<table style="${TS}"><thead><tr>${TH('ចំណាត់ថ្នាក់')}${TH('គោត្តនាម និងនាម')}${TH('ភេទ')}${TH('មធ្យមភាគ')}${TH('និទ្ទេស')}${TH('លទ្ធផល')}${TH('កិត្តិយស')}</tr></thead><tbody>
+   ${rows.map(r=>`<tr>${TC(rk[r.s.id]?kh(rk[r.s.id]):'','center')}${TC(esc(r.s.name))}${TC(esc(r.s.sex),'center')}${TC(r.a==null?'':'<b>'+kh(fx(r.a))+'</b>','center')}${TC(r.a==null?'':gl(r.a),'center')}${TC(r.a==null?'':r.a>=5?'ជាប់':'ធ្លាក់','center')}${TC(r.a>=9?'ល្អប្រសើរ':r.a>=8?'ល្អណាស់':'','center')}</tr>`).join('')}
+   </tbody></table><p style="margin:6px 0 0">សិស្សមានពិន្ទុ ${kh(have.length)} នាក់ · ជាប់ ${kh(pass)} នាក់ (${have.length?kh(fx(pass/have.length*100,0)):'០'}%) · ធ្លាក់ ${kh(have.length-pass)} នាក់ · មធ្យមភាគថ្នាក់ ${have.length?kh(fx(have.reduce((p,c)=>p+c.a,0)/have.length)):'—'}</p>`+docFooter()}},
+ att:{n:'តារាងវត្តមានសិស្សប្រចាំខែ',o:'l',opts:['month'],build:o=>{
+   const days=Object.keys(DB.att).filter(k=>k.startsWith(o.month)).sort();
+   if(!days.length)return docHeader('តារាងវត្តមានសិស្ស',clsSub())+'<p style="text-align:center;padding:30px 0">មិនទាន់មានទិន្នន័យវត្តមានក្នុងខែនេះ</p>';
+   const [y,m]=o.month.split('-'),mk={P:'✓',A:'អ',L:'ច'};
+   return docHeader(`តារាងវត្តមានសិស្ស ខែ${KM_MONTH[+m-1]} ឆ្នាំ${kh(y)}`,clsSub())+`<table style="${TS};font-size:11px"><thead><tr>${TH('ល.រ')}${TH('គោត្តនាម និងនាម')}${TH('ភេទ')}${days.map(d=>TH(kh(+d.slice(8)),'padding:3px 2px')).join('')}${TH('មក')}${TH('ច្បាប់')}${TH('អវត្តមាន')}</tr></thead><tbody>
+   ${sorted().map((s,i)=>{let p=0,l=0,a=0;const cells=days.map(d=>{const v=DB.att[d][s.id];if(v==='P')p++;else if(v==='L')l++;else if(v==='A')a++;return TC(v?mk[v]:'','center','padding:3px 2px')}).join('');
+     return `<tr>${TC(kh(i+1),'center')}${TC(esc(s.name))}${TC(esc(s.sex),'center')}${cells}${TC(kh(p),'center')}${TC(kh(l),'center')}${TC(kh(a),'center')}</tr>`}).join('')}
+   </tbody></table><p style="margin:6px 0 0;font-size:11.5px">សញ្ញា៖ ✓ = មកសិក្សា · ច = ច្បាប់ · អ = អវត្តមាន · បានកត់ត្រា ${kh(days.length)} ថ្ងៃ</p>`+docFooter()}},
+ health:{n:'តារាងសុខភាពសិក្សា (BMI)',o:'p',opts:[],build:()=>{
+   return docHeader('តារាងសុខភាពសិក្សាសិស្ស (BMI)',clsSub())+`<table style="${TS}"><thead><tr>${TH('ល.រ')}${TH('គោត្តនាម និងនាម')}${TH('ភេទ')}${TH('អាយុ')}${TH('ទម្ងន់ (kg)')}${TH('កម្ពស់ (cm)')}${TH('BMI')}${TH('លទ្ធផល')}</tr></thead><tbody>
+   ${sorted().map((s,i)=>{const b=bmi(s);return `<tr>${TC(kh(i+1),'center')}${TC(esc(s.name))}${TC(esc(s.sex),'center')}${TC(ageOf(s)==null?'':kh(ageOf(s)),'center')}${TC(s.w?kh(s.w):'','center')}${TC(s.h?kh(s.h):'','center')}${TC(b==null?'':kh(fx(b,1)),'center')}${TC(bmiState(b)[0]==='—'?'':bmiState(b)[0],'center')}</tr>`}).join('')}
+   </tbody></table><p style="margin:6px 0 0;font-size:11.5px">BMI = ទម្ងន់ (kg) ÷ កម្ពស់² (m) · &lt;១៨.៥ ស្គម · ១៨.៥–២៤.៩ ធម្មតា · ២៥–២៩.៩ លើសទម្ងន់ · ≥៣០ ធាត់</p>`+docFooter()}},
+ card:{n:'ព្រឹត្តិបត្រពិន្ទុ',o:'p',opts:['col','stu'],build:o=>{
+   const list=o.stu==='all'?sorted():[DB.students.find(s=>s.id===o.stu)].filter(Boolean);
+   const rk=rankMap(id=>avgOf(id,o.col));
+   return list.map((s,idx)=>{const a=avgOf(s.id,o.col);let tot=0,wt=0;
+     const rows=DB.subjects.map(b=>{const v=DB.scores[s.id]?.[b.id]?.[o.col],has=v!==undefined&&v!=='';if(has){tot+=v*b.coef;wt+=b.coef}
+       return `<tr>${TC(esc(b.name))}${TC(kh(b.coef),'center')}${TC(has?kh(fx(v,1)):'','center')}${TC(has?kh(fx(v*b.coef,1)):'','center')}${TC(has?grade(Number(v))[1]:'','center')}</tr>`}).join('');
+     return `<div style="${idx<list.length-1?'page-break-after:always;':''}">`+docHeader('ព្រឹត្តិបត្រពិន្ទុ '+colName(o.col),clsSub())+
+     `<p style="margin:6px 0">គោត្តនាម និងនាម៖ <b>${esc(s.name)}</b> &nbsp;&nbsp; ភេទ៖ ${esc(s.sex)} &nbsp;&nbsp; ថ្នាក់៖ ${esc(CUR.name)}</p>
+     <table style="${TS}"><thead><tr>${TH('មុខវិជ្ជា')}${TH('មេគុណ')}${TH('ពិន្ទុ')}${TH('ពិន្ទុ × មេគុណ')}${TH('និទ្ទេស')}</tr></thead><tbody>${rows}
+     <tr>${TC('<b>សរុប</b>')}${TC(kh(wt),'center')}${TC('')}${TC('<b>'+kh(fx(tot,1))+'</b>','center')}${TC('')}</tr></tbody></table>
+     <p style="margin:8px 0 0">មធ្យមភាគ៖ <b>${a==null?'—':kh(fx(a))}</b> · និទ្ទេស៖ <b>${a==null?'—':gl(a)}</b> · ចំណាត់ថ្នាក់៖ <b>${rk[s.id]?kh(rk[s.id])+' / '+kh(Object.keys(rk).length):'—'}</b> · អវត្តមាន៖ <b>${kh(absentCount(s.id))}</b> ដង</p>
+     <table style="width:100%;border-collapse:collapse;color:#000;margin-top:16px;font-size:12.5px"><tr>
+       <td style="text-align:center;width:33%;vertical-align:top">ឪពុកម្តាយ/អាណាព្យាបាល<div style="height:56px"></div></td>
+       <td style="text-align:center;width:33%;vertical-align:top">បានឃើញ និងឯកភាព<br><b>នាយកសាលា</b><div style="height:40px"></div>${dots(ROOT.settings.principal)}</td>
+       <td style="text-align:center;width:34%;vertical-align:top">ធ្វើនៅ${dots(ROOT.settings.place,'………')} ${khLong()}<br><b>គ្រូបន្ទុកថ្នាក់</b><div style="height:40px"></div>${dots(CUR.teacher)}</td></tr></table></div>`}).join('')||'<p>មិនមានសិស្ស</p>'}},
+ sec:{n:'តារាង SEC ចំនួនសិស្ស',o:'p',opts:[],build:()=>{
+   const sc=DB.work.sec||{},n=DB.students.length,g=DB.students.filter(s=>s.sex==='ស្រី').length;
+   const row=(a,b,bold)=>`<tr>${TC(bold?'<b>'+a+'</b>':a)}${TC(bold?'<b>'+b+'</b>':b,'center')}</tr>`;
+   return docHeader('តារាងចំនួនសិស្ស (SEC)',clsSub())+`<table style="${TS}"><thead><tr>${TH('បរិយាយ')}${TH('ចំនួន')}</tr></thead><tbody>
+   ${SEC_F.map(f=>row(f[1],kh(+sc[f[0]]||0))).join('')}${row('សិស្សបច្ចុប្បន្ន',kh(n),1)}${row('ក្នុងនោះ ស្រី',kh(g))}${row('ក្នុងនោះ ប្រុស',kh(n-g))}</tbody></table>`+docFooter()}},
+ sheet:{n:'បញ្ជីស្រង់ពិន្ទុតាមមុខវិជ្ជា',o:'l',opts:['subj'],build:o=>{
+   const b=DB.subjects.find(x=>x.id===o.subj)||DB.subjects[0];if(!b)return '<p>មិនមានមុខវិជ្ជា</p>';
+   return docHeader('បញ្ជីស្រង់ពិន្ទុ មុខវិជ្ជា '+esc(b.name),clsSub()+' · មេគុណ '+kh(b.coef))+`<table style="${TS};font-size:11px"><thead><tr>${TH('ល.រ')}${TH('គោត្តនាម និងនាម')}${TH('ភេទ')}${COLS.map(c=>TH(c.n.replace('ខែ',''),'padding:3px 2px')).join('')}${TH('មធ្យម')}</tr></thead><tbody>
+   ${sorted().map((s,i)=>{const sc=DB.scores[s.id]?.[b.id]||{},v=Object.values(sc).map(Number);return `<tr>${TC(kh(i+1),'center')}${TC(esc(s.name))}${TC(esc(s.sex),'center')}${COLS.map(c=>TC(sc[c.k]===undefined?'':kh(fx(sc[c.k],1)),'center','padding:3px 2px')).join('')}${TC(v.length?'<b>'+kh(fx(mean(v)))+'</b>':'','center')}</tr>`}).join('')}</tbody></table>`+docFooter()}},
+ inv:{n:'បញ្ជីសារពើភ័ណ្ឌ',o:'p',opts:[],build:()=>{
+   const inv=DB.work.inv||[];
+   return docHeader('បញ្ជីសារពើភ័ណ្ឌថ្នាក់រៀន',clsSub())+`<table style="${TS}"><thead><tr>${TH('ល.រ')}${TH('ឈ្មោះសម្ភារៈ')}${TH('ចំនួន')}${TH('ស្ថានភាព')}${TH('កំណត់សម្គាល់')}</tr></thead><tbody>
+   ${inv.map((x,i)=>`<tr>${TC(kh(i+1),'center')}${TC(esc(x.name))}${TC(kh(x.qty),'center')}${TC(esc(x.state),'center')}${TC(esc(x.note||''))}</tr>`).join('')||`<tr>${TC('មិនទាន់មានសម្ភារៈ','center','" colspan="5')}</tr>`}</tbody></table>`+docFooter()}},
+ roles:{n:'គ.គ.ថ និងក្រុមប្រឹក្សាកុមារ',o:'p',opts:[],build:()=>{
+   const nm=id=>DB.students.find(s=>s.id===id)?.name||'';
+   const tbl=(roles,key)=>`<table style="${TS}"><thead><tr>${TH('តួនាទី')}${TH('គោត្តនាម និងនាម')}</tr></thead><tbody>${roles.map((r,i)=>`<tr>${TC(r)}${TC(esc(nm((DB.work[key]||{})[i])))}</tr>`).join('')}</tbody></table>`;
+   return docHeader('បញ្ជីគណៈគ្រប់គ្រងថ្នាក់ (គ.គ.ថ)',clsSub())+tbl(COMM_ROLES,'comm')+`<div style="text-align:center;margin:14px 0 2px;${MOUL};font-size:13px">សាខាក្រុមប្រឹក្សាកុមារ-យុវជន</div>`+tbl(COUNCIL_ROLES,'council')+`<p style="margin:6px 0 0">សមាជិក៖ ${(DB.work.councilMembers||[]).map(id=>esc(nm(id))).filter(Boolean).join(' · ')||'—'}</p>`+docFooter()}},
+ /* school-level (administration) */
+ sclasses:{n:'ស្ថិតិថ្នាក់រៀនទូទាំងសាលា',o:'p',school:1,opts:[],build:()=>{
+   const st=ROOT.classes.map(classStats),tot=st.reduce((a,s)=>a+s.n,0);
+   return docHeader('តារាងស្ថិតិថ្នាក់រៀន','ឆ្នាំសិក្សា '+esc(ROOT.settings.year))+`<table style="${TS}"><thead><tr>${TH('ល.រ')}${TH('ថ្នាក់')}${TH('គ្រូបន្ទុក')}${TH('សិស្ស')}${TH('ស្រី')}${TH('មធ្យមភាគ')}${TH('ជាប់')}${TH('ចូលរៀន')}${TH('ហានិភ័យ')}</tr></thead><tbody>
+   ${st.map((s,i)=>`<tr>${TC(kh(i+1),'center')}${TC(esc(s.c.name))}${TC(esc(s.c.teacher||''))}${TC(kh(s.n),'center')}${TC(kh(s.n-s.boys),'center')}${TC(s.avg==null?'':kh(fx(s.avg)),'center')}${TC(s.pass==null?'':kh(fx(s.pass,0))+'%','center')}${TC(s.ar==null?'':kh(fx(s.ar,0))+'%','center')}${TC(kh(s.risk),'center')}</tr>`).join('')}
+   <tr>${TC('<b>សរុប</b>','center','" colspan="3')}${TC('<b>'+kh(tot)+'</b>','center')}${TC('<b>'+kh(st.reduce((a,s)=>a+s.n-s.boys,0))+'</b>','center')}${TC('','center','" colspan="2')}${TC('','center')}${TC('<b>'+kh(st.reduce((a,s)=>a+s.risk,0))+'</b>','center')}</tr></tbody></table>`+docFooter('school')}},
+ sstaff:{n:'បញ្ជីគ្រូបង្រៀន',o:'p',school:1,opts:[],build:()=>{
+   return docHeader('បញ្ជីឈ្មោះគ្រូបង្រៀន','ឆ្នាំសិក្សា '+esc(ROOT.settings.year))+`<table style="${TS}"><thead><tr>${TH('ល.រ')}${TH('គោត្តនាម និងនាម')}${TH('មុខវិជ្ជាបង្រៀន')}${TH('ទូរស័ព្ទ')}${TH('ថ្នាក់បន្ទុក')}</tr></thead><tbody>
+   ${ROOT.teachers.map((t,i)=>`<tr>${TC(kh(i+1),'center')}${TC(esc(t.name))}${TC(esc(t.subject||''))}${TC(esc(t.phone||''))}${TC(esc(ROOT.classes.filter(c=>c.teacher===t.name).map(c=>c.name).join(', ')))}</tr>`).join('')}
+   </tbody></table>`+docFooter('school')}},
+ srisk:{n:'បញ្ជីសិស្សប្រឈមហានិភ័យ',o:'p',school:1,opts:[],build:()=>{
+   const risk=[];ROOT.classes.forEach(c=>withClass(c,()=>atRisk().forEach(r=>risk.push({...r,cn:c.name}))));
+   return docHeader('បញ្ជីសិស្សប្រឈមហានិភ័យបោះបង់ការសិក្សា','ឆ្នាំសិក្សា '+esc(ROOT.settings.year))+`<table style="${TS}"><thead><tr>${TH('ល.រ')}${TH('គោត្តនាម និងនាម')}${TH('ថ្នាក់')}${TH('មធ្យមភាគឆ្នាំ')}${TH('មូលហេតុ')}</tr></thead><tbody>
+   ${risk.map((r,i)=>`<tr>${TC(kh(i+1),'center')}${TC(esc(r.s.name))}${TC(esc(r.cn))}${TC(r.a==null?'':kh(fx(r.a)),'center')}${TC(r.why.join(' · '))}</tr>`).join('')||`<tr>${TC('មិនមានសិស្សប្រឈមហានិភ័យ','center','" colspan="5')}</tr>`}
+   </tbody></table>`+docFooter('school')}}
+};
+
+let exKey=null,exOpt={col:null,per:null,month:null,stu:'all',subj:null};
+V.export={title:'ទាញចេញ និងបោះពុម្ព',render(el){
+  const schoolMode=ROLE==='admin'&&!VIEWCLASS;
+  const keys=Object.keys(DOCS).filter(k=>schoolMode?DOCS[k].school:!DOCS[k].school);
+  if(!exKey||!keys.includes(exKey))exKey=keys[0];
+  const lm=latestMonth();
+  exOpt.col=exOpt.col&&COLS.some(c=>c.k===exOpt.col)?exOpt.col:'m'+Math.max(0,lm);
+  exOpt.per=exOpt.per||exOpt.col;
+  const am=attMonths();exOpt.month=am.includes(exOpt.month)?exOpt.month:am[am.length-1]||'';
+  const D=DOCS[exKey];
+  const ctl=[];
+  if(D.opts.includes('col'))ctl.push(`<select class="in" id="xc" style="max-width:190px" aria-label="រយៈពេល">${COLS.map(c=>`<option value="${c.k}" ${c.k===exOpt.col?'selected':''}>${c.n}</option>`).join('')}</select>`);
+  if(D.opts.includes('per'))ctl.push(`<select class="in" id="xp" style="max-width:190px" aria-label="រយៈពេល">${COLS.map(c=>`<option value="${c.k}" ${c.k===exOpt.per?'selected':''}>${c.n}</option>`).join('')}<option value="y" ${exOpt.per==='y'?'selected':''}>ប្រចាំឆ្នាំ</option></select>`);
+  if(D.opts.includes('month'))ctl.push(`<select class="in" id="xm" style="max-width:190px" aria-label="ខែ">${am.map(m=>`<option value="${m}" ${m===exOpt.month?'selected':''}>${KM_MONTH[+m.slice(5)-1]} ${kh(m.slice(0,4))}</option>`).join('')||'<option value="">គ្មានទិន្នន័យ</option>'}</select>`);
+  if(D.opts.includes('subj')){exOpt.subj=DB.subjects.some(b=>b.id===exOpt.subj)?exOpt.subj:DB.subjects[0]?.id;ctl.push(`<select class="in" id="xj" style="max-width:220px" aria-label="មុខវិជ្ជា">${DB.subjects.map(b=>`<option value="${b.id}" ${b.id===exOpt.subj?'selected':''}>${esc(b.name)}</option>`).join('')}</select>`)}
+  if(D.opts.includes('stu'))ctl.push(`<select class="in" id="xs" style="max-width:240px" aria-label="សិស្ស"><option value="all">សិស្សទាំងអស់ (ម្នាក់ ១ទំព័រ)</option>${sorted().map(s=>`<option value="${s.id}" ${s.id===exOpt.stu?'selected':''}>${esc(s.name)}</option>`).join('')}</select>`);
+  el.innerHTML=`<div class="page"><div class="ph noprint"><h2>🖨 ទាញចេញ និងបោះពុម្ព</h2><span class="pill blue">ទំហំ A4 · ទម្រង់រដ្ឋបាលសាលា</span></div>
+  <div class="tabs noprint">${keys.map(k=>`<button data-k="${k}" class="${k===exKey?'on':''}">${DOCS[k].n}</button>`).join('')}</div>
+  <div class="row noprint" style="margin-bottom:12px">${ctl.join('')}
+    <button class="btn pri" id="xcopy">📋 ចម្លងទៅ Word / Excel</button><button class="btn" id="xprint">🖨 បោះពុម្ព</button><button class="btn" id="xzoom" aria-label="ពង្រីក/បង្រួម">🔍</button></div>
+  <div class="paperwrap"><div class="paper ${D.o}" id="paper">${D.build(exOpt)}</div></div>
+  <p class="noprint" style="color:var(--muted);font-size:13px">ចុច “ចម្លងទៅ Word / Excel” រួចបិទភ្ជាប់ក្នុង Word ឬ Excel (តារាងរក្សាស៊ុម និងចំណងជើង) បន្ទាប់មកបោះពុម្ពជាទំហំ A4។ ទិន្នន័យ​ក្នុងអត្ថបទជាក់ស្តែង មិនមែនរូបភាពទេ។ ឈ្មោះខេត្ត ស្រុក និងនាយកសាលា កំណត់ក្នុង “ការកំណត់សាលា” ដោយគណៈគ្រប់គ្រង។</p></div>`;
+  const redo=()=>V.export.render(el);
+  el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{exKey=b.dataset.k;redo()});
+  const bind1=(id,key)=>{const e=$(id);if(e)e.onchange=()=>{exOpt[key]=e.value;redo()}};
+  bind1('#xc','col');bind1('#xp','per');bind1('#xm','month');bind1('#xs','stu');bind1('#xj','subj');
+  const pap=$('#paper'),wrap=$('.paperwrap');let zoomed=false;
+  const fit=()=>{pap.style.zoom=1;const r=(wrap.clientWidth-28)/pap.offsetWidth;if(r<1&&!zoomed)pap.style.zoom=r};fit();
+  $('#xzoom').onclick=()=>{zoomed=!zoomed;fit()};
+  $('#xcopy').onclick=copyDoc;
+  $('#xprint').onclick=()=>{
+    let st=$('#pgst');if(!st){st=document.createElement('style');st.id='pgst';document.head.append(st)}
+    st.textContent=`@page{size:A4 ${D.o==='l'?'landscape':'portrait'};margin:12mm}`;
+    try{window.print()}catch(e){}
+    toast('បើមិនចេញផ្ទាំងបោះពុម្ព សូមចម្លងទៅ Word រួចបោះពុម្ពពីទីនោះ');
+  };
+}};
+function copyDoc(){
+  const el=$('#paper'),html=`<div style="font-family:'Khmer OS Siemreap','KhmerOS_siemreap',serif;font-size:12pt">`+el.innerHTML+'</div>',text=el.innerText;
+  const sel=()=>{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);
+    try{if(document.execCommand('copy'))toast('បានចម្លង · បិទភ្ជាប់ក្នុង Word ឬ Excel');else toast('បានជ្រើសរើស · ចុច Ctrl+C')}catch(e){toast('បានជ្រើសរើស · ចុច Ctrl+C')}};
+  try{
+    navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([text],{type:'text/plain'})})])
+      .then(()=>toast('បានចម្លង · បិទភ្ជាប់ក្នុង Word ឬ Excel'),sel);
+  }catch(e){sel()}
+}
+</script>
+<script>
+/* ---------- admin: every student in every class ---------- */
+let sq='',scls='all';
+V.sstudents={title:'សិស្សទាំងអស់',render(el){
+  const draw=()=>{
+    const q=sq.trim().toLowerCase(),rows=[];
+    ROOT.classes.forEach(c=>{if(scls!=='all'&&c.id!==scls)return;c.students.forEach(s=>{if(!q||[s.name,s.guardian,s.phone].join(' ').toLowerCase().includes(q))rows.push({c,s})})});
+    const total=rows.length;rows.length=Math.min(rows.length,200);
+    el.innerHTML=`<div class="page"><div class="ph"><h2>🎓 សិស្សទាំងអស់ក្នុងសាលា (${kh(total)})</h2><button class="btn pri sm" id="addS">＋ បន្ថែមសិស្ស</button></div>
+    <div class="row" style="margin-bottom:10px"><input class="in" id="sqi" style="max-width:280px" placeholder="ស្វែងរកឈ្មោះ អាណាព្យាបាល ទូរស័ព្ទ" value="${esc(sq)}">
+    <select class="in" id="scs" style="max-width:220px" aria-label="ថ្នាក់"><option value="all">គ្រប់ថ្នាក់</option>${ROOT.classes.map(c=>`<option value="${c.id}" ${c.id===scls?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
+    <div class="tw"><table><thead><tr><th class="c">ល.រ</th><th>គោត្តនាម និងនាម</th><th class="c">ភេទ</th><th>ថ្នាក់ (ប្តូរបាន)</th><th class="c">មធ្យមភាគឆ្នាំ</th><th>អាណាព្យាបាល</th><th></th></tr></thead><tbody>
+    ${rows.map((r,i)=>`<tr><td class="c num">${kh(i+1)}</td><td><b>${esc(r.s.name)}</b></td><td class="c">${esc(r.s.sex)}</td>
+      <td><select class="in" style="min-width:140px" data-mv="${r.s.id}" data-c="${r.c.id}" aria-label="ប្តូរថ្នាក់">${ROOT.classes.map(c=>`<option value="${c.id}" ${c.id===r.c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></td>
+      <td class="c num">${fx(withClass(r.c,()=>yearAvg(r.s.id)))}</td><td>${esc(r.s.guardian||'—')}</td>
+      <td><button class="btn sm" data-e="${r.s.id}" data-c="${r.c.id}">កែ</button> <button class="btn sm dng" data-d="${r.s.id}" data-c="${r.c.id}">លុប</button></td></tr>`).join('')||'<tr><td colspan="7" class="empty">មិនមានសិស្ស</td></tr>'}
+    </tbody></table></div>${total>200?`<p style="color:var(--muted)">បង្ហាញ ២០០នាក់ដំបូង ពីសរុប ${kh(total)} · សូមស្វែងរក ឬជ្រើសថ្នាក់ដើម្បីមើលបន្ត។</p>`:''}</div>`;
+    const qi=$('#sqi');qi.oninput=()=>{sq=qi.value;const p=qi.selectionStart;draw();const n=$('#sqi');n.focus();n.setSelectionRange(p,p)};
+    $('#scs').onchange=e=>{scls=e.target.value;draw()};
+    $('#addS').onclick=()=>{if(scls==='all'){toast('សូមជ្រើសថ្នាក់ជាមុន');return}bind(scls);AFTER=draw;studentForm()};
+    el.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{bind(b.dataset.c);AFTER=draw;studentForm(b.dataset.e)});
+    el.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>ask('លុបសិស្សនេះ និងពិន្ទុរបស់គាត់?',()=>{
+      const c=ROOT.classes.find(x=>x.id===b.dataset.c),id=b.dataset.d;c.students=c.students.filter(s=>s.id!==id);delete c.scores[id];Object.values(c.att).forEach(d=>delete d[id]);save();draw()}));
+    el.querySelectorAll('[data-mv]').forEach(sel=>sel.onchange=()=>{
+      const from=ROOT.classes.find(x=>x.id===sel.dataset.c),to=ROOT.classes.find(x=>x.id===sel.value),id=sel.dataset.mv;
+      if(!to||from===to)return;
+      const s=from.students.find(x=>x.id===id);from.students=from.students.filter(x=>x!==s);to.students.push(s);
+      const sc=from.scores[id]||{},keep={};to.subjects.forEach(b=>{if(sc[b.id])keep[b.id]=sc[b.id]});to.scores[id]=keep;delete from.scores[id];
+      Object.entries(from.att).forEach(([d,o])=>{if(o[id]){(to.att[d]??={})[id]=o[id];delete o[id]}});
+      save();toast('បានផ្លាស់ទៅ '+to.name);draw()});
+  };
+  AFTER=draw;draw();
+}};
+</script>
+<script>
+/* ---------- admin: import students from a Google Sheet (paste cells or CSV file) ---------- */
+const unKh=s=>String(s).replace(/[០-៩]/g,d=>KH.indexOf(d));
+function sheetSection(txt){ /* whole-workbook export: keep only the Students (or first) section */
+  txt=txt.replace(/^\uFEFF/,'');if(!/^## Sheet name:/.test(txt))return txt;
+  const parts=txt.split(/^## Sheet name:[^\n]*\n/m).slice(1),names=[...txt.matchAll(/^## Sheet name:\s*(.*)$/gm)].map(m=>m[1].trim());
+  let i=names.findIndex(n=>/^students?$|សិស្ស/i.test(n));if(i<0)i=0;return parts[i]||txt}
+function parseTable(txt){
+  txt=sheetSection(txt);
+  const first=txt.split(/\r?\n/)[0]||'';
+  const d=first.includes('\t')?'\t':(first.includes(',')?',':'\t');
+  const rows=[];let row=[],cur='',q=false;
+  for(let i=0;i<txt.length;i++){const ch=txt[i];
+    if(q){if(ch==='"'){if(txt[i+1]==='"'){cur+='"';i++}else q=false}else cur+=ch}
+    else if(ch==='"')q=true;
+    else if(ch===d){row.push(cur);cur=''}
+    else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&txt[i+1]==='\n')i++;row.push(cur);cur='';rows.push(row);row=[]}
+    else cur+=ch}
+  if(cur!==''||row.length){row.push(cur);rows.push(row)}
+  return rows.filter(r=>r.some(c=>c.trim()!==''));
+}
+const normSex=v=>{v=String(v||'').trim().toLowerCase();if(!v)return '';if(v.includes('ស្រី')||['ស','f','female','girl','woman'].includes(v))return 'ស្រី';if(v.includes('ប្រុស')||['ប','m','male','boy','man'].includes(v))return 'ប្រុស';return ''};
+function normDob(v){
+  v=unKh(v||'').trim();const m=v.match(/(\d{1,4})[\/\-.](\d{1,2})[\/\-.](\d{1,4})/);if(!m)return '';
+  let y,mo,d;if(m[1].length===4){y=+m[1];mo=+m[2];d=+m[3]}else{d=+m[1];mo=+m[2];y=+m[3];if(y<100)y+=y>50?1900:2000}
+  if(mo<1||mo>12||d<1||d>31||y<1950)return '';
+  return y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+}
+const clsKey=s=>unKh(String(s||'')).toLowerCase().replace(/\s+/g,'').replace(/^ថ្នាក់(ទី)?/,'').replace(/^class|^grade/,'');
+const IMP_F=[['name','ឈ្មោះសិស្ស *',/ឈ្មោះ|គោត្តនាម|name/i],['name2','នាម (បន្ថែម បើបែងជាពីរជួរ)',null],['sex','ភេទ',/ភេទ|sex|gender/i],['dob','ថ្ងៃខែឆ្នាំកំណើត',/កំណើត|birth|dob/i],
+  ['guardian','អាណាព្យាបាល',/អាណាព្យាបាល|ឪពុក|ម្តាយ|guardian|parent/i],['phone','ទូរស័ព្ទ',/ទូរស័ព្ទ|phone|tel/i],['cls','ថ្នាក់ (បើមានក្នុងតារាង)',/ថ្នាក់|class|grade/i],['w','ទម្ងន់ (kg)',/ទម្ងន់|weight/i],['h','កម្ពស់ (cm)',/កម្ពស់|height/i]];
+let IMP={text:'',hdr:true,map:{},cls:'',mode:'add',done:null};
+V.import={title:'នាំចូលទិន្នន័យសិស្ស',render(el){
+    el.innerHTML=`<div class="page"><div class="ph"><h2>📥 នាំចូលសិស្សពី Google Sheet</h2></div>
+    <div class="card" style="margin-bottom:14px"><h3>១. យកទិន្នន័យពី Google Sheet</h3>
+      <ol style="margin:0 0 10px;padding-left:20px;color:var(--muted)"><li>បើក Google Sheet ជ្រើសរើសក្រឡាទាំងអស់ (រួមទាំងជួរក្បាលតារាង) ចុច Ctrl+C ហើយបិទភ្ជាប់ខាងក្រោម</li>
+      <li>ឬ ឯកសារ → ទាញយក → តម្លៃដែលបំបែកដោយក្បៀស (.csv) រួចជ្រើសឯកសារនោះ</li></ol>
+      <textarea class="in" id="imt" style="min-height:130px" placeholder="បិទភ្ជាប់ទិន្នន័យនៅទីនេះ…" aria-label="ទិន្នន័យពី Google Sheet">${esc(IMP.text)}</textarea>
+      <div class="row" style="margin:8px 0"><input class="in" id="iml" placeholder="តំណ Google Sheet (https://docs.google.com/spreadsheets/d/…)" style="flex:1;min-width:200px" aria-label="តំណ Google Sheet"><button class="btn pri" id="imlg">🔗 ទាញពីតំណ</button></div><div id="imlm" style="font-size:13px;color:var(--muted)"></div>
+      <div class="row" style="margin-top:8px"><label class="btn" style="margin:0">ជ្រើសឯកសារ .csv<input type="file" id="imf" accept=".csv,.tsv,.txt" hidden></label>
+      <label class="row" style="gap:6px"><input type="checkbox" id="imh" ${IMP.hdr?'checked':''} style="width:20px;height:20px"> ជួរទីមួយជាក្បាលតារាង</label><button class="btn sm" id="imc">សម្អាត</button></div></div>
+    <div id="imrest"></div></div>`;
+    let tm=0;
+    const t=$('#imt');t.oninput=()=>{IMP.text=t.value;IMP.map={};IMP.done=null;clearTimeout(tm);tm=setTimeout(draw,350)};
+    $('#imf').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{IMP.text=String(r.result);t.value=IMP.text;IMP.map={};IMP.done=null;draw()};r.readAsText(f)};
+    $('#imlg').onclick=async()=>{
+      const u=$('#iml').value.trim(),m=u.match(/\/d\/(?:e\/)?([\w-]+)/),g=u.match(/[#?&]gid=(\d+)/),msg=$('#imlm');
+      if(!m){msg.textContent='តំណមិនត្រឹមត្រូវ';return}
+      msg.textContent='កំពុងទាញ…';
+      const url=u.includes('/pub')?u.replace(/\/pub(html)?.*$/,'/pub?output=csv'+(g?'&gid='+g[1]:'')):`https://docs.google.com/spreadsheets/d/${m[1]}/gviz/tq?tqx=out:csv${g?'&gid='+g[1]:''}`;
+      try{
+        const r=await fetch(url);if(!r.ok)throw new Error(r.status);
+        const tx=await r.text();if(/<html/i.test(tx.slice(0,300)))throw new Error('private');
+        IMP.text=tx;t.value=tx;IMP.map={};IMP.done=null;msg.textContent='✅ ទាញបាន '+kh(tx.split('\n').length)+' ជួរ';draw();
+      }catch(e){
+        msg.innerHTML='❌ ទាញមិនបាន។ មូលហេតុអាចជា៖ (១) Sheet មិនបានចែករំលែក “អ្នកណាមានតំណក៏មើលបាន” (២) កំពុងបើកក្នុង Claude artifact ដែលបិទការហៅអ៊ីនធឺណិតខាងក្រៅ — សូមប្រើឯកសារ HTML ដែលដាក់លើ hosting ឬ Copy ទិន្នន័យបិទភ្ជាប់ក្នុងប្រអប់ខាងលើ។'}
+    };
+    $('#imh').onchange=e=>{IMP.hdr=e.target.checked;IMP.map={};draw()};
+    $('#imc').onclick=()=>{IMP.text='';t.value='';IMP.map={};IMP.done=null;draw()};
+  const draw=()=>{
+    const rows=IMP.text.trim()?parseTable(IMP.text):[];
+    const hdr=IMP.hdr&&rows.length?rows[0]:null,body=hdr?rows.slice(1):rows,ncol=rows.reduce((a,r)=>Math.max(a,r.length),0);
+    const colNames=Array.from({length:ncol},(_,i)=>hdr&&hdr[i]?.trim()?hdr[i].trim():'ជួរ '+(i+1));
+    if(rows.length&&!Object.keys(IMP.map).length){IMP_F.forEach(f=>{if(!f[2])return;const i=colNames.findIndex(n=>f[2].test(n)&&!(f[0]==='name'&&/\bid\b|លេខ|code|file/i.test(n)));if(i>=0)IMP.map[f[0]]=i})}
+    const M=IMP.map,raw=(r,k)=>M[k]===undefined||M[k]===''?'':String(r[M[k]]??'').trim();
+    const FB={phone:[/ទូរស.?ព្ទឪពុក|father.*(phone|tel)/i,/ទូរស.?ព្ទម្តាយ|mother.*(phone|tel)/i,/ទូរស.?ព្ទអាណាព្យាបាល|guardian.*(phone|tel)/i],guardian:[/^ឈ្មោះអាណាព្យាបាល|^guardian/i,/^ឈ្មោះម្តាយ|^mother/i]};
+    const get=(r,k)=>{let v=raw(r,k);if(v||!FB[k])return v;for(const re of FB[k]){const i=colNames.findIndex(n=>re.test(n));if(i>=0&&String(r[i]??'').trim())return String(r[i]).trim()}return ''};
+    const nm=r=>(get(r,'name')+' '+get(r,'name2')).trim();
+    const valid=body.filter(r=>nm(r));
+    const noSex=valid.filter(r=>!normSex(get(r,'sex'))).length;
+    $('#imrest').innerHTML=`${rows.length?`<div class="card" style="margin-bottom:14px"><h3>២. ផ្គូផ្គងជួរ (ឃើញ ${kh(body.length)} ជួរទិន្នន័យ)</h3><div class="grid g2" style="gap:8px 14px">
+      ${IMP_F.map(f=>`<div><label class="f" for="im-${f[0]}" style="margin-top:0">${f[1]}</label><select class="in" id="im-${f[0]}" data-m="${f[0]}"><option value="">— មិនប្រើ —</option>${colNames.map((n,i)=>`<option value="${i}" ${M[f[0]]===i?'selected':''}>${esc(n)}</option>`).join('')}</select></div>`).join('')}</div>
+      ${M.cls===undefined?`<label class="f" for="imc2">ដាក់ចូលថ្នាក់</label><select class="in" id="imc2" style="max-width:260px">${ROOT.classes.map(c=>`<option value="${c.id}" ${IMP.cls===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>`:'<p style="color:var(--muted);margin:10px 0 0">ថ្នាក់ថ្មីដែលមិនទាន់មាន នឹងត្រូវបង្កើតដោយស្វ័យប្រវត្តិ ហើយនៅលាក់ពីគ្រូរហូតដល់អ្នកបង្ហាញ។</p>'}
+      <label class="f" for="imm">របៀបនាំចូល</label><select class="in" id="imm" style="max-width:360px"><option value="add" ${IMP.mode==='add'?'selected':''}>បន្ថែម (រំលងឈ្មោះដែលមានស្រាប់ក្នុងថ្នាក់)</option><option value="replace" ${IMP.mode==='replace'?'selected':''}>ជំនួសសិស្សទាំងអស់ក្នុងថ្នាក់ដែលពាក់ព័ន្ធ</option>${M.cls!==undefined?`<option value="fresh" ${IMP.mode==='fresh'?'selected':''}>ចាប់ផ្តើមថ្មី៖ លុបថ្នាក់ និងសិស្សទាំងអស់ (ទាំងទិន្នន័យគំរូ) រួចនាំចូល</option>`:''}</select></div>
+    <div class="card" style="margin-bottom:14px"><h3>៣. មើលជាមុន</h3>
+      ${M.name===undefined?'<div class="err">សូមជ្រើសជួរ “ឈ្មោះសិស្ស”</div>':`<p style="margin:0 0 8px">ត្រឹមត្រូវ <b>${kh(valid.length)}</b> នាក់${body.length-valid.length?` · គ្មានឈ្មោះ ${kh(body.length-valid.length)} ជួរ (រំលង)`:''}${noSex?` · <span style="color:var(--warn)">ភេទមិនស្គាល់ ${kh(noSex)} នាក់</span>`:''}</p>
+      <div class="tw"><table><thead><tr><th>ឈ្មោះ</th><th>ភេទ</th><th>កំណើត</th><th>អាណាព្យាបាល</th><th>ទូរស័ព្ទ</th><th>ថ្នាក់</th></tr></thead><tbody>${valid.slice(0,6).map(r=>`<tr><td>${esc(nm(r))}</td><td>${esc(normSex(get(r,'sex'))||'?')}</td><td>${esc(normDob(get(r,'dob'))||'—')}</td><td>${esc(get(r,'guardian')||'—')}</td><td>${esc(unKh(get(r,'phone'))||'—')}</td><td>${esc(M.cls!==undefined?get(r,'cls')||'?':(ROOT.classes.find(c=>c.id===IMP.cls)?.name||''))}</td></tr>`).join('')}</tbody></table></div>
+      <button class="btn pri" id="imgo" style="margin-top:12px" ${valid.length?'':'disabled'}>នាំចូល ${kh(valid.length)} នាក់</button>`}</div>`:''}
+    ${IMP.done?`<div class="card" style="border-color:var(--accent)"><h3>✅ នាំចូលរួចរាល់</h3><p style="margin:0">បន្ថែម <b>${kh(IMP.done.added)}</b> នាក់ · រំលង (ស្ទួន) <b>${kh(IMP.done.dup)}</b> · ថ្នាក់ថ្មី <b>${kh(IMP.done.newCls)}</b></p>
+      <p style="color:var(--muted)">គ្រូនឹងឃើញទិន្នន័យ នៅពេលអ្នកបើក “បង្ហាញដល់គ្រូ” ក្នុងគ្រប់គ្រងថ្នាក់រៀន។</p><button class="btn pri" id="imto">ទៅគ្រប់គ្រងថ្នាក់រៀន</button></div>`:''}`;
+    el.querySelectorAll('[data-m]').forEach(s=>s.onchange=()=>{if(s.value==='')delete IMP.map[s.dataset.m];else IMP.map[s.dataset.m]=+s.value;draw()});
+    const c2=$('#imc2');if(c2){IMP.cls=c2.value;c2.onchange=()=>{IMP.cls=c2.value;draw()}}else if(!IMP.cls)IMP.cls=ROOT.classes[0].id;
+    const im=$('#imm');if(im)im.onchange=()=>{IMP.mode=im.value};
+    const go2=$('#imto');if(go2)go2.onclick=()=>go('classes');
+    const run=$('#imgo');
+    if(run)run.onclick=()=>{
+      let targets=new Set();let newCls=0;
+      const classFor=r=>{
+        if(M.cls===undefined)return ROOT.classes.find(c=>c.id===IMP.cls)||ROOT.classes[0];
+        const raw=get(r,'cls');if(!raw)return null;const k=clsKey(raw);
+        let c=ROOT.classes.find(x=>clsKey(x.name)===k);
+        if(!c){c=emptyClass(raw.startsWith('ថ្នាក់')?raw:'ថ្នាក់ '+raw,'');c.published=false;ROOT.classes.push(c);newCls++}
+        return c};
+      let plan=[];
+      const apply=()=>{
+        if(IMP.mode==='fresh'&&M.cls!==undefined){ROOT.classes=[];}
+        plan=valid.map(r=>({r,c:classFor(r)}));plan.forEach(p=>p.c&&targets.add(p.c));
+        if(IMP.mode==='replace')targets.forEach(c=>{c.students.forEach(s=>{delete c.scores[s.id];Object.values(c.att).forEach(d=>delete d[s.id])});c.students=[]});
+        let added=0,dup=0;const seen=n=>n.replace(/\s+/g,' ').trim();
+        plan.forEach(({r,c})=>{
+          if(!c){dup++;return}
+          const name=seen(nm(r));if(c.students.some(s=>seen(s.name)===name)){dup++;return}
+          const w=parseFloat(unKh(get(r,'w'))),h=parseFloat(unKh(get(r,'h')));
+          c.students.push({id:uid(),name,sex:normSex(get(r,'sex')),dob:normDob(get(r,'dob')),guardian:get(r,'guardian'),phone:unKh(get(r,'phone')),w:isNaN(w)?null:w,h:isNaN(h)?null:h});added++});
+        if(!ROOT.classes.length)ROOT.classes.push(emptyClass('ថ្នាក់ទី ១',''));VIEWCLASS=null;RO=false;bind(ROOT.classes[0].id);save();IMP.done={added,dup,newCls};IMP.text='';$('#imt').value='';IMP.map={};draw();
+      };
+      if(IMP.mode==='fresh'&&M.cls!==undefined)ask('លុបថ្នាក់ សិស្ស ពិន្ទុ និងវត្តមានទាំងអស់ដែលមានស្រាប់ រួចនាំចូលថ្មី? មិនអាចត្រឡប់វិញបានទេ (គួរបម្រុងទុកជាមុនក្នុងការកំណត់សាលា)។',apply);
+      else if(IMP.mode==='replace')ask('ជំនួសសិស្សទាំងអស់ក្នុងថ្នាក់ដែលពាក់ព័ន្ធ ព្រមទាំងលុបពិន្ទុ និងវត្តមានរបស់ពួកគេ?',apply);else apply();
+    };
+  };draw();
+}};
+</script>
+<script>
+/* ---------- subject teachers, students, guardians ---------- */
+let SUBJT=null,ME=null;
+function pinOf(s,k){
+  const custom=k==='S'?s.pinS:s.pinG;if(custom)return String(custom);
+  const d=unKh(s.phone||'').replace(/\D/g,'');
+  return k==='S'?(d.length>=4?d.slice(-4):'1234'):(d.length>=6?d.slice(-6):'123456');
+}
+const subjOf=(c,t)=>c.subjects.find(b=>b.name.trim()===String(t.subject||'').trim());
+
+/* --- subject teacher --- */
+let ssClass=null,ssCol=null;
+V.sdash={title:'ថ្នាក់ដែលខ្ញុំបង្រៀន',render(el){
+  const t=SUBJT,rows=ROOT.classes.filter(c=>c.published!==false).map(c=>{
+    const b=subjOf(c,t);if(!b)return null;
+    const vals=[];let lastCol=null;
+    for(let i=MONTHS.length-1;i>=0&&!vals.length;i--){c.students.forEach(s=>{const v=c.scores[s.id]?.[b.id]?.['m'+i];if(v!==undefined&&v!=='')vals.push(+v)});if(vals.length)lastCol=i}
+    const entered=c.students.filter(s=>c.scores[s.id]?.[b.id]&&Object.keys(c.scores[s.id][b.id]).length).length;
+    return {c,b,avg:vals.length?mean(vals):null,lastCol,entered};
+  }).filter(Boolean);
+  el.innerHTML=`<div class="page"><div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,var(--accent-soft),var(--surface))"><h2 style="font-size:18px">សួស្តី ${esc(t.name)} 👋</h2>
+    <div style="color:var(--muted)">មុខវិជ្ជាបង្រៀន៖ <b>${esc(t.subject||'មិនទាន់កំណត់')}</b> · ${esc(ROOT.settings.school)}</div></div>
+  ${!t.subject?'<div class="card empty">គណៈគ្រប់គ្រងមិនទាន់កំណត់មុខវិជ្ជាបង្រៀនរបស់អ្នកទេ។</div>':rows.length?`<div class="tw"><table><thead><tr><th>ថ្នាក់</th><th>គ្រូបន្ទុក</th><th class="c">សិស្ស</th><th class="c">មានពិន្ទុ</th><th class="c">មធ្យមភាគ${''}</th><th></th></tr></thead><tbody>
+  ${rows.map(r=>`<tr><td><b>${esc(r.c.name)}</b></td><td>${esc(r.c.teacher||'—')}</td><td class="c num">${kh(r.c.students.length)}</td><td class="c num">${kh(r.entered)}/${kh(r.c.students.length)}</td><td class="c num">${r.avg==null?'—':fx(r.avg)}${r.lastCol!=null?` <small>(ខែ${MONTHS[r.lastCol]})</small>`:''}</td><td><button class="btn sm pri" data-o="${r.c.id}">បញ្ចូលពិន្ទុ</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="card empty">មិនមានថ្នាក់ណាមានមុខវិជ្ជា “'+esc(t.subject)+'” ទេ។ សូមឱ្យគណៈគ្រប់គ្រងពិនិត្យឈ្មោះមុខវិជ្ជា។</div>'}</div>`;
+  el.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{ssClass=b.dataset.o;go('ssheet')});
+}};
+V.ssheet={title:'បញ្ចូលពិន្ទុមុខវិជ្ជា',render(el){
+  const t=SUBJT,cls=ROOT.classes.filter(c=>c.published!==false&&subjOf(c,t));
+  if(!cls.length){el.innerHTML='<div class="page"><div class="card empty">មិនមានថ្នាក់សម្រាប់មុខវិជ្ជារបស់អ្នកទេ។</div></div>';return}
+  if(!cls.some(c=>c.id===ssClass))ssClass=cls[0].id;
+  const draw=()=>{
+    const c=cls.find(x=>x.id===ssClass),b=subjOf(c,t);
+    if(!ssCol)ssCol='m0';
+    const stu=[...c.students].sort((x,y)=>x.name.localeCompare(y.name,'km'));
+    const vals=stu.map(s=>c.scores[s.id]?.[b.id]?.[ssCol]).filter(v=>v!==undefined&&v!=='').map(Number);
+    el.innerHTML=`<div class="page"><div class="ph"><h2>📝 ${esc(b.name)}</h2></div>
+    <div class="row" style="margin-bottom:12px"><select class="in" id="sc" style="max-width:240px" aria-label="ថ្នាក់">${cls.map(x=>`<option value="${x.id}" ${x.id===ssClass?'selected':''}>${esc(x.name)}</option>`).join('')}</select>
+    <select class="in" id="sp" style="max-width:200px" aria-label="រយៈពេល">${COLS.map(x=>`<option value="${x.k}" ${x.k===ssCol?'selected':''}>${x.n}</option>`).join('')}</select><span class="pill blue">មេគុណ ${kh(b.coef)}</span></div>
+    <div class="tw"><table><thead><tr><th class="c">ល.រ</th><th>គោត្តនាម និងនាម</th><th class="c">ភេទ</th><th class="c">ពិន្ទុ (០–១០)</th><th>និទ្ទេស</th></tr></thead><tbody>
+    ${stu.map((s,i)=>{const v=c.scores[s.id]?.[b.id]?.[ssCol];return `<tr data-id="${s.id}"><td class="c num">${kh(i+1)}</td><td>${esc(s.name)}</td><td class="c">${esc(s.sex)}</td>
+      <td class="c"><input class="in cell" inputmode="decimal" value="${v??''}" aria-label="ពិន្ទុ"></td><td data-g>${v===undefined||v===''?'—':gpill(+v)}</td></tr>`}).join('')||'<tr><td colspan="5" class="empty">ថ្នាក់នេះមិនទាន់មានសិស្ស</td></tr>'}</tbody></table></div>
+    <p id="ssum" style="color:var(--muted)">បានបញ្ចូល ${kh(vals.length)}/${kh(stu.length)} · មធ្យមភាគថ្នាក់ ${vals.length?fx(mean(vals)):'—'}</p></div>`;
+    $('#sc').onchange=e=>{ssClass=e.target.value;draw()};$('#sp').onchange=e=>{ssCol=e.target.value;draw()};
+    el.querySelectorAll('tr[data-id] input').forEach(inp=>inp.onchange=()=>{
+      const tr=inp.closest('tr'),sid=tr.dataset.id,v=inp.value.trim().replace(',','.');
+      if(v===''){if(c.scores[sid]?.[b.id])delete c.scores[sid][b.id][ssCol]}
+      else{let n=parseFloat(v);if(isNaN(n)){inp.value='';return}n=Math.min(10,Math.max(0,n));inp.value=n;((c.scores[sid]??={})[b.id]??={})[ssCol]=n}
+      save();const x=c.scores[sid]?.[b.id]?.[ssCol];tr.querySelector('[data-g]').innerHTML=x===undefined?'—':gpill(+x);
+      const vs=stu.map(s=>c.scores[s.id]?.[b.id]?.[ssCol]).filter(q=>q!==undefined&&q!=='').map(Number);
+      $('#ssum').textContent=`បានបញ្ចូល ${kh(vs.length)}/${kh(stu.length)} · មធ្យមភាគថ្នាក់ ${vs.length?fx(mean(vs)):'—'}`});
+  };draw();
+}};
+
+/* --- student / guardian (read-only, own data only) --- */
+function meCtx(){
+  const c=ROOT.classes.find(x=>x.id===ME?.cid),s=c?.students.find(x=>x.id===ME?.sid);
+  return {c,s};
+}
+const whoS=()=>ROLE==='guardian'?'កូនរបស់អ្នក':'អ្នក';
+function noMe(el){el.innerHTML='<div class="page"><div class="card empty">រកមិនឃើញទិន្នន័យ។ សូមចាកចេញ ហើយចូលម្តងទៀត។</div></div>'}
+V.mdash={title:'ផ្ទាំងសង្ខេប',render(el){
+  const {c,s}=meCtx();if(!s)return noMe(el);
+  const d=withClass(c,()=>{
+    const lm=latestMonth(),a=lm<0?null:avgOf(s.id,'m'+lm),rk=lm<0?{}:rankMap(id=>avgOf(id,'m'+lm)),ya=yearAvg(s.id);
+    let p=0,l=0,ab=0;Object.values(c.att).forEach(o=>{const v=o[s.id];if(v==='P')p++;else if(v==='L')l++;else if(v==='A')ab++});
+    const subj=DB.subjects.map(b=>{const o=c.scores[s.id]?.[b.id]||{};const v=o['m'+lm];return {n:b.name,v:v===undefined?null:+v}}).filter(x=>x.v!=null).sort((x,y)=>y.v-x.v);
+    return {lm,a,r:rk[s.id],n:Object.keys(rk).length,ya,p,l,ab,months:MONTHS.map((_,i)=>avgOf(s.id,'m'+i)),subj};
+  });
+  const b=bmi(s),bs=bmiState(b),tot=d.p+d.l+d.ab;
+  el.innerHTML=`<div class="page"><div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,var(--blue-soft),var(--surface))">
+    <h2 style="font-size:18px">${ROLE==='guardian'?'សួស្តី អាណាព្យាបាលរបស់ ':'សួស្តី '}${esc(s.name)} 👋</h2>
+    <div style="color:var(--muted)">${esc(ROOT.settings.school)} · ${esc(c.name)} · គ្រូបន្ទុក ${esc(c.teacher||'—')}</div></div>
+  <div class="grid g4">
+    <div class="card stat"><div class="k">មធ្យមភាគ${d.lm>=0?' ខែ'+MONTHS[d.lm]:''}</div><div class="v num">${d.a==null?'—':fx(d.a)}</div><div class="s">${d.a==null?'មិនទាន់មានពិន្ទុ':grade(d.a)[1]+' · '+grade(d.a)[2]}</div></div>
+    <div class="card stat"><div class="k">ចំណាត់ថ្នាក់ក្នុងថ្នាក់</div><div class="v num">${d.r?kh(d.r):'—'}</div><div class="s">${d.r?'ក្នុងចំណោម '+kh(d.n)+' នាក់':''}</div></div>
+    <div class="card stat"><div class="k">មធ្យមភាគឆ្នាំ</div><div class="v num">${d.ya==null?'—':fx(d.ya)}</div><div class="s">${d.ya==null?'':d.ya>=5?'ជាប់':'ត្រូវខិតខំបន្ថែម'}</div></div>
+    <div class="card stat"><div class="k">វត្តមាន</div><div class="v num">${tot?fx((d.p+d.l)/tot*100,0)+'%':'—'}</div><div class="s">អវត្តមាន ${kh(d.ab)} ថ្ងៃ · ច្បាប់ ${kh(d.l)}</div></div></div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h3>មធ្យមភាគប្រចាំខែ</h3>${barChart(MONTHS,d.months)}</div>
+    <div class="card"><h3>មុខវិជ្ជា${d.lm>=0?' ខែ'+MONTHS[d.lm]:''}</h3>${d.subj.length?d.subj.map(x=>`<div class="row" style="flex-wrap:nowrap;margin:6px 0"><span style="width:130px;flex:none">${esc(x.n)}</span><div class="bar" style="flex:1"><i style="width:${x.v*10}%;background:${x.v>=5?'var(--accent)':'var(--danger)'}"></i></div><b class="num" style="width:36px;text-align:right">${fx(x.v,1)}</b></div>`).join(''):'<div class="empty">មិនទាន់មានពិន្ទុ</div>'}</div>
+    <div class="card"><h3>💚 សុខភាព</h3>${b==null?'<div class="empty">មិនទាន់មានទម្ងន់/កម្ពស់</div>':`<div>ទម្ងន់ <b>${kh(s.w)}</b> kg · កម្ពស់ <b>${kh(s.h)}</b> cm</div><div style="margin-top:6px">BMI <b class="num">${kh(fx(b,1))}</b> <span class="pill ${bs[1]}">${bs[0]}</span></div>`}</div>
+    <div class="card"><h3>📣 សេចក្តីប្រកាសថ្មីៗ</h3>${ROOT.notices.slice(0,3).map(n=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><b>${esc(n.title)}</b><div style="font-size:13px;color:var(--muted)">${esc(n.date)}</div></div>`).join('')||'<div class="empty">មិនមាន</div>'}</div></div></div>`;
+}};
+V.mscores={title:'ពិន្ទុ',render(el){
+  const {c,s}=meCtx();if(!s)return noMe(el);
+  withClass(c,()=>{
+    el.innerHTML=`<div class="page"><div class="ph"><h2>📝 ពិន្ទុរបស់${ROLE==='guardian'?'កូន':'ខ្ញុំ'} · ${esc(s.name)}</h2></div>
+    <div class="tw"><table style="min-width:900px"><thead><tr><th>មុខវិជ្ជា</th><th class="c">មេគុណ</th>${COLS.map(x=>`<th class="c">${x.n.replace('ខែ','')}</th>`).join('')}</tr></thead><tbody>
+    ${DB.subjects.map(b=>`<tr><td>${esc(b.name)}</td><td class="c num">${kh(b.coef)}</td>${COLS.map(x=>{const v=DB.scores[s.id]?.[b.id]?.[x.k];return `<td class="c num" ${v!==undefined&&v<5?'style="color:var(--danger);font-weight:700"':''}>${v===undefined||v===''?'':fx(v,1)}</td>`}).join('')}</tr>`).join('')}
+    <tr><td><b>មធ្យមភាគ</b></td><td></td>${COLS.map(x=>{const a=avgOf(s.id,x.k);return `<td class="c num"><b>${a==null?'':fx(a)}</b></td>`}).join('')}</tr>
+    <tr><td><b>និទ្ទេស</b></td><td></td>${COLS.map(x=>{const a=avgOf(s.id,x.k);return `<td class="c">${a==null?'':grade(a)[1]}</td>`}).join('')}</tr></tbody></table></div>
+    <p style="color:var(--muted);font-size:13px">ពិន្ទុគិតលើ ១០ · ពិន្ទុក្រោម ៥ បង្ហាញពណ៌ក្រហម។</p></div>`;
+  });
+}};
+V.matt={title:'វត្តមាន',render(el){
+  const {c,s}=meCtx();if(!s)return noMe(el);
+  const days=Object.keys(c.att).filter(k=>c.att[k][s.id]).sort().reverse();
+  const L={P:['មកសិក្សា','ok'],A:['អវត្តមាន','bad'],L:['ច្បាប់','warn']};
+  let p=0,l=0,a=0;days.forEach(k=>{const v=c.att[k][s.id];if(v==='P')p++;else if(v==='L')l++;else a++});
+  el.innerHTML=`<div class="page"><div class="ph"><h2>🗓 វត្តមាន · ${esc(s.name)}</h2></div>
+  <div class="grid g4" style="margin-bottom:14px"><div class="card stat"><div class="k">មកសិក្សា</div><div class="v num">${kh(p)}</div></div><div class="card stat"><div class="k">ច្បាប់</div><div class="v num">${kh(l)}</div></div><div class="card stat"><div class="k">អវត្តមាន</div><div class="v num" style="color:${a?'var(--danger)':'var(--ok)'}">${kh(a)}</div></div></div>
+  <div class="tw"><table style="min-width:320px"><thead><tr><th>ថ្ងៃ</th><th>ស្ថានភាព</th></tr></thead><tbody>${days.map(k=>{const v=c.att[k][s.id],d=new Date(k+'T00:00:00');return `<tr><td>${kh(d.getDate())} ${KM_MONTH[d.getMonth()]} ${kh(d.getFullYear())}</td><td><span class="pill ${L[v][1]}">${L[v][0]}</span></td></tr>`}).join('')||'<tr><td colspan="2" class="empty">មិនទាន់មានការកត់ត្រា</td></tr>'}</tbody></table></div></div>`;
+}};
+</script>
+<script>
+/* ---------- 📊 របាយការណ៍ និង ផែនការ (11 ផ្នែក) ---------- */
+(function(){
+const st=document.createElement('style');
+st.textContent='.ed{background:var(--gold-soft);outline:none;border-radius:2px;min-width:30px;display:inline-block}.ed:empty:before{content:"……………";color:#888}.ed:focus{box-shadow:0 0 0 2px var(--accent)}@media print{.ed{background:none!important}.ed:empty:before{color:#000}}.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{padding:3px 10px;border-radius:99px;background:var(--accent-soft);font-size:13px}.chip button{border:0;background:none;cursor:pointer;color:var(--danger)}';
+document.head.appendChild(st);
+const REP=()=>(CUR.rep??={});
+const getp=(o,path)=>path.split('|').reduce((a,k)=>a==null?a:a[k],o);
+const setp=(o,path,v)=>{const ks=path.split('|');let a=o;ks.slice(0,-1).forEach(k=>a=a[k]??={});a[ks[ks.length-1]]=v};
+const ed=(path,def='',ex='')=>`<span class="ed" ${RO?'':'contenteditable="true"'} data-p="${esc(path)}" ${ex}>${esc(getp(REP(),path)??def)}</span>`;
+const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const subYear=(sid,b)=>{const o=DB.scores[sid]?.[b.id];return o?mean(Object.values(o).filter(v=>v!==''&&v!=null).map(Number)):null};
+const subVal=(sid,b,col)=>{if(col==='y')return subYear(sid,b);const v=DB.scores[sid]?.[b.id]?.[col];return v===undefined||v===''?null:+v};
+const pAvg=(sid,col)=>col==='y'?yearAvg(sid):avgOf(sid,col);
+const perName=col=>col==='y'?'ប្រចាំឆ្នាំ':colName(col);
+const GCOL=['#2e9e6a','#4aa3a0','#3d7ccb','#d6a23a','#e0813a','#d14b4b'];
+const pg='<div style="page-break-after:always"></div>';
+const tbl=(head,rows,ex='')=>`<table style="${TS}${ex}"><thead><tr>${head.join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`;
+const nostu='<div style="text-align:center;padding:20px">មិនមានសិស្ស</div>';
+const RS={k:'ov',sid:'all',col:null,subj:null,grade:'all',pt:'y1'};
+
+const PLANS={y1:['ផែនការ ១ឆ្នាំ',[['លើកកម្ពស់លទ្ធផលសិក្សា (មធ្យមភាគថ្នាក់ ≥ ៧)','ពេញមួយឆ្នាំ','គ្រូបន្ទុក + គ្រូមុខវិជ្ជា','មធ្យមភាគថ្នាក់'],['កាត់បន្ថយអវត្តមាន និងការបោះបង់ការសិក្សា','ប្រចាំខែ','គ្រូបន្ទុក + អាណាព្យាបាល','អត្រាវត្តមាន ≥ ៩៥%'],['ជួយសិស្សខ្សោយ (ថ្នាក់បំប៉ន)','ប្រចាំសប្តាហ៍','គ្រូមុខវិជ្ជា','ចំនួនសិស្សខ្សោយថយចុះ'],['ប្រជុំអាណាព្យាបាល','ឆមាសនីមួយៗ','គ្រូបន្ទុកថ្នាក់','របាយការណ៍ប្រជុំ'],['អនាម័យ បរិស្ថាន និងសកម្មភាពក្រុមប្រឹក្សាកុមារ','ប្រចាំខែ','សិស្ស + គ្រូ','សកម្មភាពបានអនុវត្ត']]],
+ y3:['ផែនការ ៣ឆ្នាំ',[['ឆ្នាំទី១៖ ស្ថាបនាអត្តសញ្ញាណថ្នាក់ និងវិន័យសិក្សា','ឆ្នាំទី១','គ្រូបន្ទុកថ្នាក់','បទបញ្ជាផ្ទៃក្នុងអនុវត្តបាន'],['ឆ្នាំទី២៖ លើកកម្ពស់លទ្ធផល និងកាត់បន្ថយសិស្សបោះបង់','ឆ្នាំទី២','គ្រូបន្ទុក + សាលា','អត្រាបោះបង់ថយចុះ'],['ឆ្នាំទី៣៖ ពង្រឹងគុណភាព និងបង្កើនអត្រាជាប់','ឆ្នាំទី៣','គ្រូបន្ទុក + សាលា','អត្រាជាប់កើនឡើង'],['ភាពជាដៃគូជាមួយសហគមន៍ និងអាណាព្យាបាល','៣ឆ្នាំ','គ្រូបន្ទុក + នាយកសាលា','សកម្មភាពសហការ']]],
+ m3:['ផែនការ ៣ខែ',[['ខែទី១៖ ស្ទង់ទិន្នន័យសិស្ស និងកំណត់សិស្សត្រូវជួយ','ខែទី១','គ្រូបន្ទុកថ្នាក់','បញ្ជីសិស្សត្រូវជួយ'],['ខែទី២៖ អនុវត្តថ្នាក់បំប៉ន និងតាមដានវត្តមាន','ខែទី២','គ្រូបន្ទុក + គ្រូមុខវិជ្ជា','ពិន្ទុ/វត្តមានប្រសើរឡើង'],['ខែទី៣៖ វាយតម្លៃ និងរាយការណ៍លទ្ធផល','ខែទី៣','គ្រូបន្ទុកថ្នាក់','របាយការណ៍ ៣ខែ']]]};
+const AGR=['គ្រូបន្ទុកថ្នាក់ប្តេជ្ញាចូលរួមបង្រៀន និងថែរក្សាសិស្សតាមកាលវិភាគដែលសាលាកំណត់។','រៀបចំផែនការបង្រៀន និងវាយតម្លៃលទ្ធផលសិស្សជាប្រចាំខែ ដោយយុត្តិធម៌។','តាមដានវត្តមានសិស្សជារៀងរាល់ថ្ងៃ និងជូនដំណឹងអាណាព្យាបាលក្នុងករណីអវត្តមានជាប់គ្នា។','ជួយសិស្សខ្សោយ និងសិស្សប្រឈមការបោះបង់ការសិក្សា តាមរយៈថ្នាក់បំប៉ន និងការសហការជាមួយគ្រួសារ។','រក្សាអនាម័យ សណ្តាប់ធ្នាប់ និងសុវត្ថិភាពក្នុងថ្នាក់ រួមទាំងអនុវត្តបទបញ្ជាផ្ទៃក្នុងសាលា។','រាយការណ៍លទ្ធផលសិក្សា វត្តមាន និងសកម្មភាពថ្នាក់ជូននាយកសាលាតាមកាលកំណត់។','សាលាផ្តល់ការគាំទ្រ សម្ភារៈ និងការណែនាំចាំបាច់ដល់គ្រូបន្ទុកថ្នាក់ ដើម្បីសម្រេចបាននូវកិច្ចព្រមព្រៀងនេះ។'];
+
+const SEC=[
+{k:'ov',n:'📊 ទិដ្ឋភាពទូទៅ'},
+{k:'reg',n:'📖 សៀវភៅសិក្ខាគារិក',o:'l',doc(){
+  const S=sorted();if(!S.length)return docHeader('សៀវភៅសិក្ខាគារិក',clsSub())+nostu;
+  return docHeader('សៀវភៅសិក្ខាគារិក',clsSub()+' · សិស្សសរុប '+kh(S.length)+' នាក់ (ស្រី '+kh(S.filter(s=>s.sex==='ស្រី').length)+')')+
+  tbl(['ល.រ','គោត្តនាម និងនាម','ភេទ','ថ្ងៃខែឆ្នាំកំណើត','អាយុ','ឪពុកម្តាយ/អាណាព្យាបាល','លេខទូរស័ព្ទ','ទម្ងន់/កម្ពស់','សម្គាល់'].map(h=>TH(h)),
+   S.map((s,i)=>`<tr>${TC(kh(i+1),'center')}${TC(esc(s.name))}${TC(esc(s.sex),'center')}${TC(s.dob?esc(s.dob):'',  'center')}${TC(ageOf(s)==null?'':kh(ageOf(s)),'center')}${TC(esc(s.guardian||''))}${TC(esc(s.phone||''),'center')}${TC(s.w?kh(s.w)+'/'+kh(s.h):'','center')}${TC(ed('reg|'+s.id,''))}</tr>`))+docFooter();
+}},
+{k:'card',n:'🧾 ព្រឹត្តិបត្រពិន្ទុ',o:'p',ctl(){
+  return `<select class="in" id="rsid" style="max-width:240px" aria-label="សិស្ស"><option value="all">សិស្សទាំងអស់ (ម្នាក់ ១ទំព័រ)</option>${sorted().map(s=>`<option value="${s.id}" ${s.id===RS.sid?'selected':''}>${esc(s.name)}</option>`).join('')}</select>${perSel()}`},
+ doc(){
+  const col=RS.col,rk=rankMap(id=>pAvg(id,col)),n=Object.keys(rk).length;
+  const list=RS.sid==='all'?sorted():sorted().filter(s=>s.id===RS.sid);if(!list.length)return nostu;
+  return list.map((s,i)=>{const a=pAvg(s.id,col);
+   return `<div ${i<list.length-1?'style="page-break-after:always"':''}>`+docHeader('ព្រឹត្តិបត្រពិន្ទុ',perName(col)+' · '+clsSub())+
+   `<table style="width:100%;font-size:13px;margin:6px 0;color:#000"><tr><td>ឈ្មោះសិស្ស៖ <b>${esc(s.name)}</b></td><td>ភេទ៖ ${esc(s.sex)}</td><td>ថ្នាក់៖ ${esc(CUR.name)}</td></tr></table>`+
+   tbl(['ល.រ','មុខវិជ្ជា','មេគុណ','ពិន្ទុ (/១០)','និទ្ទេស'].map(h=>TH(h)),DB.subjects.map((b,j)=>{const v=subVal(s.id,b,col);return `<tr>${TC(kh(j+1),'center')}${TC(esc(b.name))}${TC(kh(b.coef),'center')}${TC(v==null?'':fx(v,1),'center')}${TC(v==null?'':grade(v)[1],'center')}</tr>`}).concat([`<tr>${TC('<b>មធ្យមភាគ</b>','center','" colspan="3')}${TC('<b>'+(a==null?'':fx(a))+'</b>','center')}${TC(a==null?'':'<b>'+grade(a)[1]+' · '+grade(a)[2]+'</b>','center')}</tr>`]))+
+   `<p style="font-size:13px;color:#000">ចំណាត់ថ្នាក់ក្នុងថ្នាក់៖ <b>${rk[s.id]?kh(rk[s.id])+' / '+kh(n):'—'}</b> · អវត្តមាន <b>${kh(absentCount(s.id))}</b> ដង</p>
+   <p style="font-size:13px;color:#000">ការផ្តល់យោបល់របស់គ្រូ៖ ${ed('rmk|'+s.id+'|'+col,'')}</p>`+docFooter()+'</div>'}).join('');
+}},
+{k:'trk',n:'📘 សៀវភៅតាមដានការសិក្សា',o:'l',doc(){
+  const S=sorted(),cs=COLS.filter(c=>S.some(s=>avgOf(s.id,c.k)!=null)),rk=rankMap(id=>yearAvg(id));
+  if(!S.length)return docHeader('សៀវភៅតាមដានការសិក្សា',clsSub())+nostu;
+  return docHeader('សៀវភៅតាមដានការសិក្សារបស់សិស្ស',clsSub())+
+  tbl(['ល.រ','គោត្តនាម និងនាម','ភេទ',...cs.map(c=>c.n.replace('ខែ','')),'មធ្យមភាគឆ្នាំ','ចំ.ថ្នាក់','អវត្តមាន','ការតាមដាន/សម្គាល់'].map(h=>TH(h)),
+  S.map((s,i)=>{const y=yearAvg(s.id);return `<tr>${TC(kh(i+1),'center')}${TC(esc(s.name))}${TC(esc(s.sex),'center')}${cs.map(c=>{const a=avgOf(s.id,c.k);return TC(a==null?'':fx(a,1),'center',a!=null&&a<5?'color:#c00;font-weight:700':'')}).join('')}${TC(y==null?'':'<b>'+fx(y)+'</b>','center')}${TC(rk[s.id]?kh(rk[s.id]):'','center')}${TC(kh(absentCount(s.id)),'center')}${TC(ed('trk|'+s.id,''))}</tr>`}))+docFooter();
+}},
+{k:'sp',n:'📋 ផែនការសិក្សារបស់សិស្ស',o:'p',ctl(){return `<select class="in" id="rsid1" style="max-width:260px" aria-label="សិស្ស">${sorted().map(s=>`<option value="${s.id}" ${s.id===RS.sid?'selected':''}>${esc(s.name)}</option>`).join('')}</select>`},
+ doc(){
+  const s=DB.students.find(x=>x.id===RS.sid);if(!s)return nostu;
+  const sub=DB.subjects.map(b=>({b,v:subYear(s.id,b)})).filter(x=>x.v!=null).sort((x,y)=>y.v-x.v);
+  const strong=sub.slice(0,2).filter(x=>x.v>=6).map(x=>x.b.name).join(' · '),weak=sub.filter(x=>x.v<6).map(x=>x.b.name).join(' · ');
+  const y=yearAvg(s.id),id='sp|'+s.id+'|';
+  return docHeader('ផែនការសិក្សារបស់សិស្ស',clsSub())+
+  `<table style="width:100%;font-size:13px;color:#000;line-height:1.9"><tr><td>ឈ្មោះសិស្ស៖ <b>${esc(s.name)}</b></td><td>ភេទ៖ ${esc(s.sex)}</td><td>អាយុ៖ ${ageOf(s)==null?'—':kh(ageOf(s))} ឆ្នាំ</td></tr>
+  <tr><td colspan="3">មធ្យមភាគឆ្នាំ៖ <b>${y==null?'—':fx(y)}</b> (${y==null?'—':gl(y)}) · អវត្តមាន <b>${kh(absentCount(s.id))}</b> ដង</td></tr>
+  <tr><td colspan="3">មុខវិជ្ជាខ្លាំង៖ ${ed(id+'str',strong)}</td></tr><tr><td colspan="3">មុខវិជ្ជាត្រូវពង្រឹង៖ ${ed(id+'weak',weak)}</td></tr>
+  <tr><td colspan="3">គោលដៅសិក្សា (មធ្យមភាគ)៖ ${ed(id+'goal','')}</td></tr></table>`+
+  tbl(['ល.រ','សកម្មភាពអនុវត្ត','រយៈពេល','អ្នកជួយ/គាំទ្រ','លទ្ធផលរំពឹង'].map(h=>TH(h)),[0,1,2,3,4].map(i=>`<tr>${TC(kh(i+1),'center')}${[0,1,2,3].map(j=>TC(ed(id+i+'|'+j,''))).join('')}</tr>`))+
+  `<p style="font-size:13px;color:#000">ការប្តេជ្ញារបស់សិស្ស៖ ${ed(id+'pledge','')}</p>
+  <table style="width:100%;margin-top:14px;text-align:center;font-size:12.5px;color:#000"><tr><td>សិស្ស<div style="height:50px"></div>${esc(s.name)}</td><td>អាណាព្យាបាល<div style="height:50px"></div>${esc(s.guardian||'')}</td><td>គ្រូបន្ទុកថ្នាក់<div style="height:50px"></div>${esc(CUR.teacher||'')}</td></tr></table>`;
+}},
+{k:'plan',n:'📚 ផែនការ ១ឆ្នាំ ៣ឆ្នាំ ៣ខែ',o:'l',ctl(){
+  return `<select class="in" id="rpt" style="max-width:200px" aria-label="ប្រភេទផែនការ">${Object.keys(PLANS).map(k=>`<option value="${k}" ${k===RS.pt?'selected':''}>${PLANS[k][0]}</option>`).join('')}</select>
+  <button class="btn" id="rpadd">＋ បន្ថែមជួរ</button><button class="btn" id="rptpl">✨ បំពេញគំរូ</button>`},
+ doc(){
+  const t=RS.pt,R=REP(),nrow=(R.planN??={})[t]??Math.max(6,PLANS[t][1].length);
+  return docHeader(PLANS[t][0]+'សម្រាប់គ្រូបន្ទុកថ្នាក់',clsSub()+' · សិស្ស '+kh(DB.students.length)+' នាក់')+
+  `<p style="font-size:13px;color:#000">គោលបំណង៖ ${ed('plan|'+t+'|goal','')}</p>`+
+  tbl(['ល.រ','គោលដៅ / សកម្មភាព','រយៈពេល','អ្នកទទួលខុសត្រូវ','សូចនាករ / លទ្ធផលរំពឹង','ផ្សេងៗ'].map(h=>TH(h)),
+   Array.from({length:nrow},(_,i)=>`<tr>${TC(kh(i+1),'center')}${[0,1,2,3,4].map(j=>TC(ed('plan|'+t+'|r'+i+'|'+j,''))).join('')}</tr>`))+docFooter();
+}},
+{k:'drop',n:'🚪 សិស្សបោះបង់ការសិក្សា',o:'l',ctl(){
+  const D=REP().drop??{},sug=atRisk().filter(x=>!D[x.s.id]);
+  return `<select class="in" id="rdp" style="max-width:260px" aria-label="បន្ថែមសិស្ស"><option value="">＋ បន្ថែមសិស្សក្នុងបញ្ជី…</option>${sorted().filter(s=>!D[s.id]).map(s=>`<option value="${s.id}">${esc(s.name)}${sug.some(x=>x.s.id===s.id)?' ⚠':''}</option>`).join('')}</select>
+  <div class="chips">${Object.keys(D).map(id=>{const s=DB.students.find(x=>x.id===id);return s?`<span class="chip">${esc(s.name)} <button data-rm="${id}" aria-label="ដកចេញ">✕</button></span>`:''}).join('')}</div>
+  ${sug.length?`<small style="color:var(--muted)">⚠ ប្រឈមហានិភ័យ (ពិន្ទុទាប/អវត្តមាន)៖ ${sug.map(x=>esc(x.s.name)).join(', ')}</small>`:''}`},
+ doc(){
+  const D=REP().drop??{},L=sorted().filter(s=>D[s.id]);
+  return docHeader('របាយការណ៍សិស្សបោះបង់ការសិក្សា',clsSub()+' · សិស្សក្នុងថ្នាក់ '+kh(DB.students.length)+' នាក់ · បោះបង់/ប្រឈម '+kh(L.length)+' នាក់ (ស្រី '+kh(L.filter(s=>s.sex==='ស្រី').length)+')')+
+  tbl(['ល.រ','គោត្តនាម និងនាម','ភេទ','អាយុ','ថ្ងៃបោះបង់','មូលហេតុ','សកម្មភាពតាមដាន','ស្ថានភាព'].map(h=>TH(h)),
+   L.map((s,i)=>`<tr>${TC(kh(i+1),'center')}${TC(esc(s.name))}${TC(esc(s.sex),'center')}${TC(ageOf(s)==null?'':kh(ageOf(s)),'center')}${TC(ed('drop|'+s.id+'|date',''))}${TC(ed('drop|'+s.id+'|why',''))}${TC(ed('drop|'+s.id+'|act',''))}${TC(ed('drop|'+s.id+'|st','កំពុងតាមដាន'))}</tr>`).join('')?L.map((s,i)=>`<tr>${TC(kh(i+1),'center')}${TC(esc(s.name))}${TC(esc(s.sex),'center')}${TC(ageOf(s)==null?'':kh(ageOf(s)),'center')}${TC(ed('drop|'+s.id+'|date',''))}${TC(ed('drop|'+s.id+'|why',''))}${TC(ed('drop|'+s.id+'|act',''))}${TC(ed('drop|'+s.id+'|st','កំពុងតាមដាន'))}</tr>`):[`<tr><td colspan="8" style="${TD};text-align:center">មិនមានសិស្សក្នុងបញ្ជី</td></tr>`])+docFooter();
+}},
+{k:'agr',n:'🤝 កិច្ចព្រមព្រៀងគ្រូបន្ទុកថ្នាក់',o:'p',doc(){
+  const s=ROOT.settings;
+  return docHeader('កិច្ចព្រមព្រៀងគ្រូបន្ទុកថ្នាក់','ឆ្នាំសិក្សា '+esc(s.year))+
+  `<div style="font-size:13px;line-height:2;color:#000"><p>រវាង នាយក/នាយិកាសាលា <b>${esc(s.principal||'……………')}</b> នៃ${esc(s.school)} និង គ្រូបន្ទុកថ្នាក់ <b>${esc(CUR.teacher||'……………')}</b> ថ្នាក់ <b>${esc(CUR.name)}</b> (សិស្ស ${kh(DB.students.length)} នាក់)។</p>
+  <p>ភាគីទាំងពីរឯកភាពគ្នាដូចខាងក្រោម៖</p><ol>${AGR.map((t,i)=>`<li>${ed('agr|'+i,t)}</li>`).join('')}</ol>
+  <p>កិច្ចព្រមព្រៀងនេះមានសុពលភាពពេញមួយឆ្នាំសិក្សា ${esc(s.year)}។</p></div>
+  <table style="width:100%;margin-top:14px;text-align:center;font-size:12.5px;color:#000"><tr><td>ធ្វើនៅ${dots(s.place,'………')} ${khLong()}<br><b>គ្រូបន្ទុកថ្នាក់</b><div style="height:62px"></div>${esc(CUR.teacher||'')}</td><td><br><b>នាយកសាលា</b><div style="height:62px"></div>${esc(s.principal||'')}</td></tr></table>`;
+}},
+{k:'ev',n:'🏅 ចរិយា · បំណិន · វិជ្ជាសម្បទា',o:'l',ctl(){return `<button class="btn" id="evfill">បំពេញ B ទាំងអស់ (ចរិយា/បំណិន)</button>`},
+ doc(){
+  const S=sorted();if(!S.length)return nostu;
+  return docHeader('ការវាយតម្លៃ ចរិយាសម្បទា បំណិនសម្បទា និងវិជ្ជាសម្បទា',clsSub())+
+  tbl(['ល.រ','គោត្តនាម និងនាម','ភេទ','ចរិយាសម្បទា<br>(A–F)','បំណិនសម្បទា<br>(A–F)','មធ្យមភាគឆ្នាំ','វិជ្ជាសម្បទា','សម្គាល់'].map(h=>TH(h)),
+   S.map((s,i)=>{const y=yearAvg(s.id);return `<tr>${TC(kh(i+1),'center')}${TC(esc(s.name))}${TC(esc(s.sex),'center')}${TC(ed('ev|'+s.id+'|c',''),'center')}${TC(ed('ev|'+s.id+'|s',''),'center')}${TC(y==null?'':fx(y),'center')}${TC(y==null?'':grade(y)[1]+' · '+grade(y)[2],'center')}${TC(ed('ev|'+s.id+'|n',''))}</tr>`}))+
+  `<p style="font-size:12px;color:#000">និទ្ទេស៖ A ល្អប្រសើរ · B ល្អណាស់ · C ល្អ · D ល្អបង្គួរ · E មធ្យម · F ខ្សោយ។ វិជ្ជាសម្បទាគណនាស្វ័យប្រវត្តិពីមធ្យមភាគឆ្នាំ។</p>`+docFooter();
+}},
+{k:'sub',n:'📊 ស្ថិតិតាមមុខវិជ្ជាប្រចាំឆ្នាំ',o:'l',doc(){
+  const S=DB.students;
+  return docHeader('ស្ថិតិលទ្ធផលតាមមុខវិជ្ជាប្រចាំឆ្នាំ',clsSub())+
+  tbl(['ល.រ','មុខវិជ្ជា','មេគុណ','សិស្សមានពិន្ទុ','មធ្យមភាគ','ប្រុស','ស្រី','ជាប់ (≥៥)','ធ្លាក់','% ជាប់',...GR.map(g=>g[1])].map(h=>TH(h)),
+   DB.subjects.map((b,i)=>{const v=S.map(s=>({s,v:subYear(s.id,b)})).filter(x=>x.v!=null),all=v.map(x=>x.v),ok=all.filter(x=>x>=5).length,
+    m=sx=>{const a=v.filter(x=>x.s.sex===sx).map(x=>x.v);return a.length?fx(mean(a)):''};
+    return `<tr>${TC(kh(i+1),'center')}${TC(esc(b.name))}${TC(kh(b.coef),'center')}${TC(kh(all.length),'center')}${TC(all.length?'<b>'+fx(mean(all))+'</b>':'','center')}${TC(m('ប្រុស'),'center')}${TC(m('ស្រី'),'center')}${TC(kh(ok),'center')}${TC(kh(all.length-ok),'center')}${TC(all.length?fx(ok/all.length*100,0)+'%':'','center')}${GR.map(g=>TC(kh(all.filter(x=>grade(x)[1]===g[1]).length),'center')).join('')}</tr>`}))+docFooter();
+}},
+{k:'ext',n:'📝 សម្រង់ពិន្ទុតាមនិទ្ទេស',o:'p',ctl(){
+  return `<select class="in" id="rsj" style="max-width:200px" aria-label="មុខវិជ្ជា">${DB.subjects.map(b=>`<option value="${b.id}" ${b.id===RS.subj?'selected':''}>${esc(b.name)}</option>`).join('')}</select>${perSel()}
+  <select class="in" id="rgr" style="max-width:150px" aria-label="និទ្ទេស"><option value="all">និទ្ទេសទាំងអស់</option>${GR.map(g=>`<option value="${g[1]}" ${g[1]===RS.grade?'selected':''}>និទ្ទេស ${g[1]}</option>`).join('')}</select>`},
+ doc(){
+  const b=DB.subjects.find(x=>x.id===RS.subj);if(!b)return nostu;
+  const L=DB.students.map(s=>({s,v:subVal(s.id,b,RS.col)})).filter(x=>x.v!=null).sort((x,y)=>y.v-x.v);
+  const F=RS.grade==='all'?L:L.filter(x=>grade(x.v)[1]===RS.grade);
+  return docHeader('សម្រង់ពិន្ទុមាននិទ្ទេសតាមមុខវិជ្ជា',esc(b.name)+' · '+perName(RS.col)+' · '+clsSub())+
+  tbl(['ល.រ','គោត្តនាម និងនាម','ភេទ','ពិន្ទុ','និទ្ទេស'].map(h=>TH(h)),F.length?F.map((x,i)=>`<tr>${TC(kh(i+1),'center')}${TC(esc(x.s.name))}${TC(esc(x.s.sex),'center')}${TC(fx(x.v,1),'center')}${TC(gl(x.v),'center')}</tr>`):[`<tr><td colspan="5" style="${TD};text-align:center">មិនមានទិន្នន័យ</td></tr>`])+
+  `<p style="font-size:12.5px;color:#000">សរុប៖ ${GR.map(g=>g[1]+' = '+kh(L.filter(x=>grade(x.v)[1]===g[1]).length)).join(' · ')} · មធ្យមភាគថ្នាក់ ${L.length?fx(mean(L.map(x=>x.v))):'—'}</p>`+docFooter();
+}}
+];
+function perSel(){return `<select class="in" id="rpc" style="max-width:170px" aria-label="រយៈពេល">${COLS.map(c=>`<option value="${c.k}" ${c.k===RS.col?'selected':''}>${c.n}</option>`).join('')}<option value="y" ${RS.col==='y'?'selected':''}>ប្រចាំឆ្នាំ</option></select>`}
+
+function overview(){
+  const S=DB.students,lm=latestMonth(),f=S.filter(s=>s.sex==='ស្រី').length,ya=S.map(s=>yearAvg(s.id)).filter(x=>x!=null),
+   la=lm<0?[]:S.map(s=>avgOf(s.id,'m'+lm)).filter(x=>x!=null),ar=attRate(),risk=atRisk();
+  const dist=GR.map((g,i)=>({label:g[1]+' '+g[2],value:ya.filter(v=>grade(v)[1]===g[1]).length,color:GCOL[i]}));
+  const top=S.map(s=>({s,a:yearAvg(s.id)})).filter(x=>x.a!=null).sort((x,y)=>y.a-x.a).slice(0,5);
+  return `<div class="grid g4"><div class="card stat"><div class="k">សិស្សសរុប</div><div class="v num">${kh(S.length)}</div><div class="s">ស្រី ${kh(f)} · ប្រុស ${kh(S.length-f)}</div></div>
+  <div class="card stat"><div class="k">មធ្យមភាគថ្នាក់${lm>=0?' ខែ'+MONTHS[lm]:''}</div><div class="v num">${la.length?fx(mean(la)):'—'}</div><div class="s">${la.length?gl(mean(la)):''}</div></div>
+  <div class="card stat"><div class="k">អត្រាជាប់ (មធ្យមភាគឆ្នាំ ≥៥)</div><div class="v num">${ya.length?fx(ya.filter(v=>v>=5).length/ya.length*100,0)+'%':'—'}</div><div class="s">${kh(ya.filter(v=>v>=5).length)}/${kh(ya.length)} នាក់</div></div>
+  <div class="card stat"><div class="k">អត្រាវត្តមាន</div><div class="v num">${ar==null?'—':fx(ar,0)+'%'}</div><div class="s">សិស្សប្រឈមហានិភ័យ ${kh(risk.length)} នាក់</div></div></div>
+  <div class="grid g2" style="margin-top:14px"><div class="card"><h3>មធ្យមភាគថ្នាក់ប្រចាំខែ</h3>${barChart(MONTHS,MONTHS.map((_,i)=>{const a=S.map(s=>avgOf(s.id,'m'+i)).filter(x=>x!=null);return a.length?mean(a):null}))}</div>
+  <div class="card"><h3>ការបែងចែកនិទ្ទេស (ឆ្នាំ)</h3><div class="row" style="flex-wrap:nowrap;gap:14px">${donut(dist)}<div>${dist.map(d=>`<div style="font-size:13px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${d.color}"></span> ${d.label} · <b>${kh(d.value)}</b></div>`).join('')}</div></div></div>
+  <div class="card"><h3>🏆 សិស្សពូកែ ៥ នាក់ដំបូង</h3>${top.map((x,i)=>`<div style="padding:5px 0;border-bottom:1px solid var(--line)">${kh(i+1)}. ${esc(x.s.name)} <b class="num" style="float:right">${fx(x.a)}</b></div>`).join('')||'<div class="empty">មិនទាន់មានពិន្ទុ</div>'}</div>
+  <div class="card"><h3>⚠ សិស្សត្រូវការជំនួយ</h3>${risk.slice(0,6).map(x=>`<div style="padding:5px 0;border-bottom:1px solid var(--line)">${esc(x.s.name)} <small style="color:var(--muted)">${x.why.join(' · ')}</small></div>`).join('')||'<div class="empty">មិនមាន</div>'}</div></div>`;
+}
+
+V.reports={title:'របាយការណ៍ និង ផែនការ',render(el){
+  const lm=latestMonth();
+  if(!RS.col)RS.col=lm>=0?'m'+lm:'m0';
+  if(!DB.subjects.some(b=>b.id===RS.subj))RS.subj=DB.subjects[0]?.id;
+  if(RS.k==='sp'&&(RS.sid==='all'||!DB.students.some(s=>s.id===RS.sid)))RS.sid=sorted()[0]?.id;
+  if(RS.k==='card'&&RS.sid!=='all'&&!DB.students.some(s=>s.id===RS.sid))RS.sid='all';
+  const sec=SEC.find(x=>x.k===RS.k)||SEC[0];
+  el.innerHTML=`<div class="page"><div class="ph noprint"><h2>📊 របាយការណ៍ និង ផែនការ</h2></div>
+  <div class="tabs noprint">${SEC.map(x=>`<button data-k="${x.k}" class="${x.k===sec.k?'on':''}">${x.n}</button>`).join('')}</div>
+  ${sec.k==='ov'?overview():`<div class="row noprint" style="margin-bottom:12px">${sec.ctl?sec.ctl():''}<button class="btn pri" id="rcopy">📋 ចម្លងទៅ Word / Excel</button><button class="btn" id="rprint">🖨 បោះពុម្ព</button></div>
+  <div class="paperwrap"><div class="paper ${sec.o}" id="paper">${sec.doc()}</div></div>
+  <p class="noprint" style="color:var(--muted);font-size:13px">ប្រអប់ពណ៌លឿងអាចចុចសរសេរបានដោយផ្ទាល់ ហើយរក្សាទុកស្វ័យប្រវត្តិ។ ចម្លងទៅ Word/Excel ឬបោះពុម្ពទំហំ A4។</p>`}</div>`;
+  const redo=()=>V.reports.render(el);
+  el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{RS.k=b.dataset.k;if(RS.k==='card')RS.sid='all';redo()});
+  if(sec.k==='ov')return;
+  const on=(id,fn)=>{const e=$(id);if(e)e.onchange=()=>{fn(e);redo()}};
+  on('#rsid',e=>RS.sid=e.value);on('#rsid1',e=>RS.sid=e.value);on('#rpc',e=>RS.col=e.value);on('#rsj',e=>RS.subj=e.value);on('#rgr',e=>RS.grade=e.value);on('#rpt',e=>RS.pt=e.value);
+  const R=REP();
+  const a=$('#rpadd');if(a)a.onclick=()=>{const t=RS.pt;R.planN??={};R.planN[t]=(R.planN[t]??Math.max(6,PLANS[t][1].length))+1;save();redo()};
+  const tp=$('#rptpl');if(tp)tp.onclick=()=>{const t=RS.pt;PLANS[t][1].forEach((r,i)=>r.forEach((v,j)=>setp(R,'plan|'+t+'|r'+i+'|'+j,v)));save();redo()};
+  const dp=$('#rdp');if(dp)dp.onchange=()=>{if(dp.value){(R.drop??={})[dp.value]={};save();redo()}};
+  el.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{delete R.drop[b.dataset.rm];save();redo()});
+  const ef=$('#evfill');if(ef)ef.onclick=()=>{DB.students.forEach(s=>{setp(R,'ev|'+s.id+'|c',getp(R,'ev|'+s.id+'|c')||'B');setp(R,'ev|'+s.id+'|s',getp(R,'ev|'+s.id+'|s')||'B')});save();redo()};
+  const pap=$('#paper'),wrap=$('.paperwrap');
+  const fit=()=>{pap.style.zoom=1;const r=(wrap.clientWidth-28)/pap.offsetWidth;if(r<1)pap.style.zoom=r};fit();
+  let tm=null;pap.addEventListener('input',e=>{const t=e.target.closest('[data-p]');if(!t||RO)return;setp(R,t.dataset.p,t.innerText.trim());clearTimeout(tm);tm=setTimeout(save,500)});
+  $('#rcopy').onclick=copyDoc;
+  $('#rprint').onclick=()=>{let s=$('#pgst');if(!s){s=document.createElement('style');s.id='pgst';document.head.append(s)}
+    s.textContent=`@page{size:A4 ${sec.o==='l'?'landscape':'portrait'};margin:12mm}`;try{window.print()}catch(e){}toast('បើមិនចេញផ្ទាំងបោះពុម្ព សូមចម្លងទៅ Word រួចបោះពុម្ពពីទីនោះ')};
+}};
+})();
+</script>
+<script>
+/* ---------- ផែនការ និងរបាយការណ៍បង្រៀនរបស់គ្រូមុខវិជ្ជា (៣ឆ្នាំ · ១ឆ្នាំ · ៣ខែ) ---------- */
+(function(){
+const sty=document.createElement('style');sty.textContent='#paper td .ed:empty:before{content:"……"}#paper td .ed{min-width:14px}';document.head.appendChild(sty);
+const LV=['A','B','C','D','E','F'];
+const MAPQ={q1:[['ចុងខែវិច្ឆិកា','m1'],['ចុងខែធ្នូ','m2'],['ចុងខែមករា','m3']],q2:[['ចុងខែកុម្ភៈ','m4'],['ចុងខែមីនា','m5'],['ចុងខែមេសា','m6']],q3:[['ចុងខែឧសភា','m7'],['ចុងខែមិថុនា','m8'],['ចុងខែកក្កដា','m9']],q4:[['ចុងខែសីហា',null],['ចុងខែកញ្ញា',null],['ចុងខែតុលា',null]]};
+let S={i:0,tab:'y3'};
+const getp=(o,p)=>p.split('|').reduce((a,k)=>a==null?a:a[k],o);
+const setp=(o,p,v)=>{const ks=p.split('|');let a=o;ks.slice(0,-1).forEach(k=>a=a[k]??={});a[ks[ks.length-1]]=v};
+const pairs=()=>{
+  if(ROLE==='subject')return ROOT.classes.filter(c=>c.published!==false).map(c=>({c,b:subjOf(c,SUBJT)})).filter(x=>x.b);
+  return CUR.subjects.map(b=>({c:CUR,b}));
+};
+function dist(c,b,col){ /* grade counts for subject b in class c at column col ('y' = yearly avg) */
+  const d=Object.fromEntries(LV.map(l=>[l,0]));let n=0;
+  c.students.forEach(s=>{const o=c.scores[s.id]?.[b.id];if(!o)return;let v;
+    if(col==='y'){const a=Object.values(o).filter(x=>x!==''&&x!=null).map(Number);v=a.length?a.reduce((p,q)=>p+q,0)/a.length:null}
+    else v=o[col]===undefined||o[col]===''?null:+o[col];
+    if(v==null||isNaN(v))return;d[grade(v)[1]]++;n++});
+  return {d,n};
+}
+const firstCol=(c,b)=>{for(const x of COLS){if(dist(c,b,x.k).n)return x.k}return null};
+const lastCol=(c,b)=>{for(let i=COLS.length-1;i>=0;i--){if(dist(c,b,COLS[i].k).n)return COLS[i].k}return null};
+const pct=(n,t)=>t?String(Math.round(n/t*1000)/10):'';
+function fillAuto(R,c,b){
+  const fc=firstCol(c,b),lc=lastCol(c,b);if(!fc)return false;
+  const put=(pre,r)=>{LV.forEach(l=>{setp(R,pre+'|'+l+'|p',pct(r.d[l],r.n));setp(R,pre+'|'+l+'|n',String(r.d[l]));});setp(R,pre+'|T|n',String(r.n))};
+  const base=dist(c,b,fc);
+  ['y3','y1'].forEach(t=>put(t+'|base',base));
+  put('y3|1',dist(c,b,'y'));put('y1|end',dist(c,b,'y'));
+  Object.keys(MAPQ).forEach(q=>{put(q+'|base',base);let lastR=null;MAPQ[q].forEach(([,k],j)=>{if(k){const r=dist(c,b,k);put(q+'|'+j,r);if(r.n)lastR=r}});if(lastR)LV.forEach(l=>setp(R,q+'|end|'+l,lastR.d[l]+' ('+pct(lastR.d[l],lastR.n)+'%)'));setp(R,q+'|end|T|n',lastR?String(lastR.n):'')});
+  return true;
+}
+function build(c,b,tab,R){
+  const ed=(p,def='')=>`<span class="ed" ${RO?'':'contenteditable="true"'} data-p="${esc(p)}">${esc(getp(R,p)??def)}</span>`;
+  const girls=c.students.filter(s=>s.sex==='ស្រី').length;
+  const tn=ROLE==='subject'?SUBJT.name:'',tp=ROLE==='subject'?SUBJT.phone||'':'';
+  const per=ROOT.settings.year;
+  const title={y3:`ផែនការ និងរបាយការណ៍បង្រៀន ៣ ឆ្នាំរបស់គ្រូមុខវិជ្ជា (${esc(per)})`,y1:`ផែនការ និងរបាយការណ៍បង្រៀន ១ ឆ្នាំរបស់គ្រូមុខវិជ្ជា (${esc(per)})`,m3:`ផែនការ និងរបាយការណ៍បង្រៀន ៣ ខែរបស់គ្រូមុខវិជ្ជា (${esc(per)})`}[tab];
+  const cell=(p,al='center')=>TC(`${ed(p+'|p')}% = ${ed(p+'|n')}នាក់`,al);
+  const lvDesc=`កម្រិតពិន្ទុ៖ ${GR.slice().reverse().map(g=>`${g[1]}=${g[0]===0?'ក្រោម ៥':'ពី '+kh(g[0])+(g[1]==='A'?'–១០':'')}`).join(' &nbsp; ')} (មាត្រដ្ឋាន ១០)`;
+  const head=docHeader(title,'')+`<div style="font-size:12.5px;line-height:2;margin:4px 0">
+    ថ្នាក់ទី៖ <b>${esc(c.name)}</b> &nbsp; មុខវិជ្ជា៖ <b>${esc(b.name)}</b> &nbsp; ចំនួនសិស្សសរុប៖ <b>${kh(c.students.length)}</b> នាក់ &nbsp; ស្រី៖ <b>${kh(girls)}</b> នាក់<br>
+    ឈ្មោះគ្រូបង្រៀន៖ ${ed('sp|'+b.id+'|tn',tn)} &nbsp; ហត្ថលេខា ${ed('sp|'+b.id+'|ts')} &nbsp; លេខទូរស័ព្ទ៖ ${ed('sp|'+b.id+'|tt',tp)}<br>
+    ឈ្មោះនាយករងបច្ចេកទេស៖ ${ed('sp|'+b.id+'|vn')} &nbsp; ហត្ថលេខា ${ed('sp|'+b.id+'|vs')} &nbsp; លេខទូរស័ព្ទ៖ ${ed('sp|'+b.id+'|vt')}<br>
+    <span style="font-size:11.5px">${lvDesc}</span></div>`;
+  const K=t=>'sp|'+b.id+'|'+t;
+  const totRow=(cols)=>`<tr>${TC('<b>សរុប</b>','center','" colspan="2')}${cols.map(p=>TC(ed(K(p+'|T|n')),'center')).join('')}${TC('')}</tr>`;
+  let body='';
+  if(tab==='y3'){
+    body=`<table style="${TS};table-layout:fixed;font-size:11px"><thead><tr>${TH('មុខវិជ្ជា','" rowspan="2')}${TH('កម្រិត','" rowspan="2')}${TH('ទិន្នន័យដំបូង','" rowspan="2')}${TH('ឆ្នាំទី១')}${TH('ឆ្នាំទី២')}${TH('ឆ្នាំទី៣')}${TH('សម្គាល់','" rowspan="2')}</tr>
+    <tr>${[0,1,2].map(i=>TH(ed(K('y3|yr'+i),kh((parseInt(unKh(per).replace(/\D/g,'').slice(0,4))||2026)+i))).replace('</th>','</th>')).join('')}</tr></thead><tbody>
+    ${LV.map((l,i)=>`<tr>${i===0?TC(`<b>${esc(b.name)}</b>`,'center',`" rowspan="7`):''}${TC('<b>'+l+'</b>','center')}${TC(`${ed(K('y3|base|'+l+'|n'))}`,'center')}${[1,2,3].map(y=>cell(K('y3|'+y+'|'+l))).join('')}${TC(ed(K('y3|'+l+'|rm')))}</tr>`).join('')}
+    <tr>${TC('<b>សរុប</b>','center')}${TC(ed(K('y3|base|T|n')),'center')}${[1,2,3].map(y=>TC(ed(K('y3|'+y+'|T|n')),'center')).join('')}${TC('')}</tr></tbody></table>`;
+  }else if(tab==='y1'){
+    body=`<table style="${TS};table-layout:fixed;font-size:11px"><thead><tr>${TH('មុខវិជ្ជា')}${TH('កម្រិត')}${TH('ទិន្នន័យដំបូង')}${TH('ចំនួន និង % ចុងឆ្នាំ')}${TH('សម្គាល់')}</tr></thead><tbody>
+    ${LV.map((l,i)=>`<tr>${i===0?TC(`<b>${esc(b.name)}</b>`,'center',`" rowspan="7`):''}${TC('<b>'+l+'</b>','center')}${TC(ed(K('y1|base|'+l+'|n')),'center')}${cell(K('y1|end|'+l))}${TC(ed(K('y1|'+l+'|rm')))}</tr>`).join('')}
+    <tr>${TC('<b>សរុប</b>','center')}${TC(ed(K('y1|base|T|n')),'center')}${TC(ed(K('y1|end|T|n')),'center')}${TC('')}</tr></tbody></table>`;
+  }else{
+    body=['q1','q2','q3','q4'].map((q,qi)=>`<table style="${TS};table-layout:fixed;font-size:11px;${qi?'margin-top:14px':''}"><thead><tr>${TH('កម្រិត','" rowspan="2')}${TH('ចំនួន និង %','" colspan="4')}${TH('ចំនួន និង % ចុងត្រីមាសទី'+kh(qi+1),'" rowspan="2')}${TH('សម្គាល់','" rowspan="2')}</tr>
+      <tr>${TH('ទិន្នន័យដំបូង')}${MAPQ[q].map(m=>TH(m[0])).join('')}</tr></thead><tbody>
+      ${LV.map(l=>`<tr>${TC('<b>'+l+'</b>','center')}${TC(ed(K(q+'|base|'+l+'|n')),'center')}${[0,1,2].map(j=>TC(ed(K(q+'|'+j+'|'+l+'|n')),'center')).join('')}${TC(ed(K(q+'|end|'+l)),'center')}${TC(ed(K(q+'|'+l+'|rm')))}</tr>`).join('')}
+      <tr>${TC('<b>សរុប</b>','center')}${TC(ed(K(q+'|base|T|n')),'center')}${[0,1,2].map(j=>TC(ed(K(q+'|'+j+'|T|n')),'center')).join('')}${TC(ed(K(q+'|end|T|n')),'center')}${TC('')}</tr></tbody></table>`).join('');
+  }
+  const s=ROOT.settings,pl=dots(s.place,'………');
+  const foot=`<table style="width:100%;table-layout:fixed;word-break:break-word;border-collapse:collapse;color:#000;margin-top:16px;font-size:11px"><tr>
+    <td style="text-align:center;vertical-align:top;width:33%">${pl} ${khLong()}<br><b>អ្នកទទួលបន្ទុក</b><div style="height:50px"></div>${dots(tn)}</td>
+    <td style="text-align:center;vertical-align:top;width:33%">${pl} ${khLong()}<br>បានឃើញ និងឯកភាព<br><b>នាយកសាលា</b><div style="height:40px"></div>${dots(s.principal)}</td>
+    <td style="text-align:center;vertical-align:top;width:34%">${dots(s.district?('ស្រុក'+s.district):'')} ${khLong()}<br>បានឃើញ និងអនុម័ត<br><b>ប្រធានគណៈកម្មការគ្រប់គ្រងសាលារៀន</b><div style="height:40px"></div>&nbsp;</td></tr></table>`;
+  return head+body+foot;
+}
+V.splan={title:'ផែនការគ្រូមុខវិជ្ជា',render(el){
+  const P=pairs();
+  if(!P.length){el.innerHTML='<div class="page"><div class="card empty">មិនមានមុខវិជ្ជាសម្រាប់បង្កើតផែនការ</div></div>';return}
+  if(S.i>=P.length)S.i=0;
+  const draw=()=>{
+    const {c,b}=P[S.i];c.rep??={};c.rep.sp??={};const R=c.rep.sp;
+    // R keyed 'sp|subjId|...' → store under c.rep via getp(c.rep,...)
+    const html=withClass(c,()=>build(c,b,S.tab,c.rep));
+    el.innerHTML=`<div class="page"><div class="ph noprint"><h2>📑 ផែនការ និងរបាយការណ៍បង្រៀនរបស់គ្រូមុខវិជ្ជា</h2></div>
+    <div class="tabs noprint">${[['y3','៣ ឆ្នាំ'],['y1','១ ឆ្នាំ'],['m3','៣ ខែ (ត្រីមាស)']].map(t=>`<button data-t="${t[0]}" class="${t[0]===S.tab?'on':''}">${t[1]}</button>`).join('')}</div>
+    <div class="row noprint" style="margin-bottom:12px"><select class="in" id="spi" style="max-width:300px" aria-label="មុខវិជ្ជា">${P.map((x,i)=>`<option value="${i}" ${i===S.i?'selected':''}>${esc(x.b.name)} · ${esc(x.c.name)}</option>`).join('')}</select>
+    ${RO?'':'<button class="btn pri" id="spfill">⚡ បំពេញពីពិន្ទុជាក់ស្តែង</button>'}<button class="btn" id="spcopy">📋 ចម្លងទៅ Word / Excel</button><button class="btn" id="spprint">🖨 បោះពុម្ព</button></div>
+    <div class="paperwrap"><div class="paper p" id="paper">${html}</div></div>
+    <p class="noprint" style="color:var(--muted);font-size:13px">ប៊ូតុង “បំពេញពីពិន្ទុជាក់ស្តែង” គណនាចំនួន និង % តាមនិទ្ទេស A–F ពីពិន្ទុដែលបានបញ្ចូល (ទិន្នន័យដំបូង = ខែដំបូងដែលមានពិន្ទុ)។ ប្រអប់ពណ៌លឿងអាចចុចកែបាន។ ត្រីមាសទី៤ (សីហា–តុលា) បញ្ចូលដោយដៃ។</p></div>`;
+    el.querySelectorAll('[data-t]').forEach(x=>x.onclick=()=>{S.tab=x.dataset.t;draw()});
+    $('#spi').onchange=e=>{S.i=+e.target.value;draw()};
+    const f=$('#spfill');if(f)f.onclick=()=>{if(!fillAuto2(c,b)){toast('មិនទាន់មានពិន្ទុ');return}save();draw();toast('បានបំពេញ')};
+    const pap=$('#paper'),wrap=$('.paperwrap');const fit=()=>{pap.style.zoom=1;const r=(wrap.clientWidth-28)/pap.offsetWidth;if(r<1)pap.style.zoom=r};fit();
+    let tm=null;pap.addEventListener('input',e=>{const t=e.target.closest('[data-p]');if(!t||RO)return;setp(c.rep,t.dataset.p,t.innerText.trim());clearTimeout(tm);tm=setTimeout(save,500)});
+    $('#spcopy').onclick=copyDoc;
+    $('#spprint').onclick=()=>{let s=$('#pgst');if(!s){s=document.createElement('style');s.id='pgst';document.head.append(s)}s.textContent='@page{size:A4 portrait;margin:12mm}';try{window.print()}catch(e){}toast('បើមិនចេញផ្ទាំងបោះពុម្ព សូមចម្លងទៅ Word រួចបោះពុម្ពពីទីនោះ')};
+  };
+  const fillAuto2=(c,b)=>{const T={};const ok=fillAuto(T,c,b);if(!ok)return false;
+    const flat=(o,pre)=>{Object.entries(o).forEach(([k,v])=>{if(v&&typeof v==='object')flat(v,pre+k+'|');else setp(c.rep,'sp|'+b.id+'|'+pre+k,v)})};flat(T,'');return true};
+  draw();
+}};
+})();
+</script>
+
+<script src="./sheet-sync.js"></script>
+<script>if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('./sw.js');</script>
+</body></html>

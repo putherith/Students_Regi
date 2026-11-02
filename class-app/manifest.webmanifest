@@ -1,0 +1,14 @@
+{
+  "name": "ថ្នាក់ឌីជីថល",
+  "short_name": "ថ្នាក់ឌីជីថល",
+  "description": "កម្មវិធីគ្រប់គ្រងថ្នាក់រៀនជាភាសាខ្មែរ",
+  "lang": "km",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eef3f6",
+  "theme_color": "#12283d",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
