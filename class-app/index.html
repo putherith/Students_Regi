@@ -138,6 +138,11 @@ textarea.in{min-height:160px;font-family:ui-monospace,monospace;font-size:12px}
   .page{max-width:none}
   .paperwrap{overflow:visible!important;border:0!important;padding:0!important}
   .paper{box-shadow:none!important;margin:0!important;width:auto!important;min-height:0!important;padding:0!important}
+  .paper table{width:100%!important;max-width:100%;min-width:0!important}
+  .paper th,.paper td{white-space:normal;overflow-wrap:anywhere;break-inside:avoid}
+  .paper thead{display:table-header-group}
+  .paper tfoot{display:table-footer-group}
+  .paper tr{break-inside:avoid;page-break-inside:avoid}
 }
 .paperwrap{overflow:auto;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:14px}
 .paper{background:#fff;color:#000;margin:0 auto;box-shadow:0 2px 14px rgba(0,0,0,.18);padding:14mm 14mm 12mm;font-family:var(--f-body);font-size:12.5px;line-height:1.55;min-width:0}
@@ -800,14 +805,14 @@ const CLASS_NAV=[['dash','🏠','ផ្ទាំងគ្រប់គ្រង']
   ['subjects','📘','គ្រប់គ្រងមេគុណមុខវិជ្ជា'],['scores','📝','សម្រង់ពិន្ទុ'],['results','🏁','លទ្ធផលនៃការប្រឡង'],['att','🗓','វត្តមានសិស្ស'],
   ['reports','📊','របាយការណ៍ និង ផែនការ'],['splan','📑','ផែនការគ្រូមុខវិជ្ជា'],['notice','📣','សេចក្តីប្រកាសពីសាលា'],['tools','📌','ឧបករណ៍ជំនួយគ្រូ'],['export','🖨','ទាញចេញ និងបោះពុម្ព'],['setup','⚙️','ការកំណត់ថ្នាក់']];
 const ADMIN_NAV=[['school','🏫','ទិដ្ឋភាពទូទៅនៃសាលា'],['classes','🗂','គ្រប់គ្រងថ្នាក់រៀន'],['sstudents','🎓','សិស្សទាំងអស់'],['import','📥','នាំចូលពី Google Sheet'],['staff','👥','បុគ្គលិក និងគ្រូ'],['sreports','📈','របាយការណ៍ទូទាំងសាលា'],['export','🖨','ទាញចេញ និងបោះពុម្ព'],['notice','📣','សេចក្តីប្រកាស'],['asetup','⚙️','ការកំណត់សាលា']];
-const ADMIN_VIEW_HIDE=['tools','setup','work'];
+const ADMIN_CLASS_NAV=[['dash','🏠','ទិដ្ឋភាពថ្នាក់'],['people','👩‍🎓','បញ្ជីសិស្ស'],['health','💚','សុខភាពសិស្ស'],['scores','📝','ពិន្ទុសិស្ស'],['results','🏁','លទ្ធផលប្រឡង'],['att','🗓','វត្តមានសិស្ស'],['reports','📊','របាយការណ៍ថ្នាក់'],['export','🖨','ឯកសារបោះពុម្ព']];
 const SUBJ_NAV=[['sdash','🏠','ថ្នាក់ដែលខ្ញុំបង្រៀន'],['ssheet','📝','បញ្ចូលពិន្ទុមុខវិជ្ជា'],['splan','📑','ផែនការគ្រូមុខវិជ្ជា'],['notice','📣','សេចក្តីប្រកាសពីសាលា']];
 const ME_NAV=[['mdash','🏠','ផ្ទាំងសង្ខេប'],['mscores','📝','ពិន្ទុ'],['matt','🗓','វត្តមាន'],['notice','📣','សេចក្តីប្រកាស']];
 function navList(){
   if(ROLE==='subject')return SUBJ_NAV;
   if(ROLE==='student'||ROLE==='guardian')return ME_NAV;
   if(ROLE==='teacher')return CLASS_NAV;
-  return VIEWCLASS?CLASS_NAV:ADMIN_NAV;
+  return VIEWCLASS?ADMIN_CLASS_NAV:ADMIN_NAV;
 }
 const ROLE_LABEL={teacher:'គ្រូបន្ទុកថ្នាក់',subject:'គ្រូមុខវិជ្ជា',student:'សិស្ស',guardian:'អាណាព្យាបាល',admin:'គណៈគ្រប់គ្រង'};
 let cur='dash';
@@ -815,7 +820,7 @@ function go(name){ if(location.hash==='#'+name)render(); else location.hash=name
 function render(){
   const list=navList(),home=list[0][0];
   const name=(location.hash||'').slice(1);cur=(V[name]&&list.some(n=>n[0]===name))?name:home;
-  const sub=ROLE==='subject'?'គ្រូមុខវិជ្ជា · '+esc(SUBJT?.name||''):(ROLE==='student'||ROLE==='guardian')?esc(CUR.name)+(ROLE==='guardian'?' · អាណាព្យាបាល':' · សិស្ស'):ROLE==='admin'?(VIEWCLASS?`កំពុងគ្រប់គ្រងថ្នាក់ ${esc(CUR.name)}`:'គណៈគ្រប់គ្រង · '+esc(ROOT.settings.school)):esc(ROOT.settings.school)+' · '+esc(CUR.name);
+  const sub=ROLE==='subject'?'គ្រូមុខវិជ្ជា · '+esc(SUBJT?.name||''):(ROLE==='student'||ROLE==='guardian')?esc(CUR.name)+(ROLE==='guardian'?' · អាណាព្យាបាល':' · សិស្ស'):ROLE==='admin'?(VIEWCLASS?`គណៈគ្រប់គ្រង · កំពុងមើល ${esc(CUR.name)}`:'គណៈគ្រប់គ្រង · '+esc(ROOT.settings.school)):esc(ROOT.settings.school)+' · '+esc(CUR.name);
   $('#nav').innerHTML=`<div class="brand"><b>ថ្នាក់ឌីជីថល</b><small>${sub}</small></div>`+
     (VIEWCLASS?`<div style="padding:10px 16px 2px"><select class="in" id="clsSw" aria-label="ប្តូរថ្នាក់" style="background:var(--nav-active);color:#fff;border-color:transparent">${ROOT.classes.map(c=>`<option value="${c.id}" ${c.id===CUR.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div><a data-n="__back" role="link" tabindex="0" style="background:var(--gold-soft);color:var(--warn)">← ត្រឡប់ទៅទិដ្ឋភាពសាលា</a>`:'')+
     list.map(n=>`<a data-n="${n[0]}" class="${n[0]===cur?'on':''}" role="link" tabindex="0"><span>${n[1]}</span>${n[2]}</a>`).join('')+
@@ -823,7 +828,7 @@ function render(){
   document.body.classList.remove('open');
   const sw=$('#clsSw');if(sw)sw.onchange=()=>viewClass(sw.value);
   $('#gsearch').hidden=!(ROLE==='teacher'||(ROLE==='admin'&&VIEWCLASS));
-  const bi=ROLE==='subject'?SUBJ_NAV.slice(0,2):(ROLE==='student'||ROLE==='guardian')?ME_NAV.slice(0,3):(ROLE==='teacher'||VIEWCLASS)?[['dash','🏠','ផ្ទាំង'],['people','👩‍🎓','សិស្ស'],['scores','📝','ពិន្ទុ'],['att','🗓','វត្តមាន']]:[['school','🏫','សាលា'],['classes','🗂','ថ្នាក់'],['sstudents','🎓','សិស្ស'],['sreports','📈','របាយការណ៍']];
+  const bi=ROLE==='subject'?SUBJ_NAV.slice(0,2):(ROLE==='student'||ROLE==='guardian')?ME_NAV.slice(0,3):ROLE==='admin'&&VIEWCLASS?[['dash','🏠','ថ្នាក់'],['people','👩‍🎓','សិស្ស'],['results','🏁','លទ្ធផល'],['export','🖨','ឯកសារ']]:ROLE==='teacher'?[['dash','🏠','ផ្ទាំង'],['people','👩‍🎓','សិស្ស'],['scores','📝','ពិន្ទុ'],['att','🗓','វត្តមាន']]:[['school','🏫','សាលា'],['classes','🗂','ថ្នាក់'],['sstudents','🎓','សិស្ស'],['sreports','📈','របាយការណ៍']];
   $('#bnav').innerHTML=bi.map(b=>`<button data-b="${b[0]}" class="${b[0]===cur?'on':''}"><span class="i">${b[1]}</span>${b[2]}</button>`).join('')+`<button data-more><span class="i">☰</span>ម៉ឺនុយ</button>`;
   const c=$('#content');c.onclick=null;if(ROLE==='teacher'&&CUR.published===false){c.innerHTML='<div class="page"><div class="card empty" style="padding:40px 20px"><div style="font-size:34px">🔒</div><h2 style="font-size:18px;margin:8px 0">គណៈគ្រប់គ្រងកំពុងរៀបចំទិន្នន័យថ្នាក់ '+esc(CUR.name)+'</h2><p style="margin:0">ទិន្នន័យនឹងបង្ហាញនៅពេលគណៈគ្រប់គ្រងបើកឱ្យអ្នក។</p></div></div>'}else V[cur].render(c);c.scrollTop=0;applyRO();markStk();
 }
@@ -946,7 +951,7 @@ V.school={title:'ទិដ្ឋភាពទូទៅនៃសាលា',render(
   </tbody></table></div></div>`;
   el.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>viewClass(b.dataset.v));
 }};
-function viewClass(id){VIEWCLASS=id;RO=false;bind(id);location.hash='dash';render()}
+function viewClass(id){VIEWCLASS=id;RO=ROLE==='admin';bind(id);location.hash='dash';render()}
 
 V.classes={title:'គ្រប់គ្រងថ្នាក់រៀន',render(el){
   const draw=()=>{
@@ -957,8 +962,8 @@ V.classes={title:'គ្រប់គ្រងថ្នាក់រៀន',render
       <td class="c num">${kh(c.students.length)}</td>
       <td class="c"><button class="btn sm ${c.published===false?'':'pri'}" data-pub="${c.id}" aria-pressed="${c.published!==false}">${c.published===false?'លាក់':'បង្ហាញ'}</button></td>
       <td><button class="btn sm" data-p="${c.id}">កំណត់ថ្មី</button></td>
-      <td><button class="btn sm" data-v="${c.id}">គ្រប់គ្រងថ្នាក់</button> <button class="btn sm dng" data-x="${c.id}">លុប</button></td></tr>`).join('')}
-    </tbody></table></div><p style="color:var(--muted);font-size:13px">ចុច “គ្រប់គ្រងថ្នាក់” ដើម្បីចូលកែប្រែទិន្នន័យថ្នាក់នោះដោយផ្ទាល់ (ពិន្ទុ វត្តមាន សិស្ស ការកំណត់)។</p></div>`;
+      <td><button class="btn sm" data-v="${c.id}">មើលព័ត៌មានថ្នាក់</button> <button class="btn sm dng" data-x="${c.id}">លុប</button></td></tr>`).join('')}
+    </tbody></table></div><p style="color:var(--muted);font-size:13px">គណៈគ្រប់គ្រងអាចមើលពិន្ទុ វត្តមាន របាយការណ៍ និងឯកសារថ្នាក់។ ការបញ្ចូលពិន្ទុ និងវត្តមានធ្វើនៅផ្ទាំងគ្រូបន្ទុកថ្នាក់។</p></div>`;
     $('#pubAll').onclick=()=>{ROOT.classes.forEach(c=>c.published=true);save();toast('បានបង្ហាញទាំងអស់');draw()};
     $('#hideAll').onclick=()=>{ROOT.classes.forEach(c=>c.published=false);save();toast('បានលាក់ទាំងអស់');draw()};
     $('#addC').onclick=()=>{ROOT.classes.push(emptyClass('ថ្នាក់ថ្មី',''));save();draw()};
