@@ -4894,7 +4894,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.74</span>
+        <span class="footer-version">កំណែ 2.1.75</span>
     </footer>
 
 </main><!-- end .app -->
@@ -6198,7 +6198,9 @@
     const KHMER_MONTH_ALIASES = new Map([
         ["មករា",1], ["កុម្ភៈ",2], ["កុម្ភះ",2], ["មីនា",3], ["មេសា",4],
         ["ឧសភា",5], ["មិថុនា",6], ["កក្កដា",7], ["សីហា",8], ["កញ្ញា",9],
-        ["តុលា",10], ["វិច្ឆិកា",11], ["ធ្នូ",12]
+        ["តុលា",10], ["វិច្ឆិកា",11], ["ធ្នូ",12],
+        ["jan",1], ["feb",2], ["mar",3], ["apr",4], ["may",5], ["jun",6],
+        ["jul",7], ["aug",8], ["sep",9], ["oct",10], ["nov",11], ["dec",12]
     ]);
 
     function latinDigits(v) {
@@ -6206,7 +6208,7 @@
     }
 
     function dateMonthNumber(v) {
-        const token = latinDigits(v).trim().replace(/^ខែ/, "").replace(/\s+/g, "");
+        const token = latinDigits(v).trim().replace(/^ខែ/, "").replace(/\s+/g, "").toLowerCase();
         if (/^\d{1,2}$/.test(token)) return Number(token);
         return KHMER_MONTH_ALIASES.get(token) || 0;
     }
@@ -7645,12 +7647,12 @@
     function mergeQueuedStudent(students, rawStudent={}, fallback="") {
         const incoming = normalizeCloudStudent({ ...rawStudent, recordId:rawStudent.recordId || rawStudent.id || fallback });
         const key = pendingStudentKey(incoming, fallback);
-        const nameKey = normText(studentFullName(incoming));
+        const identityKey = studentIdentityKey(incoming);
         const index = students.findIndex(existing => {
             const existingKey = pendingStudentKey(existing);
             if (key && existingKey) return existingKey === key;
             return (incoming.studentCode && existing.studentCode === incoming.studentCode)
-                || (nameKey && normText(studentFullName(existing)) === nameKey);
+                || (identityKey && studentIdentityKey(existing) === identityKey);
         });
         if (index >= 0) {
             students[index] = normalizeStudentIdentity({ ...students[index], ...incoming });
@@ -7955,19 +7957,25 @@
         };
     }
 
-    function findDuplicate(student, ignoreId="", source=allStudents, { ignoreCode=false }={}) {
+    function studentIdentityKey(student={}) {
+        const name = normText(studentFullName(student));
+        const gender = normText(normGender(student.gender));
+        const dob = normDate(student.dob);
+        const className = normText(student.className)
+            .replace(/[០-៩]/g, digit => String(digit.charCodeAt(0) - 0x17E0))
+            .replace(/^(?:ថ្នាក់ទី|ថ្នាក់|ទី)/, "");
+        return name && gender && dob && className
+            ? JSON.stringify([name, gender, dob, className]) : "";
+    }
+
+    function findDuplicate(student, ignoreId="", source=allStudents, { ignoreCode=false, skipIdentity=false }={}) {
         const codeKey = ignoreCode ? "" : normText(student.studentCode);
-        const nameKey = normText(studentFullName(student));
-        const classKey = normText(student.className);
-        const dobKey = normDate(student.dob);
+        const identityKey = studentIdentityKey(student);
         for (const e of source) {
             if (e.id && e.id === ignoreId) continue;
             if (codeKey && normText(e.studentCode||e.studentId) === codeKey) return { type:"studentCode", student:e };
-            // The school requested names to be unique across every class and date of birth.
-            // Normalize spaces and invisible characters so visually identical Khmer names match.
-            if (nameKey && normText(studentFullName(e)) === nameKey) return { type:"studentName", student:e };
-            if (nameKey && dobKey && normText(studentFullName(e))===nameKey && normDate(e.dob)===dobKey) return { type:"student", student:e };
-            if (nameKey && classKey && normText(studentFullName(e))===nameKey && normText(e.className)===classKey) return { type:"student", student:e };
+            // Names alone are not unique: require all three demographic fields.
+            if (!skipIdentity && identityKey && studentIdentityKey(e) === identityKey) return { type:"studentIdentity", student:e };
         }
         return null;
     }
@@ -7991,7 +7999,7 @@
     function duplicateMsg(dup) {
         if (!dup) return "";
         if (dup.type === "studentCode") return `លេខសម្គាល់នេះមានរួចហើយ: ${studentDisplayId(dup.student)}`;
-        return `ឈ្មោះសិស្សនេះមានរួចហើយ: ${studentFullName(dup.student)} (${studentDisplayId(dup.student) || "គ្មានអត្តលេខ"})`;
+        return `ព័ត៌មានសិស្សនេះមានរួចហើយ: ${studentFullName(dup.student)} (${studentDisplayId(dup.student) || "គ្មានអត្តលេខ"})`;
     }
 
     // ===================== STUDENT CODE GENERATION =====================
@@ -9570,7 +9578,11 @@
         // Save locally first even when the connection is unavailable. The
         // sync path checks Latin-column support before sending and retains the
         // mutation in the outbox until the Sheet can accept it.
-        const duplicateOptions = { ignoreCode:serverAllocatesCode && !editingId };
+        const existingForEdit = editingId ? allStudents.find(student => student.id === editingId) : null;
+        const duplicateOptions = {
+            ignoreCode:serverAllocatesCode && !editingId,
+            skipIdentity:!!existingForEdit && studentIdentityKey(payload) === studentIdentityKey(existingForEdit)
+        };
         const localDuplicate = findDuplicate(payload, editingId, allStudents, duplicateOptions);
         if (localDuplicate) { showToast(duplicateMsg(localDuplicate), "warning"); return; }
         if (!payload.studentCode && !classGrade(payload.className)) {
