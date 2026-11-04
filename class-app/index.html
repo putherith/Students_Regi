@@ -1192,7 +1192,7 @@ const DOCS={
    const tbl=(roles,key)=>`<table style="${TS}"><thead><tr>${TH('តួនាទី')}${TH('គោត្តនាម និងនាម')}</tr></thead><tbody>${roles.map((r,i)=>`<tr>${TC(r)}${TC(esc(nm((DB.work[key]||{})[i])))}</tr>`).join('')}</tbody></table>`;
    return docHeader('បញ្ជីគណៈគ្រប់គ្រងថ្នាក់ (គ.គ.ថ)',clsSub())+tbl(COMM_ROLES,'comm')+`<div style="text-align:center;margin:14px 0 2px;${MOUL};font-size:13px">សាខាក្រុមប្រឹក្សាកុមារ-យុវជន</div>`+tbl(COUNCIL_ROLES,'council')+`<p style="margin:6px 0 0">សមាជិក៖ ${(DB.work.councilMembers||[]).map(id=>esc(nm(id))).filter(Boolean).join(' · ')||'—'}</p>`+docFooter()}},
  /* school-level (administration) */
- sclasses:{n:'ស្ថិតិថ្នាក់រៀនទូទាំងសាលា',o:'p',school:1,opts:[],build:()=>{
+ sclasses:{n:'ស្ថិតិថ្នាក់រៀនទូទាំងសាលា',o:'l',school:1,opts:[],build:()=>{
    const st=ROOT.classes.map(classStats),tot=st.reduce((a,s)=>a+s.n,0);
    return docHeader('តារាងស្ថិតិថ្នាក់រៀន','ឆ្នាំសិក្សា '+esc(ROOT.settings.year))+`<table style="${TS}"><thead><tr>${TH('ល.រ')}${TH('ថ្នាក់')}${TH('គ្រូបន្ទុក')}${TH('សិស្ស')}${TH('ស្រី')}${TH('មធ្យមភាគ')}${TH('ជាប់')}${TH('ចូលរៀន')}${TH('ហានិភ័យ')}</tr></thead><tbody>
    ${st.map((s,i)=>`<tr>${TC(kh(i+1),'center')}${TC(esc(s.c.name))}${TC(esc(s.c.teacher||''))}${TC(kh(s.n),'center')}${TC(kh(s.n-s.boys),'center')}${TC(s.avg==null?'':kh(fx(s.avg)),'center')}${TC(s.pass==null?'':kh(fx(s.pass,0))+'%','center')}${TC(s.ar==null?'':kh(fx(s.ar,0))+'%','center')}${TC(kh(s.risk),'center')}</tr>`).join('')}
