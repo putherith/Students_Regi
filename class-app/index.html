@@ -1152,7 +1152,7 @@ const DOCS={
    const list=o.stu==='all'?sorted():[DB.students.find(s=>s.id===o.stu)].filter(Boolean);
    const rk=rankMap(id=>avgOf(id,o.col));
    return list.map((s,idx)=>{const a=avgOf(s.id,o.col);let tot=0,wt=0;
-     const rows=DB.subjects.map(b=>{const v=DB.scores[s.id]?.[b.id]?.[o.col],has=v!==undefined&&v!=='';if(has){tot+=v*b.coef;wt+=b.coef}
+     const rows=DB.subjects.map(b=>{const v=DB.scores[s.id]?.[b.id]?.[o.col],has=v!==undefined&&v!==''&&v!==null&&Number.isFinite(Number(v));if(has){tot+=Number(v)*b.coef;wt+=b.coef}
        return `<tr>${TC(esc(b.name))}${TC(kh(b.coef),'center')}${TC(has?kh(fx(v,1)):'','center')}${TC(has?kh(fx(v*b.coef,1)):'','center')}${TC(has?grade(Number(v))[1]:'','center')}</tr>`}).join('');
      return `<div style="${idx<list.length-1?'page-break-after:always;':''}">`+docHeader('ព្រឹត្តិបត្រពិន្ទុ '+colName(o.col),clsSub())+
      `<p style="margin:6px 0">គោត្តនាម និងនាម៖ <b>${esc(s.name)}</b> &nbsp;&nbsp; ភេទ៖ ${esc(s.sex)} &nbsp;&nbsp; ថ្នាក់៖ ${esc(CUR.name)}</p>
@@ -1171,7 +1171,7 @@ const DOCS={
  sheet:{n:'បញ្ជីស្រង់ពិន្ទុតាមមុខវិជ្ជា',o:'l',opts:['subj'],build:o=>{
    const b=DB.subjects.find(x=>x.id===o.subj)||DB.subjects[0];if(!b)return '<p>មិនមានមុខវិជ្ជា</p>';
    return docHeader('បញ្ជីស្រង់ពិន្ទុ មុខវិជ្ជា '+esc(b.name),clsSub()+' · មេគុណ '+kh(b.coef))+`<table style="${TS};font-size:11px"><thead><tr>${TH('ល.រ')}${TH('គោត្តនាម និងនាម')}${TH('ភេទ')}${COLS.map(c=>TH(c.n.replace('ខែ',''),'padding:3px 2px')).join('')}${TH('មធ្យម')}</tr></thead><tbody>
-   ${sorted().map((s,i)=>{const sc=DB.scores[s.id]?.[b.id]||{},v=Object.values(sc).map(Number);return `<tr>${TC(kh(i+1),'center')}${TC(esc(s.name))}${TC(esc(s.sex),'center')}${COLS.map(c=>TC(sc[c.k]===undefined?'':kh(fx(sc[c.k],1)),'center','padding:3px 2px')).join('')}${TC(v.length?'<b>'+kh(fx(mean(v)))+'</b>':'','center')}</tr>`}).join('')}</tbody></table>`+docFooter()}},
+   ${sorted().map((s,i)=>{const sc=DB.scores[s.id]?.[b.id]||{},v=COLS.map(c=>sc[c.k]).filter(x=>x!==undefined&&x!==''&&x!==null&&Number.isFinite(Number(x))).map(Number);return `<tr>${TC(kh(i+1),'center')}${TC(esc(s.name))}${TC(esc(s.sex),'center')}${COLS.map(c=>TC(sc[c.k]===undefined||sc[c.k]===''||sc[c.k]===null?'':kh(fx(sc[c.k],1)),'center','padding:3px 2px')).join('')}${TC(v.length?'<b>'+kh(fx(mean(v)))+'</b>':'','center')}</tr>`}).join('')}</tbody></table>`+docFooter()}},
  inv:{n:'បញ្ជីសារពើភ័ណ្ឌ',o:'p',opts:[],build:()=>{
    const inv=DB.work.inv||[];
    return docHeader('បញ្ជីសារពើភ័ណ្ឌថ្នាក់រៀន',clsSub())+`<table style="${TS}"><thead><tr>${TH('ល.រ')}${TH('ឈ្មោះសម្ភារៈ')}${TH('ចំនួន')}${TH('ស្ថានភាព')}${TH('កំណត់សម្គាល់')}</tr></thead><tbody>
