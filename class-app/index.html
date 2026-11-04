@@ -241,13 +241,15 @@ const GR=[[9,'A','ល្អប្រសើរ','ok'],[8,'B','ល្អណាស�
 const grade=a=>a==null?null:GR.find(g=>a>=g[0]);
 const gpill=a=>{const g=grade(a);return g?`<span class="pill ${g[3]}">${g[1]} · ${g[2]}</span>`:'<span class="pill">—</span>'};
 const fx=(n,d=2)=>n==null?'—':Number(n).toFixed(d);
+const hasScore=v=>v!==undefined&&v!==''&&v!==null&&Number.isFinite(Number(v));
+const scoreValues=o=>Object.values(o||{}).filter(hasScore).map(Number);
 
 /* weighted average of a student for a column key (month index "m0".. or "s1"/"s2") */
 function avgOf(sid,col){
   let sum=0,w=0;
   for(const sub of DB.subjects){
     const v=DB.scores[sid]?.[sub.id]?.[col];
-    if(v!==undefined&&v!==''&&v!==null){sum+=Number(v)*sub.coef;w+=sub.coef}
+    if(hasScore(v)){sum+=Number(v)*sub.coef;w+=sub.coef}
   }
   return w?sum/w:null;
 }
@@ -497,7 +499,7 @@ V.subjects={title:'គ្រប់គ្រងមេគុណមុខវិជ�
   const draw=()=>{
     el.innerHTML=`<div class="page"><div class="ph"><h2>📘 គ្រប់គ្រងពិន្ទុមេគុណតាមមុខវិជ្ជា</h2><button class="btn pri sm" id="addSub">＋ បន្ថែមមុខវិជ្ជា</button></div>
     <div class="tw"><table><thead><tr><th class="c">ល.រ</th><th>មុខវិជ្ជា</th><th class="c">មេគុណ</th><th class="c">មធ្យមភាគថ្នាក់ (ខែចុងក្រោយ)</th><th></th></tr></thead><tbody>
-    ${DB.subjects.map((s,i)=>{const lm=latestMonth();const v=DB.students.map(x=>DB.scores[x.id]?.[s.id]?.['m'+lm]).filter(x=>x!==undefined&&x!=='');const a=v.length?v.reduce((p,c)=>p+Number(c),0)/v.length:null;
+    ${DB.subjects.map((s,i)=>{const lm=latestMonth();const v=DB.students.map(x=>DB.scores[x.id]?.[s.id]?.['m'+lm]).filter(hasScore);const a=v.length?v.reduce((p,c)=>p+Number(c),0)/v.length:null;
       return `<tr><td class="c num">${kh(i+1)}</td><td><input class="in" style="min-width:160px" data-n="${s.id}" value="${esc(s.name)}" aria-label="ឈ្មោះមុខវិជ្ជា"></td><td class="c"><input class="in cell" inputmode="numeric" data-c="${s.id}" value="${s.coef}" aria-label="មេគុណ"></td><td class="c num">${fx(a)}</td><td><button class="btn sm dng" data-x="${s.id}">លុប</button></td></tr>`}).join('')}
     </tbody></table></div>
     <p style="color:var(--muted);font-size:13px">មធ្យមភាគ = ផលបូក(ពិន្ទុ × មេគុណ) ÷ ផលបូកមេគុណ។ ពិន្ទុគិតលើ ១០។</p></div>`;
@@ -617,7 +619,7 @@ V.work={title:'ការងារសម្រាប់គ្រូ',render(el){
       sheetSub=sheetSub||DB.subjects[0]?.id;
       body=`<div class="row" style="margin-bottom:10px"><select class="in" id="shs" style="max-width:240px" aria-label="មុខវិជ្ជា">${DB.subjects.map(b=>`<option value="${b.id}" ${b.id===sheetSub?'selected':''}>${esc(b.name)}</option>`).join('')}</select><span class="pill blue">បញ្ចូលនៅទីនេះក៏បាន</span></div>
       <div class="tw"><table style="min-width:900px"><thead><tr><th class="c">ល.រ</th><th>គោត្តនាម និងនាម</th>${COLS.map(c=>`<th class="c">${c.n.replace('ខែ','')}</th>`).join('')}<th class="c">មធ្យម</th></tr></thead><tbody>
-      ${DB.students.map((s,i)=>{const o=DB.scores[s.id]?.[sheetSub]||{};const v=Object.values(o).map(Number);return `<tr data-id="${s.id}"><td class="c num">${kh(i+1)}</td><td>${esc(s.name)}</td>${COLS.map(c=>`<td class="c"><input class="in cell" style="width:54px" inputmode="decimal" data-c="${c.k}" value="${o[c.k]??''}" aria-label="${c.n}"></td>`).join('')}<td class="c num" data-av>${v.length?fx(mean(v)):'—'}</td></tr>`}).join('')}</tbody></table></div>`;
+      ${DB.students.map((s,i)=>{const o=DB.scores[s.id]?.[sheetSub]||{};const v=scoreValues(o);return `<tr data-id="${s.id}"><td class="c num">${kh(i+1)}</td><td>${esc(s.name)}</td>${COLS.map(c=>`<td class="c"><input class="in cell" style="width:54px" inputmode="decimal" data-c="${c.k}" value="${o[c.k]??''}" aria-label="${c.n}"></td>`).join('')}<td class="c num" data-av>${v.length?fx(mean(v)):'—'}</td></tr>`}).join('')}</tbody></table></div>`;
     }else if(t==='sched'){
       const periods=['ម៉ោង ១','ម៉ោង ២','ម៉ោង ៣','ម៉ោង ៤','ម៉ោង ៥','ម៉ោង ៦'];
       body=`<div class="tw"><table><thead><tr><th></th>${DAYS.map(d=>`<th class="c">${d}</th>`).join('')}</tr></thead><tbody>${periods.map((p,r)=>`<tr><th>${p}</th>${DAYS.map((d,c)=>`<td><input class="in" style="min-width:110px" data-k="${r}-${c}" value="${esc(W.sched?.[r+'-'+c]||'')}" aria-label="${p} ${d}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
@@ -656,7 +658,7 @@ V.work={title:'ការងារសម្រាប់គ្រូ',render(el){
       const tr=inp.closest('tr'),sid=tr.dataset.id,sub=$('#shs').value,v=inp.value.trim().replace(',','.');
       if(v===''){if(DB.scores[sid]?.[sub])delete DB.scores[sid][sub][inp.dataset.c]}
       else{let n=parseFloat(v);if(isNaN(n)){inp.value='';return}n=Math.min(10,Math.max(0,n));inp.value=n;((DB.scores[sid]??={})[sub]??={})[inp.dataset.c]=n}
-      save();const vals=Object.values(DB.scores[sid]?.[sub]||{}).map(Number);tr.querySelector('[data-av]').textContent=vals.length?fx(mean(vals)):'—'});
+      save();const vals=scoreValues(DB.scores[sid]?.[sub]);tr.querySelector('[data-av]').textContent=vals.length?fx(mean(vals)):'—'});
     el.querySelectorAll('input[data-k]').forEach(i=>i.onchange=()=>{(W.sched??={})[i.dataset.k]=i.value;save()});
     const r=$('#rules');if(r)r.onchange=()=>{W.rules=r.value;save();toast('បានរក្សាទុក')};
     const ai=$('#addInv');if(ai)ai.onclick=()=>{W.inv.push({id:uid(),name:'សម្ភារៈថ្មី',qty:1,state:'ល្អ',note:''});save();draw()};
@@ -685,13 +687,13 @@ V.reports={title:'របាយការណ៍ និងផែនការ',rende
         <select class="in" id="rc" style="max-width:180px" aria-label="រយៈពេល">${COLS.map(c=>`<option value="${c.k}" ${c.k===repCol?'selected':''}>${c.n}</option>`).join('')}</select></div>
         <div class="card"><h3>ព្រឹត្តិបត្រពិន្ទុ · ${esc(s.name)} · ${COLS.find(c=>c.k===repCol).n}</h3>
         <div class="tw"><table><thead><tr><th>មុខវិជ្ជា</th><th class="c">មេគុណ</th><th class="c">ពិន្ទុ</th><th>និទ្ទេស</th></tr></thead><tbody>
-        ${rows.map(r=>`<tr><td>${esc(r.b.name)}</td><td class="c num">${kh(r.b.coef)}</td><td class="c num">${r.v===undefined?'—':fx(r.v,1)}</td><td>${r.v===undefined?'—':gpill(Number(r.v))}</td></tr>`).join('')}
+        ${rows.map(r=>`<tr><td>${esc(r.b.name)}</td><td class="c num">${kh(r.b.coef)}</td><td class="c num">${hasScore(r.v)?fx(r.v,1):'—'}</td><td>${hasScore(r.v)?gpill(Number(r.v)):'—'}</td></tr>`).join('')}
         <tr><td><b>មធ្យមភាគ</b></td><td></td><td class="c num"><b>${fx(a)}</b></td><td>${gpill(a)}</td></tr></tbody></table></div>
         <p>ចំណាត់ថ្នាក់ក្នុងថ្នាក់៖ <b>${rk?kh(rk)+' / '+kh(all.length):'—'}</b> · អវត្តមាន <b>${kh(absentCount(s.id))}</b> ដង</p></div>`;
       }
     }else if(repTab==='sub'){
       body=`<div class="tw"><table><thead><tr><th>មុខវិជ្ជា</th><th class="c">មធ្យមភាគឆ្នាំ</th>${GR.map(g=>`<th class="c">${g[1]}</th>`).join('')}</tr></thead><tbody>
-      ${DB.subjects.map(b=>{const vals=[];DB.students.forEach(s=>{const o=DB.scores[s.id]?.[b.id];if(o){const v=Object.values(o).map(Number);if(v.length)vals.push(v.reduce((p,c)=>p+c,0)/v.length)}});
+      ${DB.subjects.map(b=>{const vals=[];DB.students.forEach(s=>{const v=scoreValues(DB.scores[s.id]?.[b.id]);if(v.length)vals.push(v.reduce((p,c)=>p+c,0)/v.length)});
         const m=vals.length?vals.reduce((p,c)=>p+c,0)/vals.length:null;
         return `<tr><td>${esc(b.name)}</td><td class="c num"><b>${fx(m)}</b></td>${GR.map(g=>`<td class="c num">${kh(vals.filter(v=>grade(v)[1]===g[1]).length)}</td>`).join('')}</tr>`}).join('')}</tbody></table></div>`;
     }else{
@@ -1018,7 +1020,7 @@ V.sreports={title:'របាយការណ៍ទូទាំងសាលា',re
   const all=[];ROOT.classes.forEach(c=>withClass(c,()=>DB.students.forEach(s=>{const a=yearAvg(s.id);if(a!=null)all.push({s,a,cn:c.name})})));
   all.sort((a,b)=>b.a-a.a);
   const risk=[];ROOT.classes.forEach(c=>withClass(c,()=>atRisk().forEach(r=>risk.push({...r,cn:c.name}))));
-  const subj={};ROOT.classes.forEach(c=>withClass(c,()=>DB.subjects.forEach(b=>{const v=[];DB.students.forEach(s=>{const o=DB.scores[s.id]?.[b.id];if(o){const x=Object.values(o).map(Number);if(x.length)v.push(mean(x))}});if(v.length)(subj[b.name]??={})[c.name]=mean(v)})));
+  const subj={};ROOT.classes.forEach(c=>withClass(c,()=>DB.subjects.forEach(b=>{const v=[];DB.students.forEach(s=>{const x=scoreValues(DB.scores[s.id]?.[b.id]);if(x.length)v.push(mean(x))});if(v.length)(subj[b.name]??={})[c.name]=mean(v)})));
   const cn=ROOT.classes.map(c=>c.name);
   el.innerHTML=`<div class="page"><div class="ph"><h2>📈 របាយការណ៍ទូទាំងសាលា</h2></div>
   <div class="grid g2"><div class="card"><h3>🏆 សិស្សពូកែកំពូល ១០នាក់ទូទាំងសាលា</h3>
