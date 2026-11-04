@@ -1140,10 +1140,21 @@ const DOCS={
    const days=Object.keys(DB.att).filter(k=>k.startsWith(o.month)).sort();
    if(!days.length)return docHeader('តារាងវត្តមានសិស្ស',clsSub())+'<p style="text-align:center;padding:30px 0">មិនទាន់មានទិន្នន័យវត្តមានក្នុងខែនេះ</p>';
    const [y,m]=o.month.split('-'),mk={P:'✓',A:'អ',L:'ច'};
-   return docHeader(`តារាងវត្តមានសិស្ស ខែ${KM_MONTH[+m-1]} ឆ្នាំ${kh(y)}`,clsSub())+`<table style="${TS};font-size:11px"><thead><tr>${TH('ល.រ')}${TH('គោត្តនាម និងនាម')}${TH('ភេទ')}${days.map(d=>TH(kh(+d.slice(8)),'padding:3px 2px')).join('')}${TH('មក')}${TH('ច្បាប់')}${TH('អវត្តមាន')}</tr></thead><tbody>
-   ${sorted().map((s,i)=>{let p=0,l=0,a=0;const cells=days.map(d=>{const v=DB.att[d][s.id];if(v==='P')p++;else if(v==='L')l++;else if(v==='A')a++;return TC(v?mk[v]:'','center','padding:3px 2px')}).join('');
-     return `<tr>${TC(kh(i+1),'center')}${TC(esc(s.name))}${TC(esc(s.sex),'center')}${cells}${TC(kh(p),'center')}${TC(kh(l),'center')}${TC(kh(a),'center')}</tr>`}).join('')}
-   </tbody></table><p style="margin:6px 0 0;font-size:11.5px">សញ្ញា៖ ✓ = មកសិក្សា · ច = ច្បាប់ · អ = អវត្តមាន · បានកត់ត្រា ${kh(days.length)} ថ្ងៃ</p>`+docFooter()}},
+   const pages=[];for(let i=0;i<days.length;i+=15)pages.push(days.slice(i,i+15));
+   return pages.map((part,index)=>{
+     const last=index===pages.length-1;
+     const totalHeads=last?TH('មកសរុប')+TH('ច្បាប់សរុប')+TH('អវត្តមានសរុប'):'';
+     const rows=sorted().map((s,i)=>{
+       const cells=part.map(d=>TC(mk[DB.att[d][s.id]]||'','center','padding:3px 2px')).join('');
+       const totals=days.reduce((a,d)=>{const v=DB.att[d][s.id];if(v==='P')a.p++;else if(v==='L')a.l++;else if(v==='A')a.abs++;return a},{p:0,l:0,abs:0});
+       return `<tr>${TC(kh(i+1),'center')}${TC(esc(s.name))}${TC(esc(s.sex),'center')}${cells}${last?TC(kh(totals.p),'center')+TC(kh(totals.l),'center')+TC(kh(totals.abs),'center'):''}</tr>`;
+     }).join('');
+     return `<div style="${last?'':'page-break-after:always;'}">`+
+       docHeader(`តារាងវត្តមានសិស្ស ខែ${KM_MONTH[+m-1]} ឆ្នាំ${kh(y)}`,clsSub()+(pages.length>1?' · ផ្នែកទី '+kh(index+1)+'/'+kh(pages.length):''))+
+       `<table style="${TS};font-size:11px"><thead><tr>${TH('ល.រ')}${TH('គោត្តនាម និងនាម')}${TH('ភេទ')}${part.map(d=>TH(kh(+d.slice(8)),'padding:3px 2px')).join('')}${totalHeads}</tr></thead><tbody>${rows}</tbody></table>`+
+       `<p style="margin:6px 0 0;font-size:11.5px">សញ្ញា៖ ✓ = មកសិក្សា · ច = ច្បាប់ · អ = អវត្តមាន · បានកត់ត្រា ${kh(days.length)} ថ្ងៃ${pages.length>1?' · សរុបខែនៅផ្នែកចុងក្រោយ':''}</p>`+
+       (last?docFooter():'')+'</div>';
+   }).join('')}},
  health:{n:'តារាងសុខភាពសិក្សា (BMI)',o:'p',opts:[],build:()=>{
    return docHeader('តារាងសុខភាពសិក្សាសិស្ស (BMI)',clsSub())+`<table style="${TS}"><thead><tr>${TH('ល.រ')}${TH('គោត្តនាម និងនាម')}${TH('ភេទ')}${TH('អាយុ')}${TH('ទម្ងន់ (kg)')}${TH('កម្ពស់ (cm)')}${TH('BMI')}${TH('លទ្ធផល')}</tr></thead><tbody>
    ${sorted().map((s,i)=>{const b=bmi(s);return `<tr>${TC(kh(i+1),'center')}${TC(esc(s.name))}${TC(esc(s.sex),'center')}${TC(ageOf(s)==null?'':kh(ageOf(s)),'center')}${TC(s.w?kh(s.w):'','center')}${TC(s.h?kh(s.h):'','center')}${TC(b==null?'':kh(fx(b,1)),'center')}${TC(bmiState(b)[0]==='—'?'':bmiState(b)[0],'center')}</tr>`}).join('')}
