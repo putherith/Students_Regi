@@ -14,6 +14,7 @@ const entries = [
   "README.md",
   "index.html",
   "class-app",
+  "digital-class",
   "teacher-portal.html",
   "manifest.webmanifest",
   "service-worker.js",
