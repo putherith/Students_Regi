@@ -319,8 +319,6 @@ textarea.in{min-height:160px;font-family:ui-monospace,monospace;font-size:12px}
 <div class="scrim" id="scrim"></div>
 <script>window.DIGITAL_CLASS_REQUIRED=true;</script><script>
 'use strict';
-/* bridge to ឯកសារស្តង់ដា: answers only when framed with #docs-bridge; never sends passwords or PINs */
-if(window.parent!==window&&location.hash==='#docs-bridge'){let d=null;try{const r=JSON.parse(localStorage.getItem('classroom-khmer-v2'));if(r)d={settings:{school:r.settings?.school,year:r.settings?.year},teachers:(r.teachers||[]).map(t=>({id:t.id,name:t.name,subject:t.subject,phone:t.phone})),classes:(r.classes||[]).map(c=>({id:c.id,name:c.name,teacher:c.teacher,subjects:c.subjects,scores:c.scores,students:(c.students||[]).map(x=>({id:x.id,name:x.name,sex:x.sex,guardian:x.guardian,phone:x.phone,note:x.note}))}))}}catch(e){}parent.postMessage({type:'classroom-bridge',data:d},'*');window.stop();throw new Error('docs-bridge')}
 /* ---------- helpers ---------- */
 const $=(s,r=document)=>r.querySelector(s);
 const KH='០១២៣៤៥៦៧៨៩';
@@ -2041,16 +2039,58 @@ V.splan={title:'ផែនការគ្រូមុខវិជ្ជា',rende
   const initialLocal = load();
   const classCache = new Map((initialLocal?.classes || []).map(c => [clsKey(c.sheetClassName || c.name), c]));
   let availableClasses = [];
-  let token = '', revision = '', activeRole = '', checking = false;
+  let token = '', revision = '', activeRole = '', checking = false, setupRequired = false;
   loginButton.disabled = true;
-  HINTS.teacher = 'ប្រើលេខកូដគ្រូតាមថ្នាក់ដែលបានកំណត់ក្នុង Teacher Portal';
-  HINTS.admin = 'ប្រើលេខកូដរដ្ឋបាលរបស់ Teacher Portal';
+  HINTS.teacher = 'ប្រើលេខសម្ងាត់ថ្នាក់ Digital ដែលគណៈគ្រប់គ្រងបានផ្តល់';
+  HINTS.admin = 'ប្រើលេខសម្ងាត់គណៈគ្រប់គ្រង Digital Class';
   const status = document.createElement('div');
   status.id = 'studentSheetStatus';
   status.setAttribute('role', 'status');
   status.setAttribute('aria-live', 'polite');
   status.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:90;max-width:min(370px,calc(100vw - 24px));padding:9px 13px;border-radius:12px;background:#eef9f4;color:#08513e;box-shadow:0 4px 20px #0002;font-size:13px';
   document.body.append(status);
+  const uiStyle = document.createElement('style');
+  uiStyle.textContent = `#docsBtn{display:none!important}#digitalManageButton{white-space:nowrap;padding:8px 12px;border-radius:10px;border:1px solid #9cc7be;background:#ecfbf6;color:#075847;font-weight:700;cursor:pointer}
+    #digitalManagement[hidden],#digitalSetup[hidden]{display:none!important}#digitalManagement{position:fixed;inset:0;z-index:200;background:#0b2036aa;display:grid;place-items:center;padding:16px}
+    .digital-dialog{width:min(640px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#fff;color:#17324a;border-radius:18px;box-shadow:0 16px 60px #0004;padding:20px}
+    .digital-dialog h2{margin:0 0 8px;font-size:21px}.digital-dialog p{line-height:1.5}.digital-form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+    .digital-form-row label{display:grid;gap:5px;font-size:13px;font-weight:700}.digital-form-row input,.digital-form-row select{width:100%;box-sizing:border-box;padding:10px;border:1px solid #b6c8d3;border-radius:9px;font:inherit}
+    .digital-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.digital-actions button{padding:9px 13px;border:1px solid #aec7d1;border-radius:9px;background:#eef7f9;cursor:pointer;font:inherit}
+    .digital-actions .digital-primary{background:#087c68;color:#fff;border-color:#087c68}.digital-actions .digital-danger{background:#fff4f2;color:#a8241d;border-color:#f1b1aa}
+    #digitalManageButton[hidden]{display:none!important}#digitalClassRows{max-height:180px;overflow:auto;border:1px solid #d5e2e9;border-radius:10px;padding:4px 10px}#digitalClassRows div{display:flex;justify-content:space-between;gap:8px;padding:5px 2px;border-bottom:1px solid #e6eef2}
+    @media(max-width:550px){.digital-form-row{grid-template-columns:1fr}.digital-dialog{padding:15px}}`;
+  document.head.append(uiStyle);
+  const setupCard = document.createElement('form');
+  setupCard.id = 'digitalSetup';
+  setupCard.className = 'login-card';
+  setupCard.hidden = true;
+  setupCard.autocomplete = 'off';
+  setupCard.innerHTML = `<h1>បើកដំណើរការ Digital Class</h1><p>គណៈគ្រប់គ្រងបញ្ជាក់សិទ្ធិម្តងដោយលេខកូដរដ្ឋបាល Teacher Portal រួចបង្កើតលេខសម្ងាត់ថ្មីដាច់ដោយឡែក។</p>
+    <label class="f" for="digitalOldPin">លេខកូដរដ្ឋបាល Teacher Portal</label><input class="in" id="digitalOldPin" type="password" required autocomplete="off">
+    <label class="f" for="digitalNewPin">លេខសម្ងាត់រដ្ឋបាល Digital Class ថ្មី (យ៉ាងតិច ៨ តួ)</label><input class="in" id="digitalNewPin" type="password" minlength="8" required autocomplete="new-password">
+    <label class="f" for="digitalConfirmPin">បញ្ជាក់លេខសម្ងាត់ថ្មី</label><input class="in" id="digitalConfirmPin" type="password" minlength="8" required autocomplete="new-password">
+    <div class="err" id="digitalSetupError" role="alert"></div><button class="btn pri lg" type="submit" style="width:100%">បង្កើតគណនីគណៈគ្រប់គ្រង</button>`;
+  document.querySelector('.lg-side').append(setupCard);
+  const manageButton = document.createElement('button');
+  manageButton.id = 'digitalManageButton';
+  manageButton.type = 'button';
+  manageButton.textContent = 'គ្រប់គ្រងលេខសម្ងាត់';
+  manageButton.hidden = true;
+  document.querySelector('#saved').before(manageButton);
+  const manage = document.createElement('section');
+  manage.id = 'digitalManagement';
+  manage.hidden = true;
+  manage.setAttribute('role','dialog');
+  manage.setAttribute('aria-modal','true');
+  manage.setAttribute('aria-label','គ្រប់គ្រងលេខសម្ងាត់ Digital Class');
+  manage.innerHTML = `<div class="digital-dialog"><h2>លេខសម្ងាត់ Digital Class</h2><p>គណៈគ្រប់គ្រងជាអ្នកកំណត់លេខសម្ងាត់គ្រូតាមថ្នាក់។ លេខសម្ងាត់ទាំងនេះមិនពាក់ព័ន្ធនឹង Teacher Portal ទេ។</p>
+    <div id="digitalClassRows" aria-live="polite"></div>
+    <div class="digital-form-row"><label>ថ្នាក់<select id="digitalClassTarget"></select></label><label>លេខសម្ងាត់ថ្មី (៨–៨០ តួ)<input id="digitalTeacherPin" type="password" minlength="8" maxlength="80" autocomplete="new-password"></label></div>
+    <div class="digital-actions"><button type="button" id="digitalGenerate">បង្កើតលេខចៃដន្យ</button><button type="button" class="digital-primary" id="digitalSaveTeacher">រក្សាទុកលេខសម្ងាត់ថ្នាក់</button><button type="button" class="digital-danger" id="digitalRemoveTeacher">បិទការចូលថ្នាក់នេះ</button></div>
+    <p id="digitalGenerated" aria-live="polite"></p><hr>
+    <div class="digital-form-row"><label>លេខសម្ងាត់រដ្ឋបាលថ្មី<input id="digitalAdminPin" type="password" minlength="8" maxlength="80" autocomplete="new-password"></label><label>បញ្ជាក់លេខសម្ងាត់<input id="digitalAdminConfirm" type="password" minlength="8" maxlength="80" autocomplete="new-password"></label></div>
+    <div class="digital-actions"><button type="button" id="digitalSaveAdmin">ប្តូរលេខសម្ងាត់រដ្ឋបាល</button><button type="button" id="digitalClose">បិទ</button></div><div id="digitalManageMessage" role="status" aria-live="polite"></div></div>`;
+  document.body.append(manage);
   function show(message, problem=false) {
     status.textContent = message;
     status.style.background = problem ? '#fff1f0' : '#eef9f4';
@@ -2095,6 +2135,120 @@ V.splan={title:'ផែនការគ្រូមុខវិជ្ជា',rende
     await fetch(endpoint, {method:'POST', mode:'no-cors', credentials:'omit',
       headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(body)});
   }
+  async function command(action, body) {
+    const requestId = nonce();
+    await post({...body, action, nonce:requestId});
+    return query('digitalclassclaim', {nonce:requestId});
+  }
+  function setupMode(required) {
+    setupRequired = !!required;
+    document.querySelector('#loginForm').hidden = setupRequired;
+    setupCard.hidden = !setupRequired;
+    loginButton.disabled = setupRequired;
+  }
+  function enterSession(result) {
+    token = String(result.token || '');
+    if (!token) throw new Error('Server មិនបានផ្ដល់ Session');
+    return query('digitalclassroster', {token}).then(roster => {
+      activeRole = result.role;
+      applySnapshot(roster, true);
+      ROLE = activeRole; VIEWCLASS = null; RO = false;
+      $('#pw').value = '';
+      $('#login').hidden = true; $('#app').hidden = false;
+      manageButton.hidden = activeRole !== 'admin';
+      location.hash = ''; render(); lockRosterEdits();
+    });
+  }
+  setupCard.addEventListener('submit', async event => {
+    event.preventDefault();
+    const error = document.querySelector('#digitalSetupError');
+    error.textContent = '';
+    const newPin = document.querySelector('#digitalNewPin').value;
+    if (newPin !== document.querySelector('#digitalConfirmPin').value) {
+      error.textContent = 'លេខសម្ងាត់ថ្មីមិនដូចគ្នា'; return;
+    }
+    const button = setupCard.querySelector('[type="submit"]');
+    button.disabled = true;
+    try {
+      const result = await command('digitalclassbootstrap', {
+        existingAdminPin:document.querySelector('#digitalOldPin').value, newPin
+      });
+      setupCard.reset();
+      setupMode(false);
+      await enterSession(result);
+      show('Digital Class មានលេខសម្ងាត់ដាច់ដោយឡែករួចហើយ');
+    } catch (problem) { error.textContent = problem.message || String(problem); }
+    finally { button.disabled = false; }
+  });
+  async function refreshCredentials() {
+    const data = await query('digitalclasscredentials', {token});
+    const rows = document.querySelector('#digitalClassRows');
+    rows.innerHTML = data.classes.map(item => `<div><span>${esc(item.className)}</span><span>${item.configured ? 'បានកំណត់' : 'មិនទាន់កំណត់'}</span></div>`).join('');
+    const select = document.querySelector('#digitalClassTarget');
+    const previous = select.value;
+    select.innerHTML = data.classes.map(item => `<option value="${esc(item.className)}">ថ្នាក់ ${esc(item.className)}</option>`).join('');
+    if (data.classes.some(item => item.className === previous)) select.value = previous;
+  }
+  function manageMessage(message, problem=false) {
+    const node = document.querySelector('#digitalManageMessage');
+    node.textContent = message;
+    node.style.color = problem ? '#a8241d' : '#087c68';
+  }
+  manageButton.addEventListener('click', async () => {
+    if (activeRole !== 'admin' || !token) return;
+    manage.hidden = false;
+    manageMessage('កំពុងទាញស្ថានភាពលេខសម្ងាត់…');
+    try { await refreshCredentials(); manageMessage(''); }
+    catch (problem) { manageMessage(problem.message || String(problem), true); }
+  });
+  document.querySelector('#digitalClose').onclick = () => { manage.hidden = true; };
+  manage.addEventListener('click', event => { if (event.target === manage) manage.hidden = true; });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape' && !manage.hidden) manage.hidden = true; });
+  document.querySelector('#digitalGenerate').onclick = () => {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const bytes = crypto.getRandomValues(new Uint8Array(12));
+    const generated = Array.from(bytes, value => alphabet[value % alphabet.length]).join('');
+    document.querySelector('#digitalTeacherPin').value = generated;
+    document.querySelector('#digitalTeacherPin').type = 'text';
+    document.querySelector('#digitalGenerated').textContent = 'លេខសម្ងាត់ថ្មី៖ ' + generated + ' · សូមកត់ទុក ហើយចុចរក្សាទុក';
+  };
+  document.querySelector('#digitalSaveTeacher').onclick = async () => {
+    const className = document.querySelector('#digitalClassTarget').value;
+    const newPin = document.querySelector('#digitalTeacherPin').value;
+    if (!className || newPin.length < 8) { manageMessage('សូមជ្រើសថ្នាក់ និងបញ្ចូលលេខសម្ងាត់យ៉ាងតិច ៨ តួ', true); return; }
+    try {
+      await command('digitalclasssetpassword', {token, role:'teacher', className, newPin});
+      document.querySelector('#digitalTeacherPin').value = '';
+      document.querySelector('#digitalTeacherPin').type = 'password';
+      document.querySelector('#digitalGenerated').textContent = '';
+      await refreshCredentials();
+      manageMessage('បានរក្សាទុកលេខសម្ងាត់ថ្នាក់ ' + className + ' · Session ចាស់របស់គ្រូថ្នាក់នេះនឹងផុតសុពលភាព');
+    } catch (problem) { manageMessage(problem.message || String(problem), true); }
+  };
+  document.querySelector('#digitalRemoveTeacher').onclick = async () => {
+    const className = document.querySelector('#digitalClassTarget').value;
+    if (!className || !confirm('បិទការចូល Digital Class សម្រាប់ថ្នាក់ ' + className + '?')) return;
+    try {
+      await command('digitalclassremovepassword', {token, className});
+      await refreshCredentials();
+      manageMessage('បានបិទការចូលថ្នាក់ ' + className);
+    } catch (problem) { manageMessage(problem.message || String(problem), true); }
+  };
+  document.querySelector('#digitalSaveAdmin').onclick = async () => {
+    const newPin = document.querySelector('#digitalAdminPin').value;
+    if (newPin.length < 8 || newPin !== document.querySelector('#digitalAdminConfirm').value) {
+      manageMessage('លេខសម្ងាត់រដ្ឋបាលត្រូវមានយ៉ាងតិច ៨ តួ និងបញ្ជាក់ឱ្យដូចគ្នា', true); return;
+    }
+    if (!confirm('ប្តូរលេខសម្ងាត់រដ្ឋបាល? អ្នកនឹងត្រូវចូលម្ដងទៀត។')) return;
+    try {
+      await command('digitalclasssetpassword', {token, role:'admin', newPin});
+      document.querySelector('#digitalAdminPin').value = '';
+      document.querySelector('#digitalAdminConfirm').value = '';
+      manage.hidden = true;
+      logout();
+      show('បានប្តូរលេខសម្ងាត់រដ្ឋបាល · សូមចូលម្ដងទៀត');
+    } catch (problem) { manageMessage(problem.message || String(problem), true); }
+  };
   function backupLocal() {
     const current = localStorage.getItem(KEY);
     if (current && !localStorage.getItem(backupKey)) {
@@ -2162,7 +2316,9 @@ V.splan={title:'ផែនការគ្រូមុខវិជ្ជា',rende
   const rosterEditSelectors = {
     sstudents:'#addS,[data-e],[data-d],[data-mv]',
     people:'#add,[data-e],[data-d]',
-    classes:'#addC,[data-x],[data-n],[data-pub]'
+    classes:'#addC,[data-x],[data-n],[data-pub]',
+    setup:'#pws,#bkIn,#bkFile',
+    asetup:'#ap,#bkIn,#bkFile,#demo,#wipe'
   };
   function lockRosterEdits() {
     if (!token) return;
@@ -2170,6 +2326,7 @@ V.splan={title:'ផែនការគ្រូមុខវិជ្ជា',rende
     if (!selector) return;
     document.querySelector('#content')?.querySelectorAll(selector).forEach(node => {
       if (node.matches('input,select')) node.disabled = true;
+      else if (node.id === 'pws' || node.id === 'ap') node.closest('.card')?.remove();
       else node.remove();
     });
   }
@@ -2187,10 +2344,13 @@ V.splan={title:'ផែនការគ្រូមុខវិជ្ជា',rende
   }
   logout = function syncedLogout() {
     if (token) ROOT.classes.forEach(c => classCache.set(normalizedClass(c.sheetClassName || c.name), c));
+    if (token) void post({action:'digitalclasslogout',token,nonce:nonce()}).catch(() => {});
     token = ''; activeRole = ''; revision = '';
+    manage.hidden = true;
+    manageButton.hidden = true;
     originalLogout();
     showAvailableClasses();
-    show('បានចាកចេញ · សូមចូលដោយលេខកូដ Teacher Portal');
+    show('បានចាកចេញ · សូមចូលដោយលេខសម្ងាត់ Digital Class');
   };
   document.querySelector('#loginForm').addEventListener('submit', async event => {
     event.preventDefault();
@@ -2199,20 +2359,11 @@ V.splan={title:'ផែនការគ្រូមុខវិជ្ជា',rende
     loginButton.disabled = true;
     $('#loginErr').textContent = '';
     try {
-      const requestId = nonce();
       const chosen = ROOT.classes.find(c => c.id === $('#loginClass').value);
       const className = loginRole === 'teacher' ? String(chosen?.sheetClassName || '').trim() : '';
       if (loginRole === 'teacher' && !className) throw new Error('សូមជ្រើសរើសថ្នាក់');
-      await post({action:'digitalclasslogin', role:loginRole, className, pin:$('#pw').value, nonce:requestId});
-      const claim = await query('digitalclassclaim', {nonce:requestId});
-      token = claim.token;
-      const roster = await query('digitalclassroster', {token});
-      activeRole = loginRole;
-      applySnapshot(roster, true);
-      ROLE = activeRole; VIEWCLASS = null; RO = false;
-      $('#pw').value = '';
-      $('#login').hidden = true; $('#app').hidden = false;
-      location.hash = ''; render(); lockRosterEdits();
+      const claim = await command('digitalclasslogin', {role:loginRole, className, pin:$('#pw').value});
+      await enterSession(claim);
     } catch (error) {
       token = '';
       $('#loginErr').textContent = error.message || String(error);
@@ -2222,12 +2373,14 @@ V.splan={title:'ផែនការគ្រូមុខវិជ្ជា',rende
   async function ready() {
     try {
       const result = await query('digitalclassstatus');
-      if (!result.readOnly || Number(result.version) < 1) throw new Error('Server មិនទាន់មានមុខងារនេះ');
+      if (!result.readOnly || Number(result.version) < 2) throw new Error('Server មិនទាន់មានការគ្រប់គ្រងលេខសម្ងាត់ឯករាជ្យ');
       const listing = await query('digitalclassclasses');
       availableClasses = listing.classes;
       showAvailableClasses();
-      loginButton.disabled = false;
-      show('បានភ្ជាប់ Google Sheet · សូមចូលដោយលេខកូដ Teacher Portal');
+      setupMode(result.setupRequired);
+      if (!setupRequired) loginButton.disabled = false;
+      show(setupRequired ? 'គណៈគ្រប់គ្រងត្រូវបើកដំណើរការ Digital Class ម្តងសិន' :
+        'បានភ្ជាប់ Google Sheet · សូមចូលដោយលេខសម្ងាត់ Digital Class');
     } catch (error) { show('មិនទាន់ភ្ជាប់ Google Sheet៖ ' + error.message, true); }
   }
   setInterval(async () => {
