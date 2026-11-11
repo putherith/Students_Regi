@@ -3385,6 +3385,7 @@
         .roster-document-title { margin:0 0 8px; text-align:center; font-size:14px; font-weight:700; }
         .roster-table { width:100%; table-layout:fixed; border-collapse:collapse; }
         .roster-table th,.roster-table td { box-sizing:border-box; height:21px; padding:1px 2px; border:1px solid #1f2937; color:#111; font-size:9px; line-height:1.2; overflow:hidden; white-space:nowrap; }
+        .roster-table td.roster-name .roster-fit-text { font-size:12px; font-weight:600; }
         .roster-table th { height:38px; text-align:center; font-weight:700; white-space:normal; }
         .roster-table .roster-center { text-align:center; }
         .roster-table .roster-fit-text { display:inline-block; max-width:none; white-space:nowrap; transform-origin:left center; }
@@ -9890,7 +9891,7 @@
         // Give full Khmer names the widest column on each half of the A4 sheet.
         // Keep both halves identical and reserve the most space for Khmer names.
         // Each half totals exactly 50%, so browser and PDF printing stay aligned.
-        const columns = [3.8, 8.6, 16.2, 4, 9.2, 8.2];
+        const columns = [3.5, 8, 18.5, 3.8, 9.2, 7];
         const colgroup = `<colgroup>${[...columns, ...columns].map(width => `<col style="width:${width}%">`).join("")}</colgroup>`;
         const headings = `<th>ល.រ</th><th>អត្តលេខ</th><th>គោត្តនាម និងនាម</th><th>ភេទ</th><th>ថ្ងៃខែឆ្នាំកំណើត</th><th>សាលាមកពី</th>`;
         const fitCell = (value, extraClass="") => `<td class="roster-fit-cell ${extraClass}"><span class="roster-fit-text">${esc(value || "")}</span></td>`;
@@ -9933,7 +9934,7 @@
             const baseSize = parseFloat(view.getComputedStyle(span).fontSize);
             if (!Number.isFinite(baseSize)) return;
             let width = span.getBoundingClientRect().width;
-            if (width > available) {
+            if (width > available && !cell.classList.contains("roster-name") && !cell.classList.contains("name")) {
                 const smallerSize = Math.max(6, baseSize * Math.max(.7, available / width));
                 span.style.fontSize = `${smallerSize}px`;
                 width = span.getBoundingClientRect().width;
@@ -9959,6 +9960,7 @@
             h1.roster-document-title { margin:0 0 1.5mm; text-align:center; font-size:9pt; line-height:1.45; }
             .roster-table { width:100%; table-layout:fixed; border-collapse:collapse; }
             .roster-table th,.roster-table td { box-sizing:border-box; height:4.9mm; padding:.25mm .35mm; border:.2mm solid #111; color:#111; font-size:6.5pt; line-height:1.05; overflow:hidden; white-space:nowrap; }
+            .roster-table td.roster-name .roster-fit-text { font-size:12px; font-weight:600; }
             .roster-table th { height:8mm; text-align:center; font-size:6.1pt; font-weight:700; white-space:normal; }
             .roster-table .roster-center { text-align:center; }
             .roster-table .roster-fit-text { display:inline-block; max-width:none; white-space:nowrap; transform-origin:left center; }
