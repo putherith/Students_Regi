@@ -70,7 +70,7 @@
             .attendance-page table{width:100%;table-layout:fixed;border-collapse:collapse}
             .attendance-page col.number-col{width:3.5%}.attendance-page col.code-col{width:10%}.attendance-page col.name-col{width:20.5%}.attendance-page col.gender-col{width:4%}
             .attendance-page th,.attendance-page td{height:5.6mm;padding:0 .6mm;border:1px solid #6b7f91;text-align:center;vertical-align:middle;font-size:9px;line-height:1.2}
-            .attendance-page th{background:#e8f1f8;font-weight:700}.attendance-page td.name{text-align:left;padding-left:1.3mm;white-space:nowrap}
+            .attendance-page th{background:#e8f1f8;font-weight:700}.attendance-page td.name{text-align:left;padding-left:1.3mm;white-space:nowrap;font-size:12px;font-weight:600}
             .attendance-page .unavailable{background:#e9edf0;color:#8796a2}
             .attendance-page footer{display:flex;justify-content:space-between;gap:10mm;margin-top:3mm;font-size:9px}
             @media screen{.attendance-page{width:281mm;min-height:194mm;margin:0 auto 20px;padding:4mm;background:#fff;box-shadow:0 5px 20px #10243e22}}
