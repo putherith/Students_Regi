@@ -5,7 +5,7 @@
     const escape = value => String(value ?? "").replace(/[&<>"']/g, char => ({
         "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
     })[char]);
-    const perPage = 50;
+    const perPage = 40;
 
     function printHtml({ className, academicYear, students, schoolName="វិទ្យាល័យសុខអានព្រៃមេលង" }) {
         const name = String(className || "").trim();
@@ -22,7 +22,7 @@
                 <header class="simple-roster-header"><div>ក្រសួងអប់រំ យុវជន និងកីឡា<br>មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ<br><strong>${escape(schoolName)}</strong></div><div class="kingdom">ព្រះរាជាណាចក្រកម្ពុជា<br>ជាតិ សាសនា ព្រះមហាក្សត្រ</div></header>
                 <h1>បញ្ជីឈ្មោះសិស្សថ្នាក់ ${escape(name)}</h1>
                 <p class="simple-roster-year">ឆ្នាំសិក្សា ${escape(academicYear || "—")}</p>
-                <table class="simple-roster-table"><colgroup><col style="width:7%"><col style="width:39%"><col style="width:9%"><col style="width:21%"><col style="width:24%"></colgroup><thead><tr><th>ល.រ</th><th>ឈ្មោះសិស្ស</th><th>ភេទ</th><th>ថ្ងៃខែឆ្នាំកំណើត</th><th>លេខទំនាក់ទំនង</th></tr></thead><tbody>${rows}</tbody></table>
+                <table class="simple-roster-table"><colgroup><col style="width:7%"><col style="width:45%"><col style="width:9%"><col style="width:20%"><col style="width:19%"></colgroup><thead><tr><th>ល.រ</th><th>ឈ្មោះសិស្ស</th><th>ភេទ</th><th>ថ្ងៃខែឆ្នាំកំណើត</th><th>លេខទំនាក់ទំនង</th></tr></thead><tbody>${rows}</tbody></table>
                 <footer>សរុប ${students.length} នាក់ · ប្រុស ${male} · ស្រី ${female}<span>ទំព័រ ${page + 1} / ${totalPages}</span></footer>
             </section>`;
         });
@@ -35,7 +35,8 @@
             .simple-roster-page h1{margin:0;text-align:center;font-size:12pt;line-height:1.45}
             .simple-roster-year{margin:0 0 4mm;text-align:center;font-size:9pt}
             .simple-roster-table{width:100%;table-layout:fixed;border-collapse:collapse}
-            .simple-roster-table th,.simple-roster-table td{height:4.25mm;padding:.35mm 1.2mm;border:.2mm solid #34465b;background:#fff;color:#172331;font-size:8pt;line-height:1.2;vertical-align:middle;overflow:hidden;white-space:nowrap}
+            .simple-roster-table th,.simple-roster-table td{height:5.4mm;padding:.35mm 1.2mm;border:.2mm solid #34465b;background:#fff;color:#172331;font-size:9pt;line-height:1.2;vertical-align:middle;overflow:hidden;white-space:nowrap}
+            .simple-roster-table td.name .roster-fit-text{font-size:12px;font-weight:600}
             .simple-roster-table th{height:8mm;text-align:center;font-weight:700;white-space:normal;background:#e9f2f6}
             .simple-roster-table .number,.simple-roster-table .gender,.simple-roster-table .dob,.simple-roster-table .contact{text-align:center}
             .simple-roster-table .roster-fit-text{display:inline-block;white-space:nowrap;transform-origin:left center}
