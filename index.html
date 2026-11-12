@@ -4155,6 +4155,71 @@
             .btn:hover:not(:disabled), .metric:hover, .class-tile:hover { transform: none; }
         }
 
+        /* Task-focused surfaces: keep decorative depth in branding, not in reading areas. */
+        .report-section-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 18px; }
+        .report-section-tabs button { min-height:44px; padding:9px 15px; border:1px solid var(--border-strong); border-radius:11px; background:var(--surface); color:var(--text-2); font:inherit; font-size:.9rem; font-weight:700; cursor:pointer; }
+        .report-section-tabs button[aria-selected="true"] { border-color:var(--primary); background:var(--primary); color:#fff; }
+        .report-section-panel[hidden], .form-draft-prompt[hidden], .form-stage-controls [hidden] { display:none !important; }
+        .report-section-panel { min-width:0; }
+        .form-stage-nav { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--surface); }
+        .form-stage-nav button { display:flex; align-items:center; justify-content:center; gap:7px; min-width:0; min-height:46px; padding:7px; border:1px solid var(--border); border-radius:10px; background:var(--surface-2); color:var(--text-2); font:inherit; font-size:.83rem; font-weight:700; line-height:1.35; cursor:pointer; }
+        .form-stage-nav button span { display:grid; place-items:center; flex:none; width:24px; height:24px; border-radius:50%; background:var(--border); }
+        .form-stage-nav button[aria-current="step"] { border-color:var(--primary); background:var(--primary-soft); color:var(--primary); }
+        .form-stage-nav button[aria-current="step"] span { background:var(--primary); color:#fff; }
+        #registration-form[data-active-stage="1"] .form-section:not([data-form-stage="1"]),
+        #registration-form[data-active-stage="2"] .form-section:not([data-form-stage="2"]),
+        #registration-form[data-active-stage="3"] .form-section:not([data-form-stage="3"]) { display:none !important; }
+        .form-stage-controls { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 16px 20px; color:var(--text-2); font-size:.85rem; }
+        #registration-form[data-active-stage="3"] .form-stage-controls { padding-bottom:125px; }
+        .form-stage-controls .btn { min-height:44px; }
+        .form-review-summary { margin:10px 16px 0; padding:12px 14px; border:1px solid var(--border); border-radius:10px; background:var(--surface-2); color:var(--text); font-size:.86rem; line-height:1.6; }
+        .form-review-summary[hidden] { display:none !important; }
+        .form-review-summary p { margin:4px 0 0; color:var(--text-2); }
+        .form-draft-prompt { display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:10px 16px; background:var(--primary-soft); color:var(--text); font-size:.85rem; }
+        .form-draft-prompt span { flex:1 1 180px; }
+        .form-draft-prompt button { min-height:38px; padding:5px 10px; border:1px solid var(--border-strong); border-radius:8px; background:var(--surface); color:var(--primary); font:inherit; cursor:pointer; }
+        .form-save-bar .form-save-status { grid-column:1 / -1; margin:0; color:var(--text-2); font-size:.78rem; line-height:1.4; }
+        #registration-form[data-active-stage="1"] .form-save-bar,
+        #registration-form[data-active-stage="2"] .form-save-bar { display:none !important; }
+        .list-panel .student-card { transform-style:flat; }
+        .list-panel .student-card:hover { transform:none !important; box-shadow:0 9px 20px rgba(26,66,105,.1); }
+        .list-panel .mobile-card-identity { cursor:default; }
+        .list-panel .mobile-card-identity .student-name { font-size:1.05rem; line-height:1.55; }
+        .list-panel .mobile-card-identity .student-latin-name,
+        .list-panel .mobile-card-identity .student-meta { font-size:.86rem; line-height:1.45; }
+        .list-panel .mobile-quick-actions { grid-template-columns:repeat(3,minmax(0,1fr)); }
+        .list-panel .mobile-quick-actions button { min-height:48px; font-size:.82rem; }
+        .list-panel .mobile-quick-actions .edit-btn { background:var(--primary); border-color:var(--primary); color:#fff; }
+        .mobile-more-actions { margin-top:10px; color:var(--text-2); font-size:.85rem; }
+        .mobile-more-actions summary { width:max-content; max-width:100%; min-height:42px; padding:9px 4px; cursor:pointer; }
+        .mobile-more-actions > div { display:flex; flex-wrap:wrap; gap:8px; padding-top:7px; }
+        .mobile-more-actions button { min-height:44px; padding:7px 12px; border:1px solid var(--border-strong); border-radius:9px; background:var(--surface); color:var(--text); font:inherit; cursor:pointer; }
+        .mobile-more-actions .delete-btn { border-color:#d39393; color:#a92d2d; }
+        .form-panel .form-section, .report-export-section, .admin-health-card, .student-audit-section, .attendance-export-section { box-shadow:none; }
+        .form-panel .form-section, .report-export-section, .admin-health-card, .student-audit-section, .attendance-export-section,
+        .class-report-table-wrap, .list-panel .student-card { -webkit-backdrop-filter:none; backdrop-filter:none; }
+        .form-panel .form-section, .report-export-section, .admin-health-card, .student-audit-section, .attendance-export-section { background:var(--surface); }
+        .class-report-table-wrap > table th, .class-report-table-wrap > table td { font-size:.9rem; line-height:1.55; }
+        @media (max-width:600px) {
+            .report-section-tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; }
+            .report-section-tabs button { padding:7px 3px; font-size:.75rem; line-height:1.4; }
+            .form-stage-nav { padding:10px; }
+            .form-stage-nav button { flex-direction:column; gap:2px; font-size:.73rem; }
+            #registration-form[data-active-stage="3"] .form-stage-controls { padding-bottom:155px; }
+            .list-panel .mobile-card-header { grid-template-columns:58px minmax(0,1fr) 44px; gap:9px; }
+            .list-panel .mobile-card-avatar { width:58px; height:58px; }
+            .list-panel .mobile-card-toggle { min-width:44px; min-height:44px; }
+            .list-panel .mobile-card-identity .student-name { font-size:1.1rem; }
+            .list-panel .mobile-card-identity .student-latin-name,
+            .list-panel .mobile-card-identity .student-meta { font-size:.875rem; }
+            .list-panel .mobile-quick-actions button { font-size:.79rem; }
+            .list-panel .mobile-quick-filters button { min-height:44px; font-size:.86rem; }
+            .mobile-tab-btn { font-size:.78rem; }
+            .report-view .btn, .form-panel .btn, .class-browser-panel .btn { min-height:44px; }
+            .form-panel .field label, .form-panel .field-help { font-size:.88rem; line-height:1.5; }
+        }
+        @media (prefers-reduced-motion:reduce) { .form-stage-nav button, .report-section-tabs button, .mobile-more-actions button { transition:none !important; animation:none !important; } }
+
         @media print {
             body { background: #fff !important; }
             .ambient-grid { display: none !important; }
@@ -4328,17 +4393,17 @@
             </div>
             <button id="report-back-btn" class="btn btn-ghost" type="button"><ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon> ត្រឡប់ទៅបញ្ជី</button>
         </div>
+        <div class="report-section-tabs" role="tablist" aria-label="ផ្នែករបាយការណ៍">
+            <button type="button" role="tab" id="report-tab-exports" aria-controls="report-panel-exports" aria-selected="true" data-report-section="exports">បោះពុម្ព និងទាញយក</button>
+            <button type="button" role="tab" id="report-tab-quality" aria-controls="report-panel-quality" aria-selected="false" data-report-section="quality">គុណភាពទិន្នន័យ</button>
+            <button type="button" role="tab" id="report-tab-system" aria-controls="report-panel-system" aria-selected="false" data-report-section="system">គ្រប់គ្រងប្រព័ន្ធ</button>
+        </div>
+        <div id="report-panel-system" class="report-section-panel" role="tabpanel" aria-labelledby="report-tab-system" hidden>
         <div class="admin-health-grid">
             <section class="admin-health-card" aria-labelledby="sync-health-title">
                 <h2 id="sync-health-title">ស្ថានភាពរក្សាទុក និង Sync</h2>
                 <p id="sync-health-summary" role="status" aria-live="polite">កំពុងពិនិត្យ...</p>
                 <div class="admin-health-actions"><button id="sync-health-retry" class="btn btn-secondary" type="button">ផ្ទៀងផ្ទាត់ជាមួយ Server</button></div>
-            </section>
-            <section class="admin-health-card" aria-labelledby="quality-health-title">
-                <h2 id="quality-health-title">ពិនិត្យគុណភាពទិន្នន័យ</h2>
-                <p id="quality-health-summary" role="status" aria-live="polite">កំពុងពិនិត្យ...</p>
-                <div class="admin-health-actions"><button id="quality-health-refresh" class="btn btn-secondary" type="button">ពិនិត្យឡើងវិញ</button></div>
-                <div id="quality-health-issues" class="quality-issues" aria-label="បញ្ហាដែលត្រូវផ្ទៀងផ្ទាត់"></div>
             </section>
         </div>
         <section class="student-audit-section" aria-labelledby="student-audit-title">
@@ -4353,6 +4418,18 @@
             <p id="audit-restore-result" role="status" aria-live="polite"></p>
             <div id="audit-history-list" class="student-audit-list"></div>
         </section>
+        </div>
+        <div id="report-panel-quality" class="report-section-panel" role="tabpanel" aria-labelledby="report-tab-quality" hidden>
+        <div class="admin-health-grid">
+            <section class="admin-health-card" aria-labelledby="quality-health-title">
+                <h2 id="quality-health-title">ពិនិត្យគុណភាពទិន្នន័យ</h2>
+                <p id="quality-health-summary" role="status" aria-live="polite">កំពុងពិនិត្យ...</p>
+                <div class="admin-health-actions"><button id="quality-health-refresh" class="btn btn-secondary" type="button">ពិនិត្យឡើងវិញ</button></div>
+                <div id="quality-health-issues" class="quality-issues" aria-label="បញ្ហាដែលត្រូវផ្ទៀងផ្ទាត់"></div>
+            </section>
+        </div>
+        </div>
+        <div id="report-panel-exports" class="report-section-panel" role="tabpanel" aria-labelledby="report-tab-exports">
         <div class="report-export-section" aria-labelledby="report-print-title">
             <h2 id="report-print-title">បោះពុម្ពបញ្ជី និងកាត</h2>
             <p>ប៊ូតុងទាំងនេះប្រើតម្រងបច្ចុប្បន្នពីផ្ទាំងបញ្ជីសិស្ស។ សម្រាប់បញ្ជីតាមថ្នាក់ សូមជ្រើសរបាយការណ៍ខាងក្រោម។</p>
@@ -4399,6 +4476,7 @@
             </div>
             <p id="monthly-attendance-summary" class="attendance-export-summary" aria-live="polite">សូមជ្រើសថ្នាក់មួយ</p>
         </section>
+        </div>
     </section>
 
     <!-- ======================== MOBILE TABS ======================== -->
@@ -4435,11 +4513,17 @@
 
             <form id="registration-form" autocomplete="off" novalidate>
                 <input type="hidden" id="editing-id" value="">
+                <nav class="form-stage-nav" aria-label="ជំហានចុះឈ្មោះ">
+                    <button type="button" data-form-stage-button="1" aria-current="step"><span>១</span> សិស្ស និងរូបថត</button>
+                    <button type="button" data-form-stage-button="2"><span>២</span> អាសយដ្ឋាន</button>
+                    <button type="button" data-form-stage-button="3"><span>៣</span> ទំនាក់ទំនង និងពិនិត្យ</button>
+                </nav>
+                <div id="form-draft-prompt" class="form-draft-prompt" hidden><span>មានទម្រង់ដែលមិនទាន់រក្សាទុកនៅលើឧបករណ៍នេះ។</span><button type="button" id="restore-form-draft">បន្តបំពេញ</button><button type="button" id="discard-form-draft">បោះបង់</button></div>
 
                 <div class="form-body">
 
                     <!-- Section: Student Photo -->
-                    <div class="form-section" data-step="៥">
+                    <div class="form-section" data-step="៥" data-form-stage="1">
                         <div class="section-header" role="button" tabindex="0" aria-expanded="true"
                              onclick="toggleSection(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSection(this)}">
                             <div class="section-icon"><ion-icon name="camera-outline"></ion-icon></div>
@@ -4469,7 +4553,7 @@
                     </div>
 
                     <!-- Section: Student Info -->
-                    <div class="form-section" data-step="១">
+                    <div class="form-section" data-step="១" data-form-stage="1">
                         <div class="section-header" role="button" tabindex="0" aria-expanded="true"
                              onclick="toggleSection(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSection(this)}">
                             <div class="section-icon"><ion-icon name="person-outline"></ion-icon></div>
@@ -4622,7 +4706,7 @@
                     </div>
 
                     <!-- Section: Birth Place -->
-                    <div class="form-section section-collapsed" data-step="២">
+                    <div class="form-section section-collapsed" data-step="២" data-form-stage="2">
                         <div class="section-header" role="button" tabindex="0" aria-expanded="false"
                              onclick="toggleSection(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSection(this)}">
                             <div class="section-icon"><ion-icon name="location-outline"></ion-icon></div>
@@ -4661,7 +4745,7 @@
                     </div>
 
                     <!-- Section: Current Address -->
-                    <div class="form-section section-collapsed" data-step="៣">
+                    <div class="form-section section-collapsed" data-step="៣" data-form-stage="2">
                         <div class="section-header" role="button" tabindex="0" aria-expanded="false"
                              onclick="toggleSection(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSection(this)}">
                             <div class="section-icon"><ion-icon name="home-outline"></ion-icon></div>
@@ -4704,7 +4788,7 @@
                     </div>
 
                     <!-- Section: Academic -->
-                    <div class="form-section" data-step="៤">
+                    <div class="form-section" data-step="៤" data-form-stage="3">
                         <div class="section-header" role="button" tabindex="0" aria-expanded="true"
                              onclick="toggleSection(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSection(this)}">
                             <div class="section-icon"><ion-icon name="book-outline"></ion-icon></div>
@@ -4755,9 +4839,12 @@
                     </div>
 
                 </div><!-- end .form-body -->
+                <div id="form-review-summary" class="form-review-summary" hidden><strong>ពិនិត្យមុនរក្សាទុក</strong><p id="form-review-text"></p></div>
+                <div class="form-stage-controls"><button id="form-stage-back" class="btn btn-ghost" type="button" hidden>ត្រឡប់ក្រោយ</button><span id="form-stage-progress" aria-live="polite">ជំហាន ១ ក្នុង ៣</span><button id="form-stage-next" class="btn btn-secondary" type="button">បន្ទាប់</button></div>
 
                 <!-- Sticky Save Bar -->
                 <div class="form-save-bar">
+                    <p id="form-save-status" class="form-save-status" role="status" aria-live="polite">មិនទាន់មានការផ្លាស់ប្តូរ</p>
                     <button id="save-student-btn" class="btn btn-primary btn-lg" type="submit">
                         <ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon>
                         <span>រក្សាទុក</span>
@@ -4941,7 +5028,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.75</span>
+        <span class="footer-version">កំណែ 2.1.79</span>
     </footer>
 
 </main><!-- end .app -->
@@ -9601,6 +9688,29 @@
         });
     }
 
+    let activeReportSection = "exports";
+    function setReportSection(section) {
+        activeReportSection = ["exports", "quality", "system"].includes(section) ? section : "exports";
+        els.reportView.querySelectorAll("[data-report-section]").forEach(button => {
+            const active = button.dataset.reportSection === activeReportSection;
+            button.setAttribute("aria-selected", String(active));
+            button.tabIndex = active ? 0 : -1;
+        });
+        ["exports", "quality", "system"].forEach(name => {
+            document.getElementById(`report-panel-${name}`).hidden = name !== activeReportSection;
+        });
+        if (activeReportSection === "quality") {
+            renderQualityHealth();
+            if (getCloudProvider() === GOOGLE_SHEET_PROVIDER && missingPhotoCodes === null) {
+                void refreshMissingPhotoCodes({ force:true }).then(renderQualityHealth);
+            }
+        } else if (activeReportSection === "system") {
+            renderSyncHealth();
+            els.auditClassOptions.replaceChildren(...classReportGroups().map(group => new Option(group.name, group.name)));
+            void refreshStudentAuditHistory();
+        }
+    }
+
     function openReportView() {
         closeMobileEditPanel();
         document.body.classList.remove("mobile-form-view", "class-browser-view");
@@ -9612,13 +9722,7 @@
         els.tabReportBtn?.classList.add("active");
         setSidebarActiveView("report");
         renderClassReport();
-        renderSyncHealth();
-        renderQualityHealth();
-        els.auditClassOptions.replaceChildren(...classReportGroups().map(group => new Option(group.name, group.name)));
-        void refreshStudentAuditHistory();
-        if (getCloudProvider() === GOOGLE_SHEET_PROVIDER && missingPhotoCodes === null) {
-            void refreshMissingPhotoCodes({ force:true }).then(renderQualityHealth);
-        }
+        setReportSection(activeReportSection);
         window.scrollTo({ top:0, behavior:isMobileView() ? "auto" : "smooth" });
     }
 
@@ -9645,7 +9749,78 @@
         }
     }
 
+    const FORM_DRAFT_KEY = "studentRegistrationDraftV1";
+    let draftTimer = null;
+    let activeFormStage = 1;
+    function setFormSaveStatus(message) {
+        const element = document.getElementById("form-save-status");
+        if (element) element.textContent = message;
+    }
+    function setFormStage(stage, options = {}) {
+        activeFormStage = Math.max(1, Math.min(3, Number(stage) || 1));
+        els.registrationForm.dataset.activeStage = String(activeFormStage);
+        els.registrationForm.querySelectorAll("[data-form-stage-button]").forEach(button => {
+            if (Number(button.dataset.formStageButton) === activeFormStage) button.setAttribute("aria-current", "step");
+            else button.removeAttribute("aria-current");
+        });
+        document.getElementById("form-stage-back").hidden = activeFormStage === 1;
+        document.getElementById("form-stage-next").hidden = activeFormStage === 3;
+        document.getElementById("form-stage-progress").textContent = `ជំហាន ${activeFormStage} ក្នុង ៣`;
+        const review = document.getElementById("form-review-summary");
+        review.hidden = activeFormStage !== 3;
+        if (activeFormStage === 3) {
+            const name = [getValue("studentSurname"), getValue("studentGivenName")].filter(Boolean).join(" ") || "មិនទាន់បំពេញឈ្មោះ";
+            const className = getValue("className") || "មិនទាន់ជ្រើសថ្នាក់";
+            const contact = getValue("contact") || "មិនទាន់បំពេញលេខទំនាក់ទំនង";
+            document.getElementById("form-review-text").textContent = `${name} · ថ្នាក់ ${className} · ${contact}។ រូបថតមិនត្រូវបានរក្សាទុកក្នុងព្រាងទេ។`;
+        }
+        els.registrationForm.querySelectorAll(`.form-section[data-form-stage="${activeFormStage}"]`).forEach(section => setFormSectionExpanded(section, true));
+        if (options.scroll !== false) els.formPanel.querySelector(".form-stage-nav")?.scrollIntoView({ block:"nearest" });
+    }
+    function firstInvalidInStage(stage) {
+        return [...els.registrationForm.querySelectorAll(`.form-section[data-form-stage="${stage}"] input, .form-section[data-form-stage="${stage}"] select`)]
+            .find(field => field.willValidate && !field.validity.valid);
+    }
+    function saveFormDraft() {
+        if (els.editingId.value) return;
+        const fields = {};
+        els.registrationForm.querySelectorAll("input[name], select[name], textarea[name]").forEach(field => {
+            if (field.name === "photo" || field.type === "file" || field.type === "hidden" || field.readOnly) return;
+            if (field.type === "radio" && !field.checked) return;
+            fields[field.name] = field.type === "checkbox" ? field.checked : field.value;
+        });
+        try {
+            localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify({ fields, stage:activeFormStage, savedAt:Date.now() }));
+            document.getElementById("form-draft-prompt").hidden = true;
+            setFormSaveStatus("ព្រាងបានរក្សាលើឧបករណ៍នេះ · មិនទាន់ Sync ទៅ Server");
+        } catch (_) { setFormSaveStatus("រក្សាព្រាងលើឧបករណ៍មិនបាន · សូមរក្សាទុកមុនបិទ App"); }
+    }
+    function clearFormDraft() {
+        clearTimeout(draftTimer);
+        try { localStorage.removeItem(FORM_DRAFT_KEY); } catch (_) {}
+        document.getElementById("form-draft-prompt").hidden = true;
+    }
+    function restoreFormDraft() {
+        try {
+            const draft = JSON.parse(localStorage.getItem(FORM_DRAFT_KEY) || "null");
+            if (!draft?.fields || els.editingId.value) return;
+            Object.entries(draft.fields).forEach(([name, value]) => {
+                const fields = [...els.registrationForm.querySelectorAll("[name]")].filter(field => field.name === name && field.type !== "file");
+                if (fields[0]?.type === "radio") fields.forEach(field => { field.checked = field.value === value; });
+                else if (fields[0]?.type === "checkbox") fields[0].checked = Boolean(value);
+                else if (fields[0] && !fields[0].readOnly) fields[0].value = value;
+            });
+            if (draft.fields.dob) setDobSelectors(draft.fields.dob);
+            setFamilyDobSelectors(draft.fields);
+            updateStudentCodeHint();
+            setFormStage(draft.stage, { scroll:false });
+            document.getElementById("form-draft-prompt").hidden = true;
+            setFormSaveStatus("បានស្ដារព្រាងលើឧបករណ៍ · សូមពិនិត្យមុនរក្សាទុក");
+        } catch (_) { clearFormDraft(); }
+    }
+
     function resetForm() {
+        clearFormDraft();
         photoSelectedByUser = false;
         closeMobileEditPanel();
         els.registrationForm.reset();
@@ -9669,6 +9844,8 @@
         els.sameAddress.checked = false;
         lockCurrentAddress(false);
         updateStudentCodeHint();
+        setFormStage(1, { scroll:false });
+        setFormSaveStatus("មិនទាន់មានការផ្លាស់ប្តូរ");
     }
 
     function ensureSchoolOption(v) {
@@ -9705,6 +9882,8 @@
         els.sameAddress.checked = addressesMatch(s);
         lockCurrentAddress(els.sameAddress.checked);
         setEditMode(id);
+        setFormStage(1, { scroll:false });
+        setFormSaveStatus("កំពុងកែព័ត៌មាន · មិនទាន់រក្សាទុក");
         if (isMobileView()) {
             openMobileEditPanel();
         } else {
@@ -9765,7 +9944,17 @@
         e.preventDefault();
         if (studentSaveInProgress) return;
         syncAllDateSelectors();
-        if (!els.registrationForm.reportValidity()) return;
+        const firstInvalid = [...els.registrationForm.querySelectorAll("input, select, textarea")]
+            .find(field => field.willValidate && !field.validity.valid);
+        if (firstInvalid) {
+            const section = firstInvalid.closest(".form-section");
+            if (section) {
+                setFormStage(section.dataset.formStage);
+                setFormSectionExpanded(section, true);
+            }
+            firstInvalid.reportValidity();
+            return;
+        }
 
         const editingId = els.editingId.value;
         if (!editingId) updateLatinNameSuggestion(!getValue("studentLatinName"));
@@ -9791,6 +9980,7 @@
 
         studentSaveInProgress = true;
         setSaving(true);
+        setFormSaveStatus("កំពុងរក្សាទុកលើឧបករណ៍ និងរៀបចំ Sync...");
         try {
             const sharedRows = await sharedStudentIdentities();
             if (!payload.studentCode) {
@@ -9835,11 +10025,13 @@
                 showToast(`បានបន្ថែម ${payload.studentName} · កំពុងបញ្ជាក់អត្តលេខពី Server`);
             }
             resetForm();
+            setFormSaveStatus("បានរក្សាទុកលើឧបករណ៍ · កំពុងរង់ចាំ Server បញ្ជាក់");
             await refreshStudents({ reset: !editingId, source:"memory" });
             if (isMobileView() || editingId) setActiveTab("list", { scroll: !editingId });
         } catch(e) {
             console.error("Save error:", e);
             showToast(e?.message || "រក្សាទុកមិនបាន","error");
+            setFormSaveStatus("រក្សាទុកមិនបាន · សូមពិនិត្យទិន្នន័យ និងសាកល្បងម្ដងទៀត");
         } finally {
             studentSaveInProgress = false;
             setSaving(false);
@@ -10927,11 +11119,11 @@
                 <article class="student-card ${esc(status.rowClass)}${expanded ? " is-expanded" : ""}" data-id="${esc(s.id)}">
                     <div class="mobile-card-header">
                         <span class="mobile-card-avatar ${s.gender === "ស្រី" ? "is-female" : "is-male"}" data-id="${esc(s.id)}" aria-hidden="true">${esc(initial)}${photoSrc ? `<img src="${esc(photoSrc)}" class="view-photo-img" data-id="${esc(s.id)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ""}</span>
-                        <button class="mobile-card-identity edit-btn" type="button" data-id="${esc(s.id)}" aria-label="កែព័ត៌មាន ${esc(name)}">
+                        <div class="mobile-card-identity">
                             <span class="mobile-student-title"><span class="student-index">${firstVisibleNumber + index + 1}.</span><span class="student-name">${esc(name)}</span>${genderBadge(s.gender||"")}</span>
                             ${s.studentLatinName ? `<span lang="en" class="student-latin-name">${esc(s.studentLatinName)}</span>` : ""}
-                            <span class="student-meta">${esc(studentVisibleId(s)||"–")} · ${esc(formatDate(s.dob)||"–")}</span>
-                        </button>
+                            <span class="student-meta">${esc(s.className || "មិនទាន់មានថ្នាក់")} · ${esc(studentVisibleId(s)||"–")} · ${esc(formatDate(s.dob)||"–")}</span>
+                        </div>
                         <button class="mobile-card-toggle" type="button" data-id="${esc(s.id)}" aria-expanded="${expanded}" aria-controls="${actionsId}" aria-label="${expanded ? "លាក់" : "បង្ហាញ"}សកម្មភាពសម្រាប់ ${esc(name)}">
                             <span class="data-status-badge status-${esc(status.level)}" title="${esc(status.title)}">${mobileActionIcon("warning")}<span>${esc(status.label)}</span></span>
                             <span class="mobile-card-chevron">${mobileActionIcon("chevron")}</span>
@@ -10939,11 +11131,11 @@
                     </div>
                     <div id="${actionsId}" class="mobile-card-details" ${expanded ? "" : "hidden"}>
                         <div class="mobile-quick-actions" aria-label="សកម្មភាពសិស្ស ${esc(name)}">
+                            <button class="edit-btn" type="button" data-id="${esc(s.id)}">${mobileActionIcon("card")}<span>កែព័ត៌មាន</span></button>
                             <button class="view-photo-btn" type="button" data-id="${esc(s.id)}">${mobileActionIcon("photo")}<span>រូបថត</span></button>
                             <button class="print-student-btn" type="button" data-id="${esc(s.id)}">${mobileActionIcon("print")}<span>បោះពុម្ព</span></button>
-                            <button class="print-student-card-btn" type="button" data-id="${esc(s.id)}">${mobileActionIcon("card")}<span>កាតសិស្ស</span></button>
-                            <button class="delete-btn" type="button" data-id="${esc(s.id)}">${mobileActionIcon("delete")}<span>លុប</span></button>
                         </div>
+                        <details class="mobile-more-actions"><summary>សកម្មភាពបន្ថែម</summary><div><button class="print-student-card-btn" type="button" data-id="${esc(s.id)}">កាតសិស្ស</button><button class="transfer-class-btn" type="button" data-id="${esc(s.id)}">ប្ដូរថ្នាក់</button><button class="delete-btn" type="button" data-id="${esc(s.id)}">លុបសិស្ស</button></div></details>
                     </div>
                 </article>`;
         }).join("");
@@ -12038,7 +12230,47 @@
             initWebPhoneCaptureMode(phoneCameraSession);
             return;
         }
+        setDesktopRosterMode(localStorage.getItem("studentDesktopRosterView"), false);
         setActionsOpen(localStorage.getItem("studentSidebarOpen") !== "0", false);
+        setFormStage(1, { scroll:false });
+        try { document.getElementById("form-draft-prompt").hidden = !localStorage.getItem(FORM_DRAFT_KEY); } catch (_) {}
+        els.registrationForm.querySelector(".form-stage-nav")?.addEventListener("click", event => {
+            const button = event.target.closest("[data-form-stage-button]");
+            if (button) setFormStage(button.dataset.formStageButton);
+        });
+        document.getElementById("form-stage-back")?.addEventListener("click", () => setFormStage(activeFormStage - 1));
+        document.getElementById("form-stage-next")?.addEventListener("click", () => {
+            syncAllDateSelectors();
+            const invalid = firstInvalidInStage(activeFormStage);
+            if (invalid) { invalid.reportValidity(); return; }
+            setFormStage(activeFormStage + 1);
+        });
+        document.getElementById("restore-form-draft")?.addEventListener("click", restoreFormDraft);
+        document.getElementById("discard-form-draft")?.addEventListener("click", () => {
+            clearFormDraft();
+            setFormSaveStatus("ព្រាងបានបោះបង់ · ទិន្នន័យសិស្សដែលរក្សាទុករួចមិនប៉ះពាល់");
+        });
+        const scheduleDraft = event => {
+            if (event.target.closest(".form-stage-nav, .form-save-bar")) return;
+            if (els.editingId.value) { setFormSaveStatus("កំពុងកែព័ត៌មាន · មិនទាន់រក្សាទុក"); return; }
+            clearTimeout(draftTimer);
+            draftTimer = setTimeout(saveFormDraft, 450);
+        };
+        els.registrationForm.addEventListener("input", scheduleDraft);
+        els.registrationForm.addEventListener("change", scheduleDraft);
+        els.reportView.querySelector(".report-section-tabs")?.addEventListener("click", event => {
+            const button = event.target.closest("[data-report-section]");
+            if (button) setReportSection(button.dataset.reportSection);
+        });
+        els.reportView.querySelector(".report-section-tabs")?.addEventListener("keydown", event => {
+            if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+            const tabs = [...els.reportView.querySelectorAll("[data-report-section]")];
+            const current = tabs.findIndex(tab => tab.getAttribute("aria-selected") === "true");
+            const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+            event.preventDefault();
+            setReportSection(tabs[next].dataset.reportSection);
+            tabs[next].focus();
+        });
         els.actionsToggleBtn?.addEventListener("click", () =>
             setActionsOpen(els.appTopbar?.classList.contains("actions-collapsed")));
         document.getElementById("app-actions")?.addEventListener("click", event => {
@@ -12143,6 +12375,8 @@
         });
         els.clearFiltersBtn.addEventListener("click",clearAllListFilters);
         els.toggleTableDetailBtn.addEventListener("click", () => setTableDetailMode(!tableDetailsExpanded));
+        document.getElementById("desktop-cards-btn").addEventListener("click", () => setDesktopRosterMode("cards"));
+        document.getElementById("desktop-table-btn").addEventListener("click", () => setDesktopRosterMode("table"));
         document.getElementById("className").addEventListener("input", updateStudentCodeHint);
 
         // Table actions
