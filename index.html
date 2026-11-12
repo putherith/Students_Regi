@@ -24,6 +24,7 @@
 <script defer src="./assets/student-export.js"></script>
 <script defer src="./assets/monthly-attendance.js"></script>
 <script defer src="./assets/simple-class-roster.js"></script>
+<script defer src="./assets/student-admin-health.js"></script>
     <style>
         /* ========================
            DESIGN TOKENS
@@ -3343,6 +3344,25 @@
         .report-export-actions { display:flex; flex-wrap:wrap; gap:8px; }
         .report-export-actions .btn { min-height:40px; justify-content:center; }
         .report-export-actions + h2 { margin-top:18px; }
+        .admin-health-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:0 0 20px; }
+        .admin-health-card { padding:16px; border:1px solid var(--border); border-radius:16px; background:var(--surface-2); box-shadow:var(--shadow-sm); }
+        .admin-health-card h2 { margin:0 0 8px; font-size:1.03rem; line-height:1.45; color:var(--text); }
+        .admin-health-card p { margin:0 0 12px; color:var(--text-2); line-height:1.6; }
+        .admin-health-actions { display:flex; flex-wrap:wrap; gap:8px; }
+        .admin-health-actions .btn { min-height:40px; }
+        .quality-issues { display:grid; gap:7px; max-height:360px; overflow:auto; margin-top:12px; }
+        .quality-issue { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 11px; border:1px solid var(--border); border-radius:10px; background:var(--surface); font-size:.86rem; }
+        .quality-issue small { display:block; color:var(--muted); line-height:1.5; }
+        .quality-issue button { flex:none; min-height:36px; padding:6px 10px; border:1px solid var(--border-strong); border-radius:8px; background:var(--surface); color:var(--primary); font:inherit; cursor:pointer; }
+        .student-audit-section { margin:0 0 20px; padding:16px; border:1px solid var(--border); border-radius:16px; background:var(--surface-2); }
+        .student-audit-section h2 { margin:0 0 6px; font-size:1.03rem; }
+        .student-audit-section p { margin:0 0 12px; color:var(--text-2); line-height:1.6; }
+        .student-audit-tools { display:flex; flex-wrap:wrap; align-items:end; gap:10px; }
+        .student-audit-tools label { display:grid; gap:4px; min-width:140px; font-size:.85rem; }
+        .student-audit-tools input { min-height:40px; padding:7px 10px; border:1px solid var(--border-strong); border-radius:9px; background:var(--surface); color:var(--text); font:inherit; }
+        .student-audit-list { display:grid; gap:8px; max-height:290px; overflow:auto; margin-top:12px; }
+        .student-audit-item { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; padding:9px 11px; border:1px solid var(--border); border-radius:10px; background:var(--surface); }
+        .student-audit-item small { display:block; color:var(--muted); }
         .report-mode-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; padding:5px; border-radius:12px; background:var(--surface-2); }
         .report-mode-tabs button { min-height:40px; padding:8px 14px; border:0; border-radius:9px; background:transparent; color:var(--text-2); font:inherit; font-weight:700; }
         .report-mode-tabs button[aria-pressed="true"] { background:var(--primary); color:#fff; box-shadow:var(--shadow-sm); }
@@ -4294,7 +4314,7 @@
             <div class="metric-body">
                 <div class="metric-label">ធ្វើបច្ចុប្បន្នភាព</div>
                 <div id="last-sync" class="metric-value">--:--</div>
-                <div class="metric-sub">ចុងក្រោយ</div>
+                <div class="metric-sub">Server ចុងក្រោយ</div>
             </div>
         </div>
     </section>
@@ -4308,6 +4328,31 @@
             </div>
             <button id="report-back-btn" class="btn btn-ghost" type="button"><ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon> ត្រឡប់ទៅបញ្ជី</button>
         </div>
+        <div class="admin-health-grid">
+            <section class="admin-health-card" aria-labelledby="sync-health-title">
+                <h2 id="sync-health-title">ស្ថានភាពរក្សាទុក និង Sync</h2>
+                <p id="sync-health-summary" role="status" aria-live="polite">កំពុងពិនិត្យ...</p>
+                <div class="admin-health-actions"><button id="sync-health-retry" class="btn btn-secondary" type="button">ផ្ទៀងផ្ទាត់ជាមួយ Server</button></div>
+            </section>
+            <section class="admin-health-card" aria-labelledby="quality-health-title">
+                <h2 id="quality-health-title">ពិនិត្យគុណភាពទិន្នន័យ</h2>
+                <p id="quality-health-summary" role="status" aria-live="polite">កំពុងពិនិត្យ...</p>
+                <div class="admin-health-actions"><button id="quality-health-refresh" class="btn btn-secondary" type="button">ពិនិត្យឡើងវិញ</button></div>
+                <div id="quality-health-issues" class="quality-issues" aria-label="បញ្ហាដែលត្រូវផ្ទៀងផ្ទាត់"></div>
+            </section>
+        </div>
+        <section class="student-audit-section" aria-labelledby="student-audit-title">
+            <h2 id="student-audit-title">ប្រវត្តិកែប្រែ និងច្បាប់ចម្លងមុនកែ</h2>
+            <p>Server រក្សាច្បាប់ចម្លងឯកជនមុនកែ ឬលុប។ ការស្ដារនឹងបញ្ចូលតែសិស្សដែលបាត់ប៉ុណ្ណោះ មិនសរសេរជាន់ព័ត៌មានថ្មីទេ។</p>
+            <div class="student-audit-tools">
+                <label for="audit-restore-class">ថ្នាក់សម្រាប់ពិនិត្យការស្ដារ<input id="audit-restore-class" list="audit-class-options" placeholder="ឧ. 7A" autocomplete="off"></label>
+                <datalist id="audit-class-options"></datalist>
+                <button id="audit-create-snapshot" class="btn btn-secondary" type="button">បង្កើត Backup ឥឡូវ</button>
+                <button id="audit-history-refresh" class="btn btn-ghost" type="button">មើលប្រវត្តិថ្មី</button>
+            </div>
+            <p id="audit-restore-result" role="status" aria-live="polite"></p>
+            <div id="audit-history-list" class="student-audit-list"></div>
+        </section>
         <div class="report-export-section" aria-labelledby="report-print-title">
             <h2 id="report-print-title">បោះពុម្ពបញ្ជី និងកាត</h2>
             <p>ប៊ូតុងទាំងនេះប្រើតម្រងបច្ចុប្បន្នពីផ្ទាំងបញ្ជីសិស្ស។ សម្រាប់បញ្ជីតាមថ្នាក់ សូមជ្រើសរបាយការណ៍ខាងក្រោម។</p>
@@ -5315,6 +5360,7 @@
     const GOOGLE_DATA_REVISION_STORAGE_KEY = "studentRegistrationGoogleDataRevision";
     const GOOGLE_SETTINGS_REVISION_STORAGE_KEY = "studentRegistrationGoogleSettingsRevision";
     const BACKUP_TIME_STORAGE_KEY    = "studentRegistrationLastBackupAt";
+    const VERIFIED_CLOUD_SYNC_STORAGE_KEY = "studentRegistrationVerifiedCloudSyncV1";
     const PENDING_CLOUD_MUTATIONS_STORAGE_KEY = "studentRegistrationPendingCloudMutationsV1";
     const PHOTO_CACHE_DB_NAME = "studentRegistrationPhotoCache";
     const PHOTO_CACHE_STORE_NAME = "studentPhotos";
@@ -5841,10 +5887,12 @@
                 localStorage.removeItem(PENDING_CLOUD_MUTATIONS_STORAGE_KEY);
             }
             pendingCloudMutations = safeOperations.length;
+            renderSyncHealth();
             return true;
         } catch (error) {
             console.error("Error saving pending cloud mutations:", error);
             pendingCloudMutations = safeOperations.length;
+            renderSyncHealth();
             if (!quiet) showToast("រក្សាជួររង់ចាំ Sync មិនបាន។ សូមកុំបិទ App ហើយសាក Backup ម្តងទៀត", "error");
             return false;
         }
@@ -5907,6 +5955,17 @@
         mobileGenderProgress: document.getElementById("mobile-gender-progress"),
         reportView: document.getElementById("report-view"),
         reportBackBtn: document.getElementById("report-back-btn"),
+        syncHealthSummary: document.getElementById("sync-health-summary"),
+        syncHealthRetry: document.getElementById("sync-health-retry"),
+        qualityHealthSummary: document.getElementById("quality-health-summary"),
+        qualityHealthRefresh: document.getElementById("quality-health-refresh"),
+        qualityHealthIssues: document.getElementById("quality-health-issues"),
+        auditRestoreClass: document.getElementById("audit-restore-class"),
+        auditClassOptions: document.getElementById("audit-class-options"),
+        auditHistoryRefresh: document.getElementById("audit-history-refresh"),
+        auditCreateSnapshot: document.getElementById("audit-create-snapshot"),
+        auditHistoryList: document.getElementById("audit-history-list"),
+        auditRestoreResult: document.getElementById("audit-restore-result"),
         reportModeClassBtn: document.getElementById("report-mode-class"),
         reportModeGradeBtn: document.getElementById("report-mode-grade"),
         reportFilterLabel: document.getElementById("report-filter-label"),
@@ -6699,6 +6758,134 @@
         els.status.className = `status-pill ${state}`.trim();
         els.statusText.textContent = text;
         if (els.mobileHeaderClock) els.mobileHeaderClock.textContent = formatTime();
+        renderSyncHealth();
+    }
+
+    function readVerifiedCloudSync() {
+        try { return JSON.parse(localStorage.getItem(VERIFIED_CLOUD_SYNC_STORAGE_KEY) || "null"); }
+        catch { return null; }
+    }
+
+    function recordVerifiedCloudSync() {
+        lastCloudError = "";
+        const record = { provider:getCloudProvider(), at:new Date().toISOString() };
+        try { localStorage.setItem(VERIFIED_CLOUD_SYNC_STORAGE_KEY, JSON.stringify(record)); } catch {}
+        renderSyncHealth();
+    }
+
+    function renderSyncHealth() {
+        const verified = readVerifiedCloudSync();
+        const current = verified?.provider === getCloudProvider() && !Number.isNaN(Date.parse(verified.at));
+        const time = current ? new Date(verified.at).toLocaleString("km-KH") : "មិនទាន់ផ្ទៀងផ្ទាត់";
+        if (els.lastSync) els.lastSync.textContent = current
+            ? new Date(verified.at).toLocaleTimeString("en-US", { hour:"2-digit", minute:"2-digit" }) : "--:--";
+        if (!els.syncHealthSummary) return;
+        const waiting = pendingCloudMutations;
+        const online = navigator.onLine !== false;
+        els.syncHealthSummary.textContent = `${currentStorageName()} · ${online ? "មានបណ្ដាញ" : "គ្មានបណ្ដាញ"} · ${waiting ? `រង់ចាំ Sync ${waiting} កំណត់ត្រា` : "គ្មានកំណត់ត្រារង់ចាំ"}។ ផ្ទៀងផ្ទាត់លើ Server ចុងក្រោយ៖ ${time}${lastCloudError ? `។ បញ្ហា៖ ${lastCloudError.slice(0, 120)}` : ""}`;
+    }
+
+    function renderQualityHealth() {
+        if (!els.qualityHealthSummary || !window.StudentAdminHealth) return;
+        const verifiedPhotos = getCloudProvider() === GOOGLE_SHEET_PROVIDER
+            && missingPhotoCodes instanceof Set && missingPhotoIds instanceof Set;
+        const result = window.StudentAdminHealth.analyze(allStudents, {
+            photoVerified:verifiedPhotos, missingPhotoCodes, missingPhotoIds
+        });
+        const labels = { duplicateId:"លេខក្នុងប្រព័ន្ធជាន់", duplicateCode:"អត្តលេខជាន់",
+            possibleDuplicate:"អាចជាសិស្សស្ទួន", missingRequired:"ព័ត៌មានចាំបាច់ខ្វះ",
+            invalidCode:"អត្តលេខត្រូវពិនិត្យ", missingPhoto:"គ្មានរូបថត" };
+        const counts = Object.entries(result.counts).filter(([, count]) => count > 0)
+            .map(([type, count]) => `${labels[type]} ${count}`);
+        els.qualityHealthSummary.textContent = `${result.total} នាក់ · ${counts.length ? counts.join(" · ") : "មិនឃើញបញ្ហាមូលដ្ឋាន"}។ ${verifiedPhotos ? "ស្ថានភាពរូបថតផ្ទៀងផ្ទាត់ពី Sheet" : "ស្ថានភាពរូបថតមិនទាន់ផ្ទៀងផ្ទាត់ពី Sheet"}។`;
+        els.qualityHealthIssues.innerHTML = result.issues.slice(0, 100).map(issue =>
+            `<div class="quality-issue"><span><strong>${esc(issue.studentName || issue.studentCode || issue.id || "មិនមានឈ្មោះ")}</strong><small>${esc(labels[issue.type])} · ${esc(issue.detail)} · ${esc(issue.className || "មិនមានថ្នាក់")}</small></span>${issue.id ? `<button type="button" data-quality-edit="${esc(issue.id)}">ពិនិត្យ</button>` : ""}</div>`
+        ).join("") + (result.issues.length > 100 ? `<p>បង្ហាញ ១០០ បញ្ហាដំបូងក្នុងចំណោម ${result.issues.length}។</p>` : "");
+    }
+
+    async function refreshStudentAuditHistory() {
+        if (!els.auditHistoryList) return;
+        if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER) {
+            els.auditHistoryList.textContent = "ប្រវត្តិ Server មានសម្រាប់ Google Sheet ប៉ុណ្ណោះ។";
+            return;
+        }
+        els.auditHistoryList.textContent = "កំពុងទាញប្រវត្តិពី Server...";
+        try {
+            const response = await readGoogleSheetJsonp({ action:"audithistory", limit:30 }, 45000);
+            if (response?.ok !== true || !Array.isArray(response.events)) throw new Error(response?.error || "Audit backend unavailable");
+            els.auditHistoryList.innerHTML = response.events.length ? response.events.map(event =>
+                `<div class="student-audit-item"><span><strong>${esc(event.action)}</strong> · ${esc(event.state)}<small>${esc(event.at)} · ${esc(event.actor || "admin")} · ${esc(event.details || "")}</small></span>${event.hasBackup && event.state === "applied" ? `<button class="btn btn-ghost" type="button" data-audit-preview="${esc(event.eventId)}">ពិនិត្យការស្ដារ</button>` : ""}</div>`
+            ).join("") : "មិនទាន់មានប្រវត្តិថ្មី។";
+        } catch (error) {
+            els.auditHistoryList.textContent = "មិនអាចទាញប្រវត្តិបាន។ សូម Deploy Apps Script កំណែថ្មី ឬពិនិត្យការភ្ជាប់។";
+            console.debug("Audit history unavailable:", error);
+        }
+    }
+
+    async function previewAndRestoreMissingStudents(eventId) {
+        const className = els.auditRestoreClass.value.trim();
+        if (!className) { els.auditRestoreResult.textContent = "សូមបញ្ចូលថ្នាក់ជាមុន"; return; }
+        els.auditRestoreResult.textContent = "កំពុងផ្ទៀងផ្ទាត់ច្បាប់ចម្លង...";
+        try {
+            const params = { action:"auditpreview", eventId, className };
+            const preview = await readGoogleSheetJsonp(params, 45000);
+            if (preview?.ok !== true) throw new Error(preview?.error || "Cannot preview backup");
+            if (preview.conflicts) throw new Error(`${preview.conflicts} អត្តលេខជាន់។ មិនអនុញ្ញាតឱ្យស្ដារ`);
+            if (!preview.missing) { els.auditRestoreResult.textContent = "សិស្សក្នុងច្បាប់ចម្លងនេះមាននៅក្នុង Sheet រួចហើយ។ មិនបានកែទិន្នន័យ។"; return; }
+            const examples = (preview.missingStudents || []).slice(0, 5).map(student => student.studentName || student.studentCode).join(", ");
+            if (!window.confirm(`ស្ដារសិស្សដែលបាត់ ${preview.missing} នាក់ក្នុងថ្នាក់ ${className} ពីច្បាប់ចម្លងនេះ?\n${examples}\nសិស្សដែលមានស្រាប់នឹងមិនត្រូវសរសេរជាន់ទេ។`)) {
+                els.auditRestoreResult.textContent = "បានបោះបង់ការស្ដារ។";
+                return;
+            }
+            els.auditRestoreResult.textContent = "បានផ្ញើសំណើស្ដារ។ កំពុងរង់ចាំការផ្ទៀងផ្ទាត់ពី Server...";
+            await fetch(getGoogleScriptUrl(), { method:"POST", mode:"no-cors", cache:"no-store",
+                headers:{ "Content-Type":"text/plain;charset=utf-8" },
+                body:JSON.stringify({ action:"restoremissing", eventId, className, confirm:"RESTORE_MISSING",
+                    accessKey:getGoogleSheetAccessKey() }) });
+            for (let attempt = 0; attempt < 10; attempt++) {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                const after = await readGoogleSheetJsonp(params, 45000);
+                if (after?.ok === true && Number(after.missing) < Number(preview.missing)) {
+                    els.auditRestoreResult.textContent = `Server បញ្ជាក់ថាបានស្ដារ ${Number(preview.missing) - Number(after.missing)} នាក់។ ${after.missing ? `នៅខ្វះ ${after.missing} នាក់` : "ស្ដារគ្រប់ហើយ"}។`;
+                    await loadStudentsFromGoogleSheet({ silent:true, background:true });
+                    await refreshStudentAuditHistory();
+                    return;
+                }
+            }
+            els.auditRestoreResult.textContent = "Server មិនទាន់បញ្ជាក់ការស្ដារបាន។ សូមពិនិត្យប្រវត្តិ និង Sheet មុនចុចម្តងទៀត។";
+        } catch (error) {
+            els.auditRestoreResult.textContent = `មិនអាចផ្ទៀងផ្ទាត់ការស្ដារ៖ ${readableCloudError(error)}`;
+        }
+    }
+
+    async function createStudentServerSnapshot() {
+        if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER) {
+            els.auditRestoreResult.textContent = "Backup Server នេះប្រើសម្រាប់ Google Sheet ប៉ុណ្ណោះ។";
+            return;
+        }
+        if (!window.confirm("បង្កើតច្បាប់ចម្លងឯកជននៃទិន្នន័យសិស្សបច្ចុប្បន្នលើ Server? មិនកែទិន្នន័យក្នុង Sheet ទេ។")) return;
+        const requestId = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+        els.auditCreateSnapshot.disabled = true;
+        els.auditRestoreResult.textContent = "កំពុងបង្កើត Backup លើ Server...";
+        try {
+            await fetch(getGoogleScriptUrl(), { method:"POST", mode:"no-cors", cache:"no-store",
+                headers:{ "Content-Type":"text/plain;charset=utf-8" },
+                body:JSON.stringify({ action:"snapshot", confirm:"CREATE_SNAPSHOT", requestId,
+                    accessKey:getGoogleSheetAccessKey() }) });
+            for (let attempt = 0; attempt < 10; attempt++) {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                const history = await readGoogleSheetJsonp({ action:"audithistory", limit:30 }, 45000);
+                if (history?.ok === true && history.events?.some(event => event.action === "manual-snapshot"
+                    && event.state === "applied" && event.hasBackup && event.details?.includes(requestId))) {
+                    els.auditRestoreResult.textContent = "Server បានបញ្ជាក់ថា Backup រួចរាល់។";
+                    await refreshStudentAuditHistory();
+                    return;
+                }
+            }
+            els.auditRestoreResult.textContent = "Server មិនទាន់បញ្ជាក់ Backup បាន។ សូមពិនិត្យប្រវត្តិ មុនចុចម្តងទៀត។";
+        } catch (error) {
+            els.auditRestoreResult.textContent = `មិនអាចផ្ទៀងផ្ទាត់ Backup៖ ${readableCloudError(error)}`;
+        } finally { els.auditCreateSnapshot.disabled = false; }
     }
 
     // ===================== CLOUD STORAGE =====================
@@ -7454,6 +7641,7 @@
             operations = removePendingCloudMutation(operation.id);
         }
 
+        recordVerifiedCloudSync();
         setStatus(currentStorageName(), "connected");
         if (notify) showToast(`បាន Sync ទិន្នន័យរង់ចាំទៅ ${currentStorageName()}`);
         if (cloudSyncWarning) showToast(cloudSyncWarning, "warning");
@@ -7721,6 +7909,7 @@
             allStudents = cloudStudents;
             await saveToLocalStorage(allStudents);
             localStorage.setItem(BACKUP_TIME_STORAGE_KEY, new Date().toISOString());
+            recordVerifiedCloudSync();
             await refreshStudents({ reset:true, source:"memory" });
             setStatus(queuedOperations.length ? `រក្សា Offline · រង់ចាំ Sync ${queuedOperations.length}` : "Supabase", queuedOperations.length ? "error" : "connected");
             if (!silent) showToast(`Load ពី Supabase ${allStudents.length} នាក់`);
@@ -7768,6 +7957,7 @@
                 if (!silent) showToast("Google Sheet ទទេ។ ទិន្នន័យក្នុង browser ត្រូវបានរក្សាទុក","warning");
                 return false;
             }
+            recordVerifiedCloudSync();
             if (background && studentCollectionSignature(cloudStudents) === studentCollectionSignature(allStudents)) {
                 setStatus(queuedOperations.length ? `រក្សា Offline · រង់ចាំ Sync ${queuedOperations.length}` : "Google Sheet", queuedOperations.length ? "error" : "connected");
                 return true;
@@ -9422,6 +9612,13 @@
         els.tabReportBtn?.classList.add("active");
         setSidebarActiveView("report");
         renderClassReport();
+        renderSyncHealth();
+        renderQualityHealth();
+        els.auditClassOptions.replaceChildren(...classReportGroups().map(group => new Option(group.name, group.name)));
+        void refreshStudentAuditHistory();
+        if (getCloudProvider() === GOOGLE_SHEET_PROVIDER && missingPhotoCodes === null) {
+            void refreshMissingPhotoCodes({ force:true }).then(renderQualityHealth);
+        }
         window.scrollTo({ top:0, behavior:isMobileView() ? "auto" : "smooth" });
     }
 
@@ -9803,7 +10000,7 @@
         els.totalStudents.textContent = totalStudentsCount;
         els.maleStudents.textContent = maleCount;
         els.femaleStudents.textContent = femaleCount;
-        els.lastSync.textContent = formatTime();
+        renderSyncHealth();
         els.mobileTotalStudents.textContent = totalStudentsCount.toLocaleString("en-US");
         els.mobileMaleStudents.textContent = maleCount.toLocaleString("en-US");
         els.mobileFemaleStudents.textContent = femaleCount.toLocaleString("en-US");
@@ -9811,6 +10008,7 @@
         els.mobileFemalePercent.textContent = `${knownGenderCount ? 100 - malePercent : 0}%`;
         els.mobileGenderProgress.style.setProperty("--male-share", `${malePercent}%`);
         els.mobileGenderProgress.style.setProperty("--female-share", `${knownGenderCount ? 100 - malePercent : 0}%`);
+        if (!els.reportView.hidden) renderQualityHealth();
         els.mobileGenderProgress.setAttribute("aria-label", `សិស្សប្រុស ${maleCount} នាក់ និងសិស្សស្រី ${femaleCount} នាក់`);
         if (els.mobileHeaderClock) els.mobileHeaderClock.textContent = formatTime();
         els.deleteAllBtn.disabled = totalStudentsCount === 0;
@@ -10428,7 +10626,7 @@
     }
 
     async function refreshMissingPhotoCodes({ force=false }={}) {
-        if (els.photoFilter.value !== "missing") return;
+        if (els.photoFilter.value !== "missing" && !force) return;
         if (getCloudProvider() !== GOOGLE_SHEET_PROVIDER || !hasGoogleScriptUrl()) { applyFilters(); return; }
         if (missingPhotoLookup) return missingPhotoLookup;
         if (!force && missingPhotoCodes && missingPhotoRevision === lastGoogleDataRevision) { applyFilters(); return; }
@@ -12057,6 +12255,37 @@
         els.classBrowserSearch?.addEventListener("input", () => { selectedClassGrade = "all"; renderClassBrowser(); });
         els.tabReportBtn?.addEventListener("click", openReportView);
         els.reportBackBtn?.addEventListener("click", () => setActiveTab("list"));
+        els.syncHealthRetry?.addEventListener("click", async () => {
+            els.syncHealthRetry.disabled = true;
+            try {
+                const flushed = await queuePendingCloudFlush({ notify:true });
+                if (flushed) {
+                    if (getCloudProvider() === GOOGLE_SHEET_PROVIDER) await loadStudentsFromGoogleSheet({ silent:false, background:true });
+                    else await loadStudentsFromSupabase({ silent:false });
+                }
+            } finally {
+                els.syncHealthRetry.disabled = false;
+                renderSyncHealth();
+                renderQualityHealth();
+            }
+        });
+        els.qualityHealthRefresh?.addEventListener("click", async () => {
+            els.qualityHealthRefresh.disabled = true;
+            try {
+                if (getCloudProvider() === GOOGLE_SHEET_PROVIDER) await refreshMissingPhotoCodes({ force:true });
+                renderQualityHealth();
+            } finally { els.qualityHealthRefresh.disabled = false; }
+        });
+        els.qualityHealthIssues?.addEventListener("click", event => {
+            const id = event.target.closest("[data-quality-edit]")?.dataset.qualityEdit;
+            if (id) { setActiveTab("form", { scroll:false }); void loadStudentIntoForm(id); }
+        });
+        els.auditHistoryRefresh?.addEventListener("click", () => { void refreshStudentAuditHistory(); });
+        els.auditCreateSnapshot?.addEventListener("click", () => { void createStudentServerSnapshot(); });
+        els.auditHistoryList?.addEventListener("click", event => {
+            const eventId = event.target.closest("[data-audit-preview]")?.dataset.auditPreview;
+            if (eventId) void previewAndRestoreMissingStudents(eventId);
+        });
         els.classBrowserCloseBtn?.addEventListener("click", () => setActiveTab("list"));
         els.classBrowserBackBtn?.addEventListener("click", () => {
             selectedClassName = null;
