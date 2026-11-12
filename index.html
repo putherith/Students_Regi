@@ -9786,7 +9786,7 @@
         if (els.editingId.value) return;
         const fields = {};
         els.registrationForm.querySelectorAll("input[name], select[name], textarea[name]").forEach(field => {
-            if (field.name === "photo" || field.type === "file" || field.type === "hidden" || field.readOnly) return;
+            if (field.name === "photo" || field.type === "file" || field.readOnly) return;
             if (field.type === "radio" && !field.checked) return;
             fields[field.name] = field.type === "checkbox" ? field.checked : field.value;
         });
