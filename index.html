@@ -4217,6 +4217,7 @@
             .mobile-tab-btn { font-size:.78rem; }
             .report-view .btn, .form-panel .btn, .class-browser-panel .btn { min-height:44px; }
             .form-panel .field label, .form-panel .field-help { font-size:.88rem; line-height:1.5; }
+            body.mobile-form-view:not(.mobile-editing) .form-panel .form-body { padding-bottom:16px; }
         }
         @media (prefers-reduced-motion:reduce) { .form-stage-nav button, .report-section-tabs button, .mobile-more-actions button { transition:none !important; animation:none !important; } }
 
@@ -9820,7 +9821,8 @@
     }
 
     function resetForm() {
-        clearFormDraft();
+        const wasEditing = Boolean(els.editingId.value);
+        if (!wasEditing) clearFormDraft();
         photoSelectedByUser = false;
         closeMobileEditPanel();
         els.registrationForm.reset();
@@ -9846,6 +9848,9 @@
         updateStudentCodeHint();
         setFormStage(1, { scroll:false });
         setFormSaveStatus("មិនទាន់មានការផ្លាស់ប្តូរ");
+        if (wasEditing) {
+            try { document.getElementById("form-draft-prompt").hidden = !localStorage.getItem(FORM_DRAFT_KEY); } catch (_) {}
+        }
     }
 
     function ensureSchoolOption(v) {
@@ -9882,6 +9887,7 @@
         els.sameAddress.checked = addressesMatch(s);
         lockCurrentAddress(els.sameAddress.checked);
         setEditMode(id);
+        document.getElementById("form-draft-prompt").hidden = true;
         setFormStage(1, { scroll:false });
         setFormSaveStatus("កំពុងកែព័ត៌មាន · មិនទាន់រក្សាទុក");
         if (isMobileView()) {
