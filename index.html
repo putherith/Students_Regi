@@ -12236,7 +12236,7 @@
             initWebPhoneCaptureMode(phoneCameraSession);
             return;
         }
-        setDesktopRosterMode(localStorage.getItem("studentDesktopRosterView"), false);
+        if (typeof setDesktopRosterMode === "function") setDesktopRosterMode(localStorage.getItem("studentDesktopRosterView"), false);
         setActionsOpen(localStorage.getItem("studentSidebarOpen") !== "0", false);
         setFormStage(1, { scroll:false });
         try { document.getElementById("form-draft-prompt").hidden = !localStorage.getItem(FORM_DRAFT_KEY); } catch (_) {}
@@ -12381,8 +12381,8 @@
         });
         els.clearFiltersBtn.addEventListener("click",clearAllListFilters);
         els.toggleTableDetailBtn.addEventListener("click", () => setTableDetailMode(!tableDetailsExpanded));
-        document.getElementById("desktop-cards-btn").addEventListener("click", () => setDesktopRosterMode("cards"));
-        document.getElementById("desktop-table-btn").addEventListener("click", () => setDesktopRosterMode("table"));
+        document.getElementById("desktop-cards-btn")?.addEventListener("click", () => setDesktopRosterMode("cards"));
+        document.getElementById("desktop-table-btn")?.addEventListener("click", () => setDesktopRosterMode("table"));
         document.getElementById("className").addEventListener("input", updateStudentCodeHint);
 
         // Table actions
@@ -12700,7 +12700,7 @@
             const message = document.createElement("div");
             message.setAttribute("role", "alert");
             message.style.cssText = "position:relative;z-index:99999;margin:12px;padding:16px;border:2px solid #b91c1c;border-radius:12px;background:#fff7f7;color:#7f1d1d;font:700 15px/1.8 sans-serif";
-            message.textContent = "កម្មវិធីបើកមិនបានលើ Browser នេះ។ សូមបើកតំណក្នុង Chrome ធម្មតា ហើយផ្ញើរូបសារកំហុសនេះមករដ្ឋបាល។";
+            message.textContent = `កម្មវិធីបើកមិនបាន៖ ${String(error?.message || "មិនស្គាល់មូលហេតុ").slice(0, 180)}។ សូមផ្ញើរូបសារនេះមករដ្ឋបាល។`;
             document.body.prepend(message);
         }
     });
