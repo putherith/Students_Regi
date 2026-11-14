@@ -192,7 +192,7 @@ async function waitFor(predicate) {
         safePhotoSrc:value => value || '', cachedStudentPhoto:async () => photo,
         localStorage:{setItem:(key, value) => storageValues.set(key, value), removeItem:key => storageValues.delete(key)},
         PENDING_CLOUD_MUTATIONS_STORAGE_KEY:'pending', pendingCloudMutations:0,
-        showToast:() => {}, console
+        showToast:() => {}, renderSyncHealth:() => {}, console
     });
     vm.runInContext(section('    function externalizeMutationPhotos(', '    function loadHistoryFromLocalStorage('), pending);
     const largeBatch = [{id:'mutation-1',action:'upsertmany',student:{},
@@ -209,6 +209,7 @@ async function waitFor(predicate) {
     const queued = vm.createContext({
         normalizeCloudStudent:student => student, pendingStudentKey:student => student.id || student.studentCode || '',
         normText:value => String(value || '').trim(), studentFullName:student => student.studentName || '',
+        studentIdentityKey:student => `${student.studentName || ''}|${student.gender || ''}|${student.dob || ''}`,
         normalizeStudentIdentity:student => student
     });
     vm.runInContext(section('    function mergeQueuedStudent(', '    function applyPendingMutationsToStudents('), queued);

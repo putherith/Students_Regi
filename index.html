@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ប្រព័ន្ធចុះឈ្មោះសិស្ស</title>
     <meta name="description" content="គ្រប់គ្រងបញ្ជីសិស្ស ស្វែងរក Import Print និងទាញយក Excel">
-    <meta name="theme-color" content="#082f54">
+    <meta name="theme-color" content="#0d1d41">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -4221,6 +4221,278 @@
         }
         @media (prefers-reduced-motion:reduce) { .form-stage-nav button, .report-section-tabs button, .mobile-more-actions button { transition:none !important; animation:none !important; } }
 
+        /* Navy-and-gold administration interface. These rules affect screens only;
+           printed rosters/cards retain their dedicated print styles. */
+        @media screen {
+            html:not([data-theme="dark"]) {
+                --primary:#182f68;
+                --primary-dark:#102248;
+                --primary-mid:#244887;
+                --primary-soft:#edf2fb;
+                --primary-glow:rgba(28,57,123,.14);
+                --bg:#f1f3f8;
+                --surface:#fff;
+                --surface-2:#f8f9fc;
+                --surface-3:#f2f5fa;
+                --text:#112342;
+                --text-2:#41516d;
+                --muted:#6a7890;
+                --border:#e2e8f1;
+                --border-strong:#cbd5e4;
+            }
+            body { background:#f1f3f8; }
+            body::before, body::after, .ambient-grid { display:none !important; }
+            .topbar {
+                border:0;
+                border-radius:0;
+                background:#0d1d41;
+                box-shadow:none;
+            }
+            .brand-mark {
+                width:55px;
+                height:55px;
+                padding:3px;
+                border:2px solid #d7ab3e;
+                border-radius:50%;
+                background:#fff;
+                box-shadow:none;
+                overflow:hidden;
+            }
+            .brand-mark img { border-radius:50%; }
+            .brand-kicker { color:#e7bf5c; letter-spacing:0; }
+            .topbar .brand-title { color:#fff; font-size:1.22rem; line-height:1.4; }
+            .topbar .brand-sub { color:#b8c6df; font-size:.79rem; }
+            .topbar .status-pill,
+            .topbar .status-pill.connected,
+            .topbar .status-pill.error {
+                border:1px solid rgba(255,255,255,.1);
+                background:#1e3055;
+                color:#dce7fa;
+                box-shadow:none;
+            }
+            .topbar .status-pill.connected .status-dot { background:#39cc8b; }
+            .topbar .status-pill.error .status-dot { background:#fb6b72; }
+            .topbar .theme-btn,
+            .actions-toggle-btn { border-color:rgba(255,255,255,.22); background:transparent; color:#fff; box-shadow:none; }
+            .metric, .panel, .report-view, .class-browser-panel, .history-panel {
+                border:1px solid var(--border);
+                border-radius:20px;
+                background:var(--surface);
+                box-shadow:0 12px 30px rgba(20,37,70,.07);
+            }
+            .metric:hover, .panel:hover { box-shadow:0 15px 34px rgba(20,37,70,.1); transform:none; }
+            .metric::before, .metric::after { display:none; }
+            .metric-value, .panel-title { color:var(--text); }
+            .metric-total-breakdown { display:grid; align-content:center; gap:5px; min-width:0; font-size:.82rem; color:var(--text-2); }
+            .metric-total-breakdown .metric-label { margin-bottom:3px; color:var(--text); font-weight:800; }
+            .metric-total-breakdown > div:not(.metric-label) { display:flex; align-items:center; gap:7px; white-space:nowrap; }
+            .metric-total-breakdown strong { color:var(--text); font-weight:800; }
+            .metric-total-breakdown span { color:var(--muted); }
+            .metric-total-breakdown i { display:inline-block; flex:none; width:9px; height:9px; border-radius:3px; }
+            .metric-total-breakdown .male-key { background:#203d83; }
+            .metric-total-breakdown .female-key { background:#f5a15e; }
+            .metric-total-ring { display:grid; place-items:center; flex:none; width:98px; height:98px; border-radius:50%; background:conic-gradient(#203d83 0 var(--male-share, 50%), #f5a15e var(--male-share, 50%) 100%); }
+            .metric-total-ring-center { display:flex; flex-direction:column; align-items:center; justify-content:center; width:75px; height:75px; border-radius:50%; background:var(--surface); line-height:1.18; }
+            .metric-total-ring-center .metric-value { font-family:system-ui,sans-serif; font-size:1.38rem; font-weight:800; }
+            .metric-total-ring-center small { color:var(--muted); font-size:.68rem; }
+            .metrics.no-gender-data .metric-total-ring,
+            .metrics.no-gender-data .metric-male .metric-sub,
+            .metrics.no-gender-data .metric-female .metric-sub { background:#e8edf5; }
+            .list-panel > .panel-header, .history-panel > .panel-header,
+            .list-panel .toolbar { background:var(--surface); }
+            .list-panel > .panel-header { border-bottom:0; }
+            .list-panel .panel-title { font-size:1.32rem; font-weight:800; }
+            .list-panel .panel-sub { font-size:.83rem; }
+            .search-wrap input, .toolbar select, .form-panel input, .form-panel select {
+                border:1px solid var(--border-strong);
+                border-radius:999px;
+                background:var(--surface-2);
+                color:var(--text);
+                box-shadow:none;
+            }
+            .toolbar select { min-height:40px; }
+            .btn-primary, .form-save-bar .btn-primary {
+                border-color:#152c61;
+                background:#152c61;
+                color:#fff;
+                box-shadow:none;
+            }
+            .btn-primary:hover, .form-save-bar .btn-primary:hover { background:#244887; }
+            .btn-secondary { border-color:var(--border-strong); background:var(--surface); color:var(--primary); box-shadow:none; }
+            .report-view-header, .class-browser-panel > .panel-header, .form-panel > .panel-header {
+                border-bottom:1px solid var(--border);
+                background:var(--surface);
+                color:var(--text);
+            }
+            .class-browser-panel > .panel-header::after,
+            .form-panel > .panel-header::before,
+            .form-panel > .panel-header::after { display:none; }
+            .class-browser-panel .panel-title, .form-panel > .panel-header .panel-title { color:var(--text); }
+            .class-browser-panel .panel-sub, .form-panel > .panel-header .panel-sub { color:var(--muted); }
+            .class-browser-panel .panel-header .btn { color:var(--primary); background:var(--surface-2); border-color:var(--border); }
+            .class-tile, .class-student-item, .report-export-section, .admin-health-card,
+            .student-audit-section, .attendance-export-section {
+                border-color:var(--border);
+                border-radius:16px;
+                background:var(--surface);
+                box-shadow:none;
+            }
+            .class-tile:hover { border-color:#d1ad5a; background:#fffaf0; }
+            .class-grade-pill[aria-pressed="true"], .report-section-tabs button[aria-selected="true"],
+            .form-stage-nav button[aria-current="step"] { border-color:#233f7e; background:#eef2fa; color:#173266; }
+            .report-mode-tabs button[aria-pressed="true"] { background:#173266; color:#fff; box-shadow:none; }
+            .form-stage-nav button[aria-current="step"] span { background:#173266; color:#fff; }
+            .form-panel .photo-preview { background:#f3f6fc; }
+            .modal-dialog { border-color:var(--border); border-radius:20px; }
+            .modal-footer { background:var(--surface-2); }
+        }
+        @media screen and (min-width:861px) {
+            body { background:linear-gradient(to bottom,#0d1d41 0,#0d1d41 222px,#d3a644 222px,#d3a644 225px,#f1f3f8 225px); }
+            html[data-theme="dark"] body { background:linear-gradient(to bottom,#0d1d41 0,#0d1d41 222px,#d3a644 222px,#d3a644 225px,#101b2d 225px); }
+            body.sidebar-open .app { padding-left:304px; padding-right:32px; }
+            body:not(.sidebar-open) .app { padding-left:32px; padding-right:32px; }
+            .app > .topbar { min-height:112px; margin:0 -32px 13px; padding:16px 32px; }
+            body.sidebar-open .app > .topbar { margin-left:-304px; }
+            .topbar .brand { gap:16px; }
+            .topbar .brand-mark { width:58px; height:58px; }
+            .topbar .status-pill { min-height:38px; padding:0 13px; border-radius:999px; }
+            .topbar .theme-btn { width:40px; height:40px; border-radius:50%; }
+            .actions-toggle-btn { order:2; min-height:38px; padding:0 10px; border-radius:50%; }
+            .actions-toggle-btn { border-radius:999px; }
+            .actions-toggle-btn span { display:inline; font-size:.74rem; }
+            .app > .topbar-actions {
+                top:125px;
+                bottom:auto;
+                left:32px;
+                width:248px;
+                min-width:248px;
+                max-height:calc(100dvh - 145px);
+                padding:12px;
+                border:1px solid #e7ebf3;
+                border-radius:20px;
+                background:#fff;
+                box-shadow:0 16px 36px rgba(23,35,65,.11);
+                scrollbar-width:thin;
+            }
+            .app > .topbar-actions .action-group { padding:29px 0 12px; border-bottom:0; }
+            .app > .topbar-actions .action-group::before { left:11px; color:#71809a; font-size:.7rem; }
+            .app > .topbar-actions .action-group .btn { min-height:39px; padding:8px 12px; gap:9px; border-radius:11px; font-size:.86rem; }
+            .app > .topbar-actions .btn-ghost { border-color:transparent; background:transparent; color:#4c5b76; }
+            .app > .topbar-actions .btn-ghost:hover,
+            .app > .topbar-actions .action-group .btn:hover { border-color:#e2e8f3; background:#f2f5fa; color:#142a58; }
+            .app > .topbar-actions [data-sidebar-view="form"],
+            .app > .topbar-actions [data-sidebar-view="form"]:hover {
+                border-color:#0d1d41;
+                background:#0d1d41;
+                color:#fff;
+                justify-content:center;
+                font-weight:800;
+            }
+            .app > .topbar-actions [data-sidebar-view][aria-current="page"],
+            .app > .topbar-actions [data-sidebar-view][aria-current="page"]:hover {
+                border:0;
+                background:#edf2fb;
+                color:#142c60;
+                box-shadow:none;
+                font-weight:800;
+            }
+            .app > .topbar-actions [data-sidebar-view="form"][aria-current="page"],
+            .app > .topbar-actions [data-sidebar-view="form"][aria-current="page"]:hover { background:#0d1d41; color:#fff; }
+            .app > .topbar-actions [data-sidebar-view][aria-current="page"]::before {
+                content:"";
+                flex:none;
+                width:8px;
+                height:8px;
+                border-radius:50%;
+                background:#d4a42f;
+            }
+            .app > .topbar-actions [data-sidebar-view="form"][aria-current="page"]::before { display:none; }
+            .app > .topbar-actions .advanced-actions summary,
+            .app > .topbar-actions .advanced-actions summary:hover { color:#4c5b76; background:transparent; }
+            .app > .topbar-actions .advanced-label { color:#71809a; }
+            .app > .topbar-actions .advanced-danger-note { color:#a23a45; }
+            .app > .topbar-actions .advanced-danger-zone { border-color:#e4eaf2; }
+            .metrics { grid-template-columns:1.05fr 1fr 1fr; gap:16px; margin:0 0 18px; --male-share:50%; }
+            .metric { min-height:144px; padding:20px 22px; gap:17px; border:0; border-radius:20px; }
+            .metric-total { justify-content:flex-start; }
+            .metric-male, .metric-female { display:grid; grid-template-columns:38px 1fr; align-content:center; column-gap:10px; row-gap:1px; }
+            .metric-male .metric-icon, .metric-female .metric-icon { width:37px; height:37px; border-radius:11px; }
+            .metric-male .metric-body, .metric-female .metric-body { display:contents; }
+            .metric-male .metric-label, .metric-female .metric-label { align-self:center; color:#52617c; font-size:.88rem; font-weight:800; }
+            .metric-male .metric-value, .metric-female .metric-value { grid-column:1 / -1; margin-top:6px; font:800 2.25rem/1.1 system-ui,sans-serif; }
+            .metric-male .metric-sub, .metric-female .metric-sub { grid-column:1 / -1; height:5px; overflow:hidden; border-radius:999px; color:transparent; background:linear-gradient(to right,#203d83 0 var(--male-share),#e8edf5 var(--male-share) 100%); }
+            .metric-female .metric-sub { background:linear-gradient(to right,#f5a15e 0 calc(100% - var(--male-share)),#e8edf5 calc(100% - var(--male-share)) 100%); }
+            .metric-male .metric-icon { background:#e9eefb; color:#203d83; }
+            .metric-female .metric-icon { background:#fff0e5; color:#c27431; }
+            .metric-sync { display:none; }
+            .list-panel { overflow:hidden; }
+            .list-panel > .panel-header { min-height:79px; padding:18px 24px 7px; }
+            .list-panel .toolbar { padding:8px 24px 20px; gap:10px; border-bottom:1px solid var(--border); }
+            .list-panel .search-wrap { flex:1 1 300px; }
+            .list-panel .search-wrap input { min-height:42px; }
+            .list-panel .toolbar select { min-width:120px; max-width:180px; }
+            .list-panel .toolbar-filters-pane { flex:1 1 auto; gap:8px; }
+            .list-panel .filters-toggle-btn, .list-panel .mobile-quick-filters { display:none; }
+            .list-panel .table-wrap > table.compact-view { min-width:850px; border:0; }
+            .list-panel thead th { padding:10px 9px; border:0; background:#f5f7fb; color:#66758e; font-size:.74rem; }
+            .list-panel tbody tr.student-data-complete { background:#fff !important; }
+            .list-panel tbody tr.student-data-partial { background:#fffbf5 !important; }
+            .list-panel tbody tr.student-data-empty { background:#fff8f7 !important; }
+            .list-panel tbody td { padding:11px 9px; border-color:#ecf0f5; color:var(--text); }
+            .list-panel .class-group-row td { padding:9px 14px; background:#fff8e8 !important; color:#7a5816; border-top:1px solid #efddb2; }
+            .list-panel .class-count { margin-left:8px; background:#fff; color:#7a5816; }
+            .list-panel .student-name { color:#112342; font-weight:800; }
+            .list-panel .student-latin-name { color:#71809a; }
+            .list-panel .row-actions { padding:3px; border-radius:999px; background:#f0f3f9; }
+            .list-panel .row-actions .btn { border:0; background:transparent; box-shadow:none; }
+            .list-panel .row-actions .btn:hover { background:#fff; }
+            .list-panel .pager { background:#fff; }
+            .class-browser-panel, .report-view, .form-panel { margin-top:0; }
+            .form-panel, .list-panel, .class-browser-panel, .report-view { scroll-margin-top:126px; }
+            .class-browser-panel > .panel-header { border-radius:20px 20px 0 0; }
+        }
+        @media screen and (min-width:861px) and (max-width:1100px) {
+            body.sidebar-open .app { padding-left:258px; padding-right:20px; }
+            body.sidebar-open .app > .topbar { margin-left:-258px; margin-right:-20px; }
+            .app > .topbar-actions { left:18px; width:220px; min-width:220px; }
+            .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+            .metric-total { grid-column:1 / -1; min-height:120px; }
+            .metric-male, .metric-female { min-height:110px; }
+            .list-panel .toolbar-filters-pane { flex-basis:100%; }
+        }
+        @media screen and (max-width:860px) {
+            body { background:#f1f3f8; }
+            html[data-theme="dark"] body { background:#101b2d; }
+            .topbar { border-bottom:3px solid #d3a644; background:#0d1d41; box-shadow:none; }
+            .topbar .brand-mark { border-color:#d7ab3e; }
+            .mobile-roster-summary { border:1px solid var(--border); border-radius:17px; background:var(--surface); box-shadow:0 8px 22px rgba(20,37,70,.07); }
+            .mobile-gender-progress-male { background:#203d83; }
+            .mobile-gender-progress-female { background:#f5a15e; }
+            .mobile-roster-status { background:#edf2fb; color:#203d83; }
+            .mobile-tabs { border-color:var(--border); background:var(--surface); box-shadow:none; }
+            .mobile-tab-btn.active, .mobile-tab-btn.active svg { background:#edf2fb; color:#173266; box-shadow:none; }
+            .list-panel .student-card, .class-tile { border-color:var(--border); border-radius:16px; background:var(--surface); box-shadow:0 7px 18px rgba(20,37,70,.06); }
+            .list-panel .student-card:hover { box-shadow:0 9px 22px rgba(20,37,70,.09); }
+            .list-panel .mobile-quick-filters button[aria-pressed="true"] { border-color:#0d1d41; background:#0d1d41; color:#fff; }
+            .list-panel .mobile-card-avatar.is-male { background:#e9eefb; color:#203d83; }
+            .list-panel .mobile-card-avatar.is-female { background:#fff0e5; color:#ad642c; }
+            .form-panel .form-stage-nav { background:var(--surface); }
+        }
+        html[data-theme="dark"] .app > .topbar-actions { background:#172641; border-color:#34435f; }
+        html[data-theme="dark"] .app > .topbar-actions .btn-ghost,
+        html[data-theme="dark"] .app > .topbar-actions .advanced-actions summary { color:#d6e2f7; }
+        html[data-theme="dark"] .app > .topbar-actions .action-group::before,
+        html[data-theme="dark"] .app > .topbar-actions .advanced-label { color:#aebfdd; }
+        html[data-theme="dark"] .class-tile:hover { border-color:#b59344; background:#263854; }
+        html[data-theme="dark"] .list-panel thead th { background:#1e2f49; color:#b9c8de; }
+        html[data-theme="dark"] .list-panel tbody tr.student-data-complete { background:#17283b !important; }
+        html[data-theme="dark"] .list-panel tbody tr.student-data-partial { background:#352a24 !important; }
+        html[data-theme="dark"] .list-panel tbody tr.student-data-empty { background:#39262a !important; }
+        html[data-theme="dark"] .list-panel .class-group-row td { background:#3b3325 !important; color:#f2d78e; }
+        html[data-theme="dark"] .list-panel .student-name { color:#eef4ff; }
+        html[data-theme="dark"] .list-panel .row-actions { background:#263854; }
+        html[data-theme="dark"] .mobile-roster-status { background:#233a5b; color:#e2eaff; }
+
         @media print {
             body { background: #fff !important; }
             .ambient-grid { display: none !important; }
@@ -4344,13 +4616,13 @@
     <!-- ======================== METRICS ======================== -->
     <section class="metrics" aria-label="ស្ថិតិសិស្ស">
         <div class="metric metric-total">
-            <div class="metric-icon">
-                <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+            <div class="metric-total-ring" role="img" aria-label="សមាមាត្រសិស្សប្រុស និងស្រី">
+                <div class="metric-total-ring-center"><strong id="total-students" class="metric-value">--</strong><small>នាក់</small></div>
             </div>
-            <div class="metric-body">
-                <div class="metric-label">សរុប</div>
-                <div id="total-students" class="metric-value">--</div>
-                <div class="metric-sub">សិស្សសរុប</div>
+            <div class="metric-total-breakdown">
+                <div class="metric-label">សិស្សសរុប</div>
+                <div><i class="male-key" aria-hidden="true"></i> ប្រុស <strong id="metric-male-breakdown">--</strong> <span id="metric-male-percent">(0%)</span></div>
+                <div><i class="female-key" aria-hidden="true"></i> ស្រី <strong id="metric-female-breakdown">--</strong> <span id="metric-female-percent">(0%)</span></div>
             </div>
         </div>
         <div class="metric metric-male">
@@ -5029,7 +5301,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.79</span>
+        <span class="footer-version">កំណែ 2.1.80</span>
     </footer>
 
 </main><!-- end .app -->
@@ -10198,6 +10470,19 @@
         els.totalStudents.textContent = totalStudentsCount;
         els.maleStudents.textContent = maleCount;
         els.femaleStudents.textContent = femaleCount;
+        const metrics = document.querySelector(".metrics");
+        if (metrics) {
+            metrics.style.setProperty("--male-share", `${malePercent}%`);
+            metrics.classList.toggle("no-gender-data", knownGenderCount === 0);
+        }
+        const metricMaleBreakdown = document.getElementById("metric-male-breakdown");
+        const metricFemaleBreakdown = document.getElementById("metric-female-breakdown");
+        if (metricMaleBreakdown) metricMaleBreakdown.textContent = maleCount.toLocaleString("en-US");
+        if (metricFemaleBreakdown) metricFemaleBreakdown.textContent = femaleCount.toLocaleString("en-US");
+        const metricMalePercent = document.getElementById("metric-male-percent");
+        const metricFemalePercent = document.getElementById("metric-female-percent");
+        if (metricMalePercent) metricMalePercent.textContent = `(${malePercent}%)`;
+        if (metricFemalePercent) metricFemalePercent.textContent = `(${knownGenderCount ? 100 - malePercent : 0}%)`;
         renderSyncHealth();
         els.mobileTotalStudents.textContent = totalStudentsCount.toLocaleString("en-US");
         els.mobileMaleStudents.textContent = maleCount.toLocaleString("en-US");
