@@ -36,6 +36,7 @@
             .simple-roster-year{margin:0 0 4mm;text-align:center;font-size:9pt}
             .simple-roster-table{width:100%;table-layout:fixed;border-collapse:collapse}
             .simple-roster-table th,.simple-roster-table td{height:5.4mm;padding:.35mm 1.2mm;border:.2mm solid #34465b;background:#fff;color:#172331;font-size:9pt;line-height:1.2;vertical-align:middle;overflow:hidden;white-space:nowrap}
+            .simple-roster-table td.name{text-align:left}
             .simple-roster-table td.name .roster-fit-text{font-size:12px;font-weight:600}
             .simple-roster-table th{height:8mm;text-align:center;font-weight:700;white-space:normal;background:#e9f2f6}
             .simple-roster-table .number,.simple-roster-table .gender,.simple-roster-table .dob,.simple-roster-table .contact{text-align:center}

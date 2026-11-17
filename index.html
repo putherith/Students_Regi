@@ -3405,7 +3405,7 @@
         .roster-document-title { margin:0 0 8px; text-align:center; font-size:14px; font-weight:700; }
         .roster-table { width:100%; table-layout:fixed; border-collapse:collapse; }
         .roster-table th,.roster-table td { box-sizing:border-box; height:7mm; padding:.7mm 1mm; border:1px solid #1f2937; color:#111; font-size:10pt; line-height:1.45; vertical-align:middle; white-space:normal; }
-        .roster-table td.roster-name { text-align:center; }
+        .roster-table td.roster-name { text-align:left; }
         .roster-table td.roster-name .roster-fit-text { display:block; width:100%; font-size:12pt; font-weight:700; line-height:1.5; white-space:normal; overflow-wrap:anywhere; transform:none !important; }
         .roster-table th { height:9mm; text-align:center; font-weight:700; white-space:normal; }
         .roster-table .roster-center { text-align:center; }
@@ -4728,8 +4728,10 @@
                     <select id="class-report-select"><option value="">ថ្នាក់ទាំងអស់</option></select>
                 </label>
                 <button id="print-class-report-btn" class="btn btn-secondary" type="button"><ion-icon name="print-outline" aria-hidden="true"></ion-icon> បោះពុម្ពរបាយការណ៍</button>
+                <button id="print-grade-roster-btn" class="btn btn-secondary" type="button" hidden><ion-icon name="list-outline" aria-hidden="true"></ion-icon> បោះពុម្ពបញ្ជីតាមកម្រិត</button>
                 <button id="print-simple-class-roster-btn" class="btn btn-ghost" type="button" title="បោះពុម្ពតែ ៥ ជួរឈរ សម្រាប់ថ្នាក់ដែលបានជ្រើស"><ion-icon name="list-outline" aria-hidden="true"></ion-icon> បញ្ជី ៥ ជួរឈរ</button>
                 <button id="download-class-report-btn" class="btn btn-ghost" type="button"><ion-icon name="download-outline" aria-hidden="true"></ion-icon> ទាញ Excel</button>
+                <button id="download-grade-roster-btn" class="btn btn-ghost" type="button" hidden><ion-icon name="grid-outline" aria-hidden="true"></ion-icon> ទាញបញ្ជីតាមកម្រិត Excel</button>
                 <button id="download-class-roster-btn" class="btn btn-ghost" type="button"><ion-icon name="document-outline" aria-hidden="true"></ion-icon> ទាញទម្រង់ A4</button>
             </div>
             <p id="class-report-hint" class="class-report-hint">ជ្រើសថ្នាក់មួយ ដើម្បីមើលទម្រង់ និងទាញបញ្ជីឈ្មោះរដ្ឋបាលសម្រាប់ថ្នាក់នោះ។</p>
@@ -6335,8 +6337,10 @@
         classReportRoster: document.getElementById("class-report-roster"),
         classReportHint: document.getElementById("class-report-hint"),
         printClassReportBtn: document.getElementById("print-class-report-btn"),
+        printGradeRosterBtn: document.getElementById("print-grade-roster-btn"),
         printSimpleClassRosterBtn: document.getElementById("print-simple-class-roster-btn"),
         downloadClassReportBtn: document.getElementById("download-class-report-btn"),
+        downloadGradeRosterBtn: document.getElementById("download-grade-roster-btn"),
         downloadClassRosterBtn: document.getElementById("download-class-roster-btn"),
         monthlyAttendanceClass: document.getElementById("monthly-attendance-class"),
         monthlyAttendanceMonth: document.getElementById("monthly-attendance-month"),
@@ -10559,43 +10563,49 @@
 
     function sortedRosterStudents(group) {
         return [...group.students].sort((a, b) =>
+            (group.key.startsWith("grade:") ? compareKhmer(a.className || "", b.className || "", { numeric:true }) : 0) ||
             compareKhmer(studentVisibleId(a) || "", studentVisibleId(b) || "", { numeric:true }) ||
             compareKhmer(studentFullName(a), studentFullName(b)));
     }
 
-    function classRosterDocumentHtml(group) {
+    function classRosterDocumentHtml(group, previewOnly=false) {
+        const byGrade = group.key.startsWith("grade:");
         const students = sortedRosterStudents(group);
-        const perPage = 25;
+        const perPage = byGrade ? 22 : 25;
         const pages = Math.max(1, Math.ceil(students.length / perPage));
         const academicYear = `${toKhmerDigits(appSettings.academicYearStart)}-${toKhmerDigits(appSettings.academicYearStart + 1)}`;
-        const classLabel = group.key === "unassigned" ? "មិនទាន់កំណត់ថ្នាក់" : `ថ្នាក់ទី ${group.name}`;
-        const teacher = appSettings.classTeachers[group.name] || "................................";
+        const classLabel = byGrade ? group.name : group.key === "unassigned" ? "មិនទាន់កំណត់ថ្នាក់" : `ថ្នាក់ទី ${group.name}`;
+        const teacher = byGrade ? "................................" : appSettings.classTeachers[group.name] || "................................";
         const principal = appSettings.principalName || "................................";
         // One full-width table keeps 12pt Khmer names legible on A4.
-        const columns = [6, 16, 36, 8, 16, 18];
+        const columns = byGrade ? [5, 14, 31, 7, 15, 9, 19] : [6, 16, 36, 8, 16, 18];
         const colgroup = `<colgroup>${columns.map(width => `<col style="width:${width}%">`).join("")}</colgroup>`;
-        const headings = `<th>ល.រ</th><th>អត្តលេខ</th><th>គោត្តនាម និងនាម</th><th>ភេទ</th><th>ថ្ងៃខែឆ្នាំកំណើត</th><th>សាលាមកពី</th>`;
+        const headings = `<th>ល.រ</th><th>អត្តលេខ</th><th>គោត្តនាម និងនាម</th><th>ភេទ</th><th>ថ្ងៃខែឆ្នាំកំណើត</th>${byGrade ? "<th>ថ្នាក់</th>" : ""}<th>សាលាមកពី</th>`;
         const fitCell = (value, extraClass="") => `<td class="roster-fit-cell ${extraClass}"><span class="roster-fit-text">${esc(value || "")}</span></td>`;
-        const cells = (student, index) => `<td class="roster-center">${index + 1}</td>${fitCell(studentVisibleId(student), "roster-center")}${fitCell(studentFullName(student), "roster-name")}${fitCell(student.gender, "roster-center")}${fitCell(reportShortDate(student.dob), "roster-center")}${fitCell(student.fromSchool, "roster-school")}`;
-        return Array.from({ length:pages }, (_, page) => {
+        const cells = (student, index) => `<td class="roster-center">${index + 1}</td>${fitCell(studentVisibleId(student), "roster-center")}${fitCell(studentFullName(student), "roster-name")}${fitCell(student.gender, "roster-center")}${fitCell(reportShortDate(student.dob), "roster-center")}${byGrade ? fitCell(student.className, "roster-center") : ""}${fitCell(student.fromSchool, "roster-school")}`;
+        return Array.from({ length:previewOnly ? 1 : pages }, (_, page) => {
             const start = page * perPage;
             const rows = students.slice(start, start + perPage).map((student, row) =>
-                `<tr>${cells(student, start + row)}</tr>`).join("") || `<tr><td colspan="6" class="roster-center">មិនមានសិស្ស</td></tr>`;
+                `<tr>${cells(student, start + row)}</tr>`).join("") || `<tr><td colspan="${byGrade ? 7 : 6}" class="roster-center">មិនមានសិស្ស</td></tr>`;
             return `<section class="school-roster-page">
                 <div class="roster-document-header">
-                    <div class="school-lines">ក្រសួងអប់រំ យុវជន និងកីឡា<br>មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ<br>វិទ្យាល័យសុខអានព្រៃមេលង<br>ថ្នាក់ ${esc(group.name)}</div>
+                    <div class="school-lines">ក្រសួងអប់រំ យុវជន និងកីឡា<br>មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ<br>វិទ្យាល័យសុខអានព្រៃមេលង<br>${byGrade ? esc(group.name) : `ថ្នាក់ ${esc(group.name)}`}</div>
                     <div class="kingdom">ព្រះរាជាណាចក្រកម្ពុជា<br>ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
                 </div>
                 <h1 class="roster-document-title">បញ្ជីឈ្មោះសិស្ស ${esc(classLabel)} ឆ្នាំសិក្សា ${academicYear}</h1>
                 <table class="roster-table">${colgroup}<thead><tr>${headings}</tr></thead><tbody>${rows}</tbody></table>
                 <div class="roster-document-footer"><span>* បញ្ជីនេះមានសិស្សសរុប ${students.length} នាក់ ស្រី ${group.female} នាក់${pages > 1 ? `<span class="roster-page-number">(ទំព័រ ${page + 1}/${pages})</span>` : ""}</span><span class="roster-date">ថ្ងៃទី ........ ខែ ................ ឆ្នាំ ${toKhmerDigits(String(appSettings.issueDate || "").slice(0, 4) || new Date().getFullYear())}</span></div>
-                <div class="roster-signatures"><div>បានឃើញ និងឯកភាព<br>គ្រូបន្ទុកថ្នាក់<strong>${esc(teacher)}</strong></div><div>នាយកសាលា<strong>${esc(principal)}</strong></div></div>
+                <div class="roster-signatures"><div>បានឃើញ និងឯកភាព<br>${byGrade ? "អ្នករៀបចំបញ្ជី" : "គ្រូបន្ទុកថ្នាក់"}<strong>${esc(teacher)}</strong></div><div>នាយកសាលា<strong>${esc(principal)}</strong></div></div>
             </section>`;
         }).join("");
     }
 
     function classReportRosterHtml(group) {
-        return group ? `<h3>បញ្ជីឈ្មោះសិស្សថ្នាក់ ${esc(group.name)}</h3><div class="roster-preview">${classRosterDocumentHtml(group)}</div>` : "";
+        if (!group) return "";
+        const byGrade = group.key.startsWith("grade:");
+        const title = byGrade ? `តាមកម្រិត${group.name}` : `ថ្នាក់ ${group.name}`;
+        const pageCount = Math.ceil(group.students.length / (byGrade ? 22 : 25));
+        return `<h3>បញ្ជីឈ្មោះសិស្ស${esc(title)}</h3>${byGrade && pageCount > 1 ? `<p class="class-report-hint">បង្ហាញទំព័រទី ១ ក្នុងចំណោម ${pageCount} ទំព័រ។ បោះពុម្ព ឬទាញចេញ ដើម្បីបានបញ្ជីពេញ។</p>` : ""}<div class="roster-preview">${classRosterDocumentHtml(group, byGrade)}</div>`;
     }
 
     function fitRosterText(root) {
@@ -10623,7 +10633,7 @@
 
     function printAdminRosters(groups, title="បញ្ជីឈ្មោះសិស្សតាមថ្នាក់") {
         if (!groups.length) { showToast("មិនមានទិន្នន័យសម្រាប់បោះពុម្ព", "warning"); return; }
-        printWindow(title, classRosterPrintCss() + groups.map(classRosterDocumentHtml).join(""));
+        printWindow(title, classRosterPrintCss() + groups.map(group => classRosterDocumentHtml(group)).join(""));
     }
 
     function classRosterPrintCss() {
@@ -10638,7 +10648,7 @@
             h1.roster-document-title { margin:0 0 1.5mm; text-align:center; font-size:9pt; line-height:1.45; }
             .roster-table { width:100%; table-layout:fixed; border-collapse:collapse; }
             .roster-table th,.roster-table td { box-sizing:border-box; height:7mm; padding:.7mm 1mm; border:.2mm solid #111; color:#111; font-size:9.5pt; line-height:1.45; vertical-align:middle; white-space:normal; }
-            .roster-table td.roster-name { text-align:center; }
+            .roster-table td.roster-name { text-align:left; }
             .roster-table td.roster-name .roster-fit-text { display:block; width:100%; font-size:12pt; font-weight:700; line-height:1.5; white-space:normal; overflow-wrap:anywhere; transform:none !important; }
             .roster-table th { height:9mm; text-align:center; font-size:9pt; font-weight:700; white-space:normal; }
             .roster-table .roster-center { text-align:center; }
@@ -10669,22 +10679,28 @@
         const count = reportMode === "grade" ? rows.reduce((sum, group) => sum + group.classCount, 0) : rows.length;
         els.classReportSummary.innerHTML = `<span>${reportMode === "grade" ? "កម្រិតថ្នាក់" : "ថ្នាក់"} ${rows.length}</span>${reportMode === "grade" ? `<span>ចំនួនថ្នាក់ ${count}</span>` : ""}<span>សិស្ស ${total}</span><span>ប្រុស ${male}</span><span>ស្រី ${female}</span><span>មិនកំណត់ភេទ ${total - male - female}</span>`;
         els.classReportTable.innerHTML = rows.length ? classReportTableHtml(rows) : '<p class="class-report-empty">មិនទាន់មានទិន្នន័យសិស្ស</p>';
-        els.classReportRoster.innerHTML = reportMode === "class" ? classReportRosterHtml(selected) : "";
-        els.classReportHint.hidden = reportMode !== "class";
-        if (reportMode === "class") els.classReportHint.textContent = selected
-            ? `កំពុងបង្ហាញបញ្ជីឈ្មោះថ្នាក់ ${selected.name} · បោះពុម្ព ឬទាញទម្រង់ A4 តែថ្នាក់នេះ។`
-            : "ជ្រើសថ្នាក់មួយ ដើម្បីមើលទម្រង់ជាមុន និងទាញតែថ្នាក់នោះ។ បើមិនជ្រើស នឹងបោះពុម្ព ឬទាញគ្រប់ថ្នាក់។";
-        if (reportMode === "class" && selected) {
+        els.classReportRoster.innerHTML = classReportRosterHtml(selected);
+        els.classReportHint.hidden = false;
+        els.classReportHint.textContent = selected
+            ? `កំពុងបង្ហាញបញ្ជីឈ្មោះសិស្ស${reportMode === "grade" ? "តាមកម្រិត" : "ថ្នាក់ "}${selected.name} · បោះពុម្ព ឬទាញទម្រង់ A4 តែ${reportMode === "grade" ? "កម្រិត" : "ថ្នាក់"}នេះ។`
+            : reportMode === "grade"
+                ? "ជ្រើសកម្រិតថ្នាក់មួយ ដើម្បីមើលបញ្ជីសិស្សជាមុន។ បើមិនជ្រើស នឹងបោះពុម្ព ឬទាញគ្រប់កម្រិតថ្នាក់។"
+                : "ជ្រើសថ្នាក់មួយ ដើម្បីមើលទម្រង់ជាមុន និងទាញតែថ្នាក់នោះ។ បើមិនជ្រើស នឹងបោះពុម្ព ឬទាញគ្រប់ថ្នាក់។";
+        if (selected) {
             requestAnimationFrame(() => fitRosterText(els.classReportRoster));
             document.fonts?.ready.then(() => fitRosterText(els.classReportRoster));
         }
-        els.printClassReportBtn.innerHTML = `<ion-icon name="print-outline" aria-hidden="true"></ion-icon> ${reportMode === "class" ? "បោះពុម្ពបញ្ជី A4" : "បោះពុម្ពរបាយការណ៍"}`;
-        els.downloadClassReportBtn.innerHTML = `<ion-icon name="download-outline" aria-hidden="true"></ion-icon> ទាញ Excel`;
-        els.downloadClassRosterBtn.hidden = reportMode !== "class" || !rows.length;
+        els.printClassReportBtn.innerHTML = `<ion-icon name="print-outline" aria-hidden="true"></ion-icon> ${reportMode === "class" ? "បោះពុម្ពបញ្ជី A4" : "បោះពុម្ពស្ថិតិ"}`;
+        els.downloadClassReportBtn.innerHTML = `<ion-icon name="download-outline" aria-hidden="true"></ion-icon> ${reportMode === "class" ? "ទាញ Excel" : "ទាញស្ថិតិ Excel"}`;
+        els.printGradeRosterBtn.hidden = reportMode !== "grade";
+        els.downloadGradeRosterBtn.hidden = reportMode !== "grade";
+        els.downloadClassRosterBtn.hidden = !rows.length;
         els.printSimpleClassRosterBtn.hidden = reportMode !== "class";
         els.printSimpleClassRosterBtn.disabled = !selected || selected.key === "unassigned";
         els.printClassReportBtn.disabled = !rows.length;
+        els.printGradeRosterBtn.disabled = !rows.length;
         els.downloadClassReportBtn.disabled = !rows.length;
+        els.downloadGradeRosterBtn.disabled = !rows.length;
         renderMonthlyAttendanceControls();
     }
 
@@ -10764,6 +10780,15 @@
             <div class="class-report-table-wrap">${classReportTableHtml(rows)}</div>`);
     }
 
+    function printGradeRoster() {
+        if (reportMode !== "grade") return;
+        const { selected, rows } = selectedClassReport();
+        const groups = selected ? [selected] : rows;
+        printAdminRosters(groups, selected
+            ? `បញ្ជីឈ្មោះសិស្សតាមកម្រិត${selected.name}`
+            : "បញ្ជីឈ្មោះសិស្សតាមកម្រិតថ្នាក់");
+    }
+
     function printSimpleClassRoster() {
         const { selected } = selectedClassReport();
         if (reportMode !== "class" || !selected || selected.key === "unassigned") {
@@ -10835,22 +10860,35 @@
         showToast("ទាញរបាយការណ៍ Excel រួច", "success");
     }
 
+    function downloadGradeRoster() {
+        if (reportMode !== "grade") return;
+        const { selected, rows } = selectedClassReport();
+        const groups = selected ? [selected] : rows;
+        if (!groups.length) return;
+        downloadClassRosterExcel(groups);
+    }
+
     function rosterDownloadName(groups, extension) {
-        const name = groups.length === 1 ? groups[0].name : "all-classes";
+        const byGrade = groups[0]?.key.startsWith("grade:");
+        const name = groups.length === 1
+            ? byGrade ? groups[0].key.slice(6) : groups[0].name
+            : byGrade ? "all-grades" : "all-classes";
         const safeName = String(name).replace(/[\\/:*?"<>|]/g, "-").replace(/\s+/g, "-");
-        return `student-roster-${safeName}-${appSettings.academicYearStart}.${extension}`;
+        return `student-roster-${byGrade ? "grade-" : ""}${safeName}-${appSettings.academicYearStart}.${extension}`;
     }
 
     function downloadClassRosterHtml() {
         const { selected, rows } = selectedClassReport();
-        if (reportMode !== "class" || !rows.length) return;
+        if (!rows.length) return;
         const groups = selected ? [selected] : rows;
-        const title = selected ? `បញ្ជីឈ្មោះសិស្សថ្នាក់ ${selected.name}` : "បញ្ជីឈ្មោះសិស្សតាមថ្នាក់";
+        const title = reportMode === "grade"
+            ? selected ? `បញ្ជីឈ្មោះសិស្សតាមកម្រិត${selected.name}` : "បញ្ជីឈ្មោះសិស្សតាមកម្រិតថ្នាក់"
+            : selected ? `បញ្ជីឈ្មោះសិស្សថ្នាក់ ${selected.name}` : "បញ្ជីឈ្មោះសិស្សតាមថ្នាក់";
         const openScript = "<scr" + "ipt>";
         const closeScript = "</scr" + "ipt>";
         const html = `<!doctype html><html lang="km"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title>
             ${classRosterPrintCss()}<style>body{margin:0}.roster-toolbar{display:flex;justify-content:center;padding:12px;background:#e7ebf1}.roster-toolbar button{padding:8px 18px;font:inherit;cursor:pointer}@media print{.roster-toolbar{display:none}}</style></head>
-            <body><div class="roster-toolbar"><button type="button" onclick="window.print()">បោះពុម្ព / Save as PDF</button></div>${groups.map(classRosterDocumentHtml).join("")}
+            <body><div class="roster-toolbar"><button type="button" onclick="window.print()">បោះពុម្ព / Save as PDF</button></div>${groups.map(group => classRosterDocumentHtml(group)).join("")}
             ${openScript}${fitRosterText.toString()};function fitAll(){fitRosterText(document)};document.fonts.ready.then(fitAll);window.addEventListener("resize",fitAll);${closeScript}</body></html>`;
         const url = URL.createObjectURL(new Blob([html], { type:"text/html;charset=utf-8" }));
         const link = document.createElement("a");
@@ -10860,7 +10898,7 @@
         link.click();
         link.remove();
         setTimeout(() => URL.revokeObjectURL(url), 60000);
-        showToast(`ទាញទម្រង់ A4 ${groups.length} ថ្នាក់រួច`, "success");
+        showToast(`ទាញទម្រង់ A4 ${groups.length} ${reportMode === "grade" ? "កម្រិតថ្នាក់" : "ថ្នាក់"}រួច`, "success");
     }
 
     const standardExcelColumns = [
@@ -10939,11 +10977,12 @@
             showToast("មុខងារ Excel មិនទាន់ផ្ទុក។ សូម Refresh ហើយសាកម្ដងទៀត។", "error");
             return;
         }
+        const byGrade = groups[0]?.key.startsWith("grade:");
         const sheets = groups.map(group => {
             const students = sortedRosterStudents(group);
             return {
                 name:group.name,
-                title:`បញ្ជីឈ្មោះសិស្សថ្នាក់ ${group.name}`,
+                title:byGrade ? `បញ្ជីឈ្មោះសិស្សតាមកម្រិត${group.name}` : `បញ្ជីឈ្មោះសិស្សថ្នាក់ ${group.name}`,
                 subtitle:"វិទ្យាល័យសុខអានព្រៃមេលង · មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ",
                 meta:workbookMeta(students),
                 columns:standardExcelColumns.map(({ value, ...column }) => column),
@@ -10952,9 +10991,9 @@
                 fitToWidth:1
             };
         });
-        const blob = window.StudentExport.styledWorkbook({ title:"បញ្ជីឈ្មោះសិស្សតាមថ្នាក់", sheets });
+        const blob = window.StudentExport.styledWorkbook({ title:byGrade ? "បញ្ជីឈ្មោះសិស្សតាមកម្រិតថ្នាក់" : "បញ្ជីឈ្មោះសិស្សតាមថ្នាក់", sheets });
         downloadWorkbookFile(blob, rosterDownloadName(groups, "xlsx"));
-        showToast(`ទាញ Excel ${groups.length} ថ្នាក់រួច · មានតម្រង និងក្បាលតារាងជាប់`, "success");
+        showToast(`ទាញ Excel ${groups.length} ${byGrade ? "កម្រិតថ្នាក់" : "ថ្នាក់"}រួច · មានតម្រង និងក្បាលតារាងជាប់`, "success");
     }
 
     function downloadStudentExcel() {
@@ -12699,8 +12738,10 @@
         els.reportModeGradeBtn?.addEventListener("click", () => { reportMode = "grade"; renderClassReport(); });
         els.classReportSelect?.addEventListener("change",renderClassReport);
         els.printClassReportBtn?.addEventListener("click",printClassReport);
+        els.printGradeRosterBtn?.addEventListener("click",printGradeRoster);
         els.printSimpleClassRosterBtn?.addEventListener("click",printSimpleClassRoster);
         els.downloadClassReportBtn?.addEventListener("click",downloadClassReport);
+        els.downloadGradeRosterBtn?.addEventListener("click",downloadGradeRoster);
         els.downloadClassRosterBtn?.addEventListener("click",downloadClassRosterHtml);
         els.monthlyAttendanceClass?.addEventListener("change",updateMonthlyAttendanceSummary);
         els.printMonthlyAttendanceBtn?.addEventListener("click",printMonthlyAttendance);
