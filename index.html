@@ -20,6 +20,7 @@
 <script async nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 <script async src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script defer src="./assets/kaoh-andaet-addresses.js"></script>
+<script defer src="./assets/school-document.js"></script>
 <script defer src="./assets/student-card.js"></script>
 <script defer src="./assets/student-export.js"></script>
 <script defer src="./assets/monthly-attendance.js"></script>
@@ -3406,7 +3407,7 @@
         .roster-table { width:100%; table-layout:fixed; border-collapse:collapse; }
         .roster-table th,.roster-table td { box-sizing:border-box; height:7mm; padding:.7mm 1mm; border:1px solid #1f2937; color:#111; font-size:10pt; line-height:1.45; vertical-align:middle; white-space:normal; }
         .roster-table td.roster-name { text-align:left; }
-        .roster-table td.roster-name .roster-fit-text { display:block; width:100%; font-size:12pt; font-weight:700; line-height:1.5; white-space:normal; overflow-wrap:anywhere; transform:none !important; }
+        .roster-table td.roster-name .roster-fit-text { display:block; width:100%; font-size:12pt; font-weight:700; line-height:1.3; white-space:normal; overflow-wrap:anywhere; transform:none !important; }
         .roster-table th { height:9mm; text-align:center; font-weight:700; white-space:normal; }
         .roster-table .roster-center { text-align:center; }
         .roster-table .roster-fit-text { display:inline-block; max-width:none; white-space:nowrap; transform-origin:left center; }
@@ -5393,7 +5394,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.83</span>
+        <span class="footer-version">កំណែ 2.1.84</span>
     </footer>
 
 </main><!-- end .app -->
@@ -10802,15 +10803,19 @@
             const start = page * perPage;
             const rows = students.slice(start, start + perPage).map((student, row) =>
                 `<tr>${cells(student, start + row)}</tr>`).join("") || `<tr><td colspan="${byGrade ? 7 : 6}" class="roster-center">មិនមានសិស្ស</td></tr>`;
+            const doc = window.SchoolDocument;
             return `<section class="school-roster-page">
-                <div class="roster-document-header">
-                    <div class="school-lines">ក្រសួងអប់រំ យុវជន និងកីឡា<br>មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ<br>វិទ្យាល័យសុខអានព្រៃមេលង<br>${byGrade ? esc(group.name) : `ថ្នាក់ ${esc(group.name)}`}</div>
-                    <div class="kingdom">ព្រះរាជាណាចក្រកម្ពុជា<br>ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
-                </div>
-                <h1 class="roster-document-title">បញ្ជីឈ្មោះសិស្ស ${esc(classLabel)} ឆ្នាំសិក្សា ${academicYear}</h1>
-                <table class="roster-table">${colgroup}<thead><tr>${headings}</tr></thead><tbody>${rows}</tbody></table>
-                <div class="roster-document-footer"><span>* បញ្ជីនេះមានសិស្សសរុប ${students.length} នាក់ ស្រី ${group.female} នាក់${pages > 1 ? `<span class="roster-page-number">(ទំព័រ ${page + 1}/${pages})</span>` : ""}</span><span class="roster-date">ថ្ងៃទី ........ ខែ ................ ឆ្នាំ ${toKhmerDigits(String(appSettings.issueDate || "").slice(0, 4) || new Date().getFullYear())}</span></div>
-                <div class="roster-signatures"><div>បានឃើញ និងឯកភាព<br>${byGrade ? "អ្នករៀបចំបញ្ជី" : "គ្រូបន្ទុកថ្នាក់"}<strong>${esc(teacher)}</strong></div><div>នាយកសាលា<strong>${esc(principal)}</strong></div></div>
+                ${doc.header({ title:`បញ្ជីឈ្មោះសិស្ស ${classLabel}`, subtitle:`ឆ្នាំសិក្សា ${academicYear}` })}
+                <table class="roster-table sd-table">${colgroup}<thead><tr>${headings}</tr></thead><tbody>${rows}</tbody></table>
+                ${doc.footer({
+                    note:`* បញ្ជីនេះមានសិស្សសរុប ${toKhmerDigits(students.length)} នាក់ ស្រី ${toKhmerDigits(group.female)} នាក់${pages > 1 ? ` · ទំព័រ ${toKhmerDigits(page + 1)}/${toKhmerDigits(pages)}` : ""}`,
+                    year:String(appSettings.issueDate || "").slice(0, 4) || new Date().getFullYear(),
+                    // Signatures close the list, so only the last page carries them.
+                    signatures:previewOnly || page === pages - 1 ? [
+                        { lines:["បានឃើញ និងឯកភាព", "នាយកសាលា"], name:principal },
+                        { lines:[byGrade ? "អ្នករៀបចំបញ្ជី" : "គ្រូបន្ទុកថ្នាក់"], name:teacher, dated:true }
+                    ] : []
+                })}
             </section>`;
         }).join("");
     }
@@ -10857,22 +10862,16 @@
             body { color:#111; }
             .school-roster-page { box-sizing:border-box; display:flex; flex-direction:column; width:194mm; min-width:0; max-width:none; min-height:281mm; height:auto; margin:0 auto; padding:0; box-shadow:none; break-after:page; page-break-after:always; font-family:"Khmer OS Siemreap","Siemreap",sans-serif; }
             .school-roster-page:last-child { break-after:auto; page-break-after:auto; }
-            .roster-document-header { display:grid; grid-template-columns:1fr 1fr; min-height:20mm; gap:3mm; font-size:8pt; line-height:1.45; }
-            .roster-document-header .kingdom { text-align:center; font-weight:700; }
-            .roster-document-header .school-lines { font-weight:700; }
-            h1.roster-document-title { margin:0 0 1.5mm; text-align:center; font-size:9pt; line-height:1.45; }
+            ${window.SchoolDocument.css()}
+            .school-roster-page .sd-footer { margin-top:auto; padding-top:2mm; }
             .roster-table { width:100%; table-layout:fixed; border-collapse:collapse; }
-            .roster-table th,.roster-table td { box-sizing:border-box; height:7mm; padding:.7mm 1mm; border:.2mm solid #111; color:#111; font-size:9.5pt; line-height:1.45; vertical-align:middle; white-space:normal; }
+            .roster-table th,.roster-table td { box-sizing:border-box; height:7mm; padding:.4mm 1mm; border:.25mm solid #000; color:#000; font-size:9.5pt; line-height:1.45; vertical-align:middle; white-space:normal; }
             .roster-table td.roster-name { text-align:left; }
-            .roster-table td.roster-name .roster-fit-text { display:block; width:100%; font-size:12pt; font-weight:700; line-height:1.5; white-space:normal; overflow-wrap:anywhere; transform:none !important; }
+            .roster-table td.roster-name .roster-fit-text { display:block; width:100%; font-size:12pt; font-weight:700; line-height:1.3; white-space:normal; overflow-wrap:anywhere; transform:none !important; }
             .roster-table th { height:9mm; text-align:center; font-size:9pt; font-weight:700; white-space:normal; }
             .roster-table .roster-center { text-align:center; }
             .roster-table .roster-fit-text { display:inline-block; max-width:none; white-space:nowrap; transform-origin:left center; }
             .roster-table .roster-center .roster-fit-text { transform-origin:center center; }
-            .roster-document-footer { display:grid; grid-template-columns:1fr 1fr; gap:4mm; margin-top:auto; padding-top:2mm; font-size:9pt; line-height:1.4; }
-            .roster-document-footer .roster-date { text-align:center; }
-            .roster-signatures { display:grid; grid-template-columns:1fr 1fr; gap:8mm; margin-top:3mm; text-align:center; font-size:9pt; line-height:1.4; }
-            .roster-signatures strong { display:block; margin-top:5mm; }
             @media screen { body { padding:12px; background:#e7ebf1; } .school-roster-page { margin:0 auto 14px; padding:8mm; width:210mm; min-height:297mm; height:auto; background:#fff; box-shadow:0 4px 18px #0002; } }
         </style>`;
     }
@@ -10991,8 +10990,25 @@
             return;
         }
         const title = reportMode === "grade" ? "របាយការណ៍ស្ថិតិសិស្សតាមកម្រិតថ្នាក់" : "របាយការណ៍ស្ថិតិសិស្សតាមថ្នាក់";
-        printWindow(title, `<h1>${esc(title)}</h1><p class="meta">វិទ្យាល័យសុខអានព្រៃមេលង · ${esc(new Date().toLocaleDateString("km-KH"))}</p>
-            <div class="class-report-table-wrap">${classReportTableHtml(rows)}</div>`);
+        const doc = window.SchoolDocument;
+        const year = Number(appSettings.academicYearStart);
+        printWindow(title, `<style>
+                @page { size:A4 portrait; margin:12mm; }
+                ${doc.css()}
+                .class-report-table-wrap table { width:100%; border-collapse:collapse; }
+                .class-report-table-wrap th, .class-report-table-wrap td { border:.25mm solid #000; padding:1.6mm 2mm; color:#000; text-align:center; font-size:10pt; }
+                .class-report-table-wrap th { background:#e6e6e6; font-weight:700; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+                .class-report-table-wrap tfoot td { background:#f2f2f2; font-weight:700; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+            </style>
+            ${doc.header({ title, subtitle:Number.isInteger(year) ? `ឆ្នាំសិក្សា ${toKhmerDigits(year)}-${toKhmerDigits(year + 1)}` : "" })}
+            <div class="class-report-table-wrap">${classReportTableHtml(rows)}</div>
+            ${doc.footer({
+                year:String(appSettings.issueDate || "").slice(0, 4) || new Date().getFullYear(),
+                signatures:[
+                    { lines:["បានឃើញ និងឯកភាព", "នាយកសាលា"], name:appSettings.principalName },
+                    { lines:["អ្នករៀបចំរបាយការណ៍"], dated:true }
+                ]
+            })}`);
     }
 
     function printGradeRoster() {
@@ -11023,7 +11039,9 @@
         const year = Number(appSettings.academicYearStart);
         const academicYear = Number.isInteger(year) ? `${toKhmerDigits(year)}–${toKhmerDigits(year + 1)}` : "—";
         printWindow(`បញ្ជីឈ្មោះសិស្សថ្នាក់ ${selected.name}`,
-            window.StudentSimpleClassRoster.printHtml({className:selected.name, academicYear, students}));
+            window.StudentSimpleClassRoster.printHtml({className:selected.name, academicYear, students,
+                teacher:appSettings.classTeachers[selected.name] || "", principal:appSettings.principalName || "",
+                year:String(appSettings.issueDate || "").slice(0, 4) || new Date().getFullYear()}));
     }
 
     function downloadClassReport() {
@@ -11065,8 +11083,8 @@
             sheets:[{
                 name:"ស្ថិតិតាមកម្រិត",
                 title:"របាយការណ៍ស្ថិតិសិស្សតាមកម្រិតថ្នាក់",
-                subtitle:"វិទ្យាល័យសុខអានព្រៃមេលង · មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ",
-                meta:`ឆ្នាំសិក្សា ${appSettings.academicYearStart}-${appSettings.academicYearStart + 1} · សិស្សសរុប ${total} នាក់`,
+                subtitle:`ឆ្នាំសិក្សា ${appSettings.academicYearStart}-${appSettings.academicYearStart + 1}`,
+                meta:`សិស្សសរុប ${total} នាក់`,
                 columns,
                 rows:data
             }]
@@ -11184,7 +11202,7 @@
     function workbookMeta(students) {
         const male = students.filter(student => student.gender === "ប្រុស").length;
         const female = students.filter(student => student.gender === "ស្រី").length;
-        return `ឆ្នាំសិក្សា ${appSettings.academicYearStart}-${appSettings.academicYearStart + 1} · សរុប ${students.length} នាក់ · ប្រុស ${male} · ស្រី ${female}`;
+        return `សរុប ${students.length} នាក់ · ប្រុស ${male} · ស្រី ${female}`;
     }
 
     function downloadClassRosterExcel(groups) {
@@ -11198,7 +11216,7 @@
             return {
                 name:group.name,
                 title:byGrade ? `បញ្ជីឈ្មោះសិស្សតាមកម្រិត${group.name}` : `បញ្ជីឈ្មោះសិស្សថ្នាក់ ${group.name}`,
-                subtitle:"វិទ្យាល័យសុខអានព្រៃមេលង · មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ",
+                subtitle:`ឆ្នាំសិក្សា ${appSettings.academicYearStart}-${appSettings.academicYearStart + 1}`,
                 meta:workbookMeta(students),
                 columns:standardExcelColumns.map(({ value, ...column }) => column),
                 rows:excelRows(students, standardExcelColumns),
@@ -11227,7 +11245,7 @@
             sheets:[{
                 name:"បញ្ជីសិស្ស",
                 title:"បញ្ជីទិន្នន័យសិស្សលម្អិត",
-                subtitle:"វិទ្យាល័យសុខអានព្រៃមេលង · មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ",
+                subtitle:`ឆ្នាំសិក្សា ${appSettings.academicYearStart}-${appSettings.academicYearStart + 1}`,
                 meta:workbookMeta(sorted),
                 columns:columns.map(({ value, ...column }) => column),
                 rows:excelRows(sorted, columns),
@@ -11968,15 +11986,29 @@
             ["ឈ្មោះអាណាព្យាបាល",s.guardianName],["ថ្ងៃខែឆ្នាំកំណើតអាណាព្យាបាល",formatDate(s.guardianDob)],
             ["អាសយដ្ឋានបច្ចុប្បន្ន",addressText(s,"current")],["លេខពាក្យ",s.applicationNumber]
         ].map(([l,v]) => `<tr><th>${esc(l)}</th><td>${esc(v||"–")}</td></tr>`).join("");
+        const doc = window.SchoolDocument;
         return `
-            <h1>ពាក្យចុះឈ្មោះសិស្ស</h1>
-            <p class="meta">បោះពុម្ព ${esc(new Date().toLocaleString("km-KH"))}</p>
-            ${photoSrc ? `<div style="display:flex;justify-content:center;margin:0 0 14px;"><img src="${esc(photoSrc)}" alt="រូបថតសិស្ស" style="width:90px;height:120px;object-fit:cover;border:1px solid #9ca3af;"></div>` : ""}
-            <table class="form-table"><tbody>${rows}</tbody></table>
-            <div class="sig-grid">
-                <div><div>ហត្ថលេខាមាតាបិតា/អាណាព្យាបាល</div><div class="sig-line">ឈ្មោះ និងហត្ថលេខា</div></div>
-                <div><div>អ្នកទទួលពាក្យ</div><div class="sig-line">ឈ្មោះ និងហត្ថលេខា</div></div>
-            </div>`;
+            <style>
+                @page { size:A4 portrait; margin:12mm; }
+                ${doc.css()}
+                .registration-sheet { display:grid; grid-template-columns:minmax(0,1fr) 30mm; gap:4mm; align-items:start; }
+                .registration-photo { width:30mm; height:40mm; border:.25mm solid #000; display:grid; place-items:center; font:9pt "Khmer OS Siemreap","Siemreap",sans-serif; }
+                .registration-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+                .form-table th, .form-table td { border:.25mm solid #000; padding:1.3mm 2mm; color:#000; font-size:10pt; line-height:1.45; }
+                .form-table th { width:36%; background:#f2f2f2; text-align:left; font-weight:700; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+            </style>
+            ${doc.header({ title:"ពាក្យចុះឈ្មោះសិស្ស", subtitle:`ឆ្នាំសិក្សា ${studentCardAcademicYear()}` })}
+            <div class="registration-sheet">
+                <table class="form-table sd-table"><tbody>${rows}</tbody></table>
+                <div class="registration-photo">${photoSrc ? `<img src="${esc(photoSrc)}" alt="រូបថតសិស្ស">` : "រូបថត ៣×៤"}</div>
+            </div>
+            ${doc.footer({
+                year:String(appSettings.issueDate || "").slice(0, 4) || new Date().getFullYear(),
+                signatures:[
+                    { lines:["ហត្ថលេខាមាតាបិតា", "ឬអាណាព្យាបាល"] },
+                    { lines:["អ្នកទទួលពាក្យ"], dated:true }
+                ]
+            })}`;
         }, [s]);
     }
 
@@ -12017,9 +12049,10 @@
                 table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 9px; }
                 thead { display: table-header-group; }
                 tr { break-inside: avoid; page-break-inside: avoid; }
-                th, td { border: .35mm solid #334155; padding: 1.45mm 1.25mm; font-size: 7.4pt; line-height: 1.35; vertical-align: middle; overflow-wrap: anywhere; }
-                th { background: #173f78; color: #fff; text-align: center; font-weight: 700; }
-                .class-row td { background: #dbeafe; color: #173f78; font-weight: 700; font-size: 8.2pt; border-top: .55mm solid #173f78; }
+                ${window.SchoolDocument.css()}
+                th, td { border: .25mm solid #000; padding: 1.4mm 1.25mm; color: #000; font-size: 8pt; line-height: 1.4; vertical-align: middle; overflow-wrap: anywhere; }
+                th { background: #e6e6e6; color: #000; text-align: center; font-weight: 700; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                .class-row td { background: #f2f2f2; color: #000; font-weight: 700; font-size: 8.5pt; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
                 td.num-col { text-align: center; }
                 td.center-col { text-align: center; }
                 td.code-col { text-align: center; font-family: Arial, sans-serif; font-size: 7pt; white-space: nowrap; }
@@ -12029,20 +12062,8 @@
                 td.photo-col { text-align: center; padding: .7mm; }
                 .print-list-photo { width: 8mm; height: 10.5mm; object-fit: cover; border: .25mm solid #94a3b8; display: block; margin: 0 auto; }
             </style>
-            <div style="display:flex;justify-content:space-between;margin-bottom:3mm;">
-                <div style="text-align:center;font-weight:bold;font-size:9pt;line-height:1.55;">
-                    <div>មន្ទីរអប់រំ យុវជន និងកីឡា</div>
-                    <div>វិទ្យាល័យសុខអានព្រៃមេលង</div>
-                </div>
-                <div style="text-align:center;font-weight:bold;font-size:9pt;line-height:1.55;">
-                    <div style="font-size:10pt;">ព្រះរាជាណាចក្រកម្ពុជា</div>
-                    <div>ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
-                </div>
-            </div>
-            <h1 style="text-align:center;font-size:14pt;font-weight:700;margin:2mm 0 1mm;">បញ្ជីរាយនាមសិស្ស</h1>
-            <p style="text-align:center;font-size:8.5pt;font-weight:bold;color:#334155;margin:0 0 2mm;">
-                ឆ្នាំសិក្សា ${esc(studentCardAcademicYear())} | សរុប ${rows.length} នាក់ | ថ្ងៃបោះពុម្ព៖ ${esc(new Date().toLocaleDateString("km-KH"))}
-            </p>
+            ${window.SchoolDocument.header({ title:withPhotos ? "បញ្ជីរាយនាមសិស្ស (មានរូបថត)" : "បញ្ជីរាយនាមសិស្ស" })}
+            <p class="sd-subtitle">ឆ្នាំសិក្សា ${esc(studentCardAcademicYear())}</p>
             <table>
                 <colgroup>
                     ${withPhotos ? `
@@ -12071,7 +12092,15 @@
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
-            </table>`;
+            </table>
+            ${window.SchoolDocument.footer({
+                note:`* បញ្ជីនេះមានសិស្សសរុប ${toKhmerDigits(rows.length)} នាក់ ស្រី ${toKhmerDigits(rows.filter(student => student.gender === "ស្រី").length)} នាក់`,
+                year:String(appSettings.issueDate || "").slice(0, 4) || new Date().getFullYear(),
+                signatures:[
+                    { lines:["បានឃើញ និងឯកភាព", "នាយកសាលា"], name:appSettings.principalName },
+                    { lines:["អ្នករៀបចំបញ្ជី"], dated:true }
+                ]
+            })}`;
         }, withPhotos ? rows : []);
     }
 

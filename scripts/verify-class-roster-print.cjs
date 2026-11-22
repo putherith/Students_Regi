@@ -15,10 +15,12 @@ const context = {
     studentVisibleId:student => student.studentCode,
     studentFullName:student => student.name,
     toKhmerDigits:value => String(value),
+    window:{},
     esc:value => String(value).replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[character]),
     Date
 };
 vm.createContext(context);
+vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'assets', 'school-document.js'), 'utf8'), context);
 vm.runInContext(html.slice(start, end), context);
 
 const makeGroup = count => ({
@@ -31,58 +33,57 @@ const makeGroup = count => ({
     }))
 });
 
-const onePage = context.classRosterDocumentHtml(makeGroup(65));
+const onePage = context.classRosterDocumentHtml(makeGroup(25));
 assert.equal((onePage.match(/class="school-roster-page"/g) || []).length, 1);
-assert.equal((onePage.match(/<tr>/g) || []).length, 46, 'One header and 45 mirrored rows');
-assert.match(onePage, /បញ្ជីឈ្មោះសិស្ស ថ្នាក់ទី 8B/);
-assert.match(onePage, /បញ្ជីនេះមានសិស្សសរុប 65 នាក់ ស្រី 18 នាក់/);
-assert.match(onePage, /ថ្ងៃទី \.\.\.\.\.\.\.\. ខែ \.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\. ឆ្នាំ 2026/);
+assert.equal((onePage.match(/<tr>/g) || []).length, 26, 'One header and 25 rows per A4 page');
+assert.match(onePage, /ព្រះរាជាណាចក្រកម្ពុជា/, 'Kingdom motto');
+assert.match(onePage, /ជាតិ សាសនា ព្រះមហាក្សត្រ/);
+assert.match(onePage, /មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ/, 'Department on the left');
+assert.match(onePage, /វិទ្យាល័យសុខអានព្រៃមេលង/);
+assert.match(onePage, /class="sd-title">បញ្ជីឈ្មោះសិស្ស ថ្នាក់ទី 8B/);
+assert.match(onePage, /class="roster-table sd-table"/);
+assert.match(onePage, /បញ្ជីនេះមានសិស្សសរុប 25 នាក់ ស្រី 18 នាក់/);
+assert.match(onePage, /ព\.ស\./, 'Lunar date line');
+assert.match(onePage, /ព្រៃមេលង, ថ្ងៃទី\.+ ខែ\.+ ឆ្នាំ២០២៦/, 'Solar date line');
 assert.match(onePage, /គ្រូបន្ទុកថ្នាក់/);
+assert.match(onePage, /បានឃើញ និងឯកភាព/);
 assert.match(onePage, /នាយកសាលា/);
-assert.match(onePage, /សិស្ស 65/);
+assert.match(onePage, /សិស្ស 25/);
 
-const twoPages = context.classRosterDocumentHtml(makeGroup(91));
-assert.equal((twoPages.match(/class="school-roster-page"/g) || []).length, 2);
-assert.match(twoPages, /សិស្ស 91/);
-assert.match(twoPages, /ទំព័រ 2\/2/);
+const threePages = context.classRosterDocumentHtml(makeGroup(65));
+assert.equal((threePages.match(/class="school-roster-page"/g) || []).length, 3);
+assert.match(threePages, /សិស្ស 65/);
+assert.match(threePages, /ទំព័រ 3\/3/);
+assert.equal((threePages.match(/class="sd-signatures"/g) || []).length, 1, "Signatures only on the last page");
 assert.match(context.classRosterPrintCss(), /size:A4 portrait/);
-assert.match(context.classRosterPrintCss(), /min-height:20mm/);
-assert.ok(20 + 6 + 8 + 45 * 4.9 + 6 + 20 < 284, 'Header, 45 rows and signatures fit one printable A4 page');
+assert.match(context.classRosterPrintCss(), /\.sd-table th \{ background:#e6e6e6/, 'Light grey header');
+assert.doesNotMatch(context.classRosterPrintCss(), /#173F78|#0F766E/i, 'Black and white only');
 assert.match(html, /data-sidebar-view="report"/, 'Roster is reached through the Reports navigation');
 assert.match(html, /id="report-mode-class"/, 'Class mode remains available in Reports');
 assert.match(html, /id="class-report-select"/);
 assert.match(html, /id="download-class-roster-btn"/);
-assert.match(onePage, /width:16%/);
+assert.match(onePage, /width:36%/);
 assert.match(html, /function fitRosterText\(root\)/);
 
 const downloadStart = html.indexOf('    function rosterDownloadName(groups, extension) {');
 const downloadEnd = html.indexOf('    // ===================== FILTERS', downloadStart);
 assert.ok(downloadStart >= 0 && downloadEnd > downloadStart, 'Roster export functions exist');
 vm.runInContext(html.slice(downloadStart, downloadEnd), context);
-const excelPage = context.classRosterExcelPage(makeGroup(65), context.sortedRosterStudents(makeGroup(65)), 0, 1);
-assert.equal(excelPage.length, 56);
-assert.equal(excelPage[6][0], 1);
-assert.equal(excelPage[6][6], 46);
-assert.equal(excelPage[25][6], 65);
-assert.equal(excelPage[26][6], '');
-assert.match(excelPage[4][0], /8B/);
-const secondExcelPage = context.classRosterExcelPage(makeGroup(91), context.sortedRosterStudents(makeGroup(91)), 1, 2);
-assert.equal(secondExcelPage[6][0], 91);
-let exportedBook;
-let exportedName;
-context.window = { XLSX:{
-    utils:{
-        book_new:() => ({ sheets:[] }),
-        aoa_to_sheet:rows => ({ rows }),
-        book_append_sheet:(book, sheet, name) => book.sheets.push({ sheet, name })
-    },
-    writeFile:(book, name) => { exportedBook = book; exportedName = name; }
-} };
+let workbookSpec;
+context.window.StudentExport = { styledWorkbook:spec => { workbookSpec = spec; return { size:1 }; } };
 context.showToast = () => {};
+context.addressText = () => '';
+context.document = { body:{ append:() => {} }, createElement:() => ({ click:() => {}, remove:() => {} }) };
+context.URL = { createObjectURL:() => 'blob:test', revokeObjectURL:() => {} };
+context.setTimeout = () => {};
+vm.runInContext('downloadWorkbookFile = (blob, name) => { globalThis.__name = name; };', context);
 context.downloadClassRosterExcel([makeGroup(91)]);
-assert.equal(exportedBook.sheets.length, 2);
-assert.equal(exportedBook.sheets[1].sheet.rows[6][0], 91);
-assert.match(exportedName, /\.xlsx$/);
+assert.equal(workbookSpec.sheets.length, 1);
+assert.equal(workbookSpec.sheets[0].rows.length, 91);
+assert.equal(workbookSpec.sheets[0].rows[90][0], 91);
+assert.equal(workbookSpec.sheets[0].subtitle, 'ឆ្នាំសិក្សា 2026-2027');
+assert.doesNotMatch(workbookSpec.sheets[0].subtitle, /វិទ្យាល័យ/, 'School is in the ministry rows, not repeated');
+assert.match(context.__name, /\.xlsx$/);
 let downloadedBlob;
 context.selectedClassReport = () => ({ selected:makeGroup(65), rows:[makeGroup(65)] });
 context.reportMode = 'class';
@@ -93,10 +94,10 @@ context.setTimeout = () => {};
 context.downloadClassRosterHtml();
 downloadedBlob.text().then(downloadedHtml => {
     assert.match(downloadedHtml, /<html lang="km">/);
-    assert.match(downloadedHtml, /<table class="roster-table">/);
+    assert.match(downloadedHtml, /<table class="roster-table sd-table">/);
     assert.match(downloadedHtml, /size:A4 portrait/);
     assert.match(downloadedHtml, /<script>function fitRosterText/);
-    assert.equal((downloadedHtml.match(/class="school-roster-page"/g) || []).length, 1);
+    assert.equal((downloadedHtml.match(/class="school-roster-page"/g) || []).length, 3);
     const downloadedScript = downloadedHtml.match(/<script>([\s\S]*?)<\/script>/);
     assert.ok(downloadedScript);
     new vm.Script(downloadedScript[1]);
@@ -106,5 +107,5 @@ downloadedBlob.text().then(downloadedHtml => {
         fs.writeFileSync(output, downloadedHtml);
         console.log(`Local visual fixture: ${output}`);
     }
-    console.log('Class roster print/export: official 45-row halves, 90-student pages and A4 layout');
+    console.log('Class roster print/export: ministry header, 25-row A4 pages, signatures and Excel spec');
 }).catch(error => { console.error(error); process.exitCode = 1; });
