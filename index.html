@@ -4498,6 +4498,70 @@
             .ambient-grid { display: none !important; }
             body::before, body::after { display: none !important; }
         }
+        /* ========================
+           TASK HOME + LIVE REGISTRATION CHECKS (v2.1.81)
+        ======================== */
+        .task-home { margin: 0 0 16px; }
+        .task-home-title { margin: 0 0 10px; color: var(--text); font-size: 1.02rem; font-weight: 700; }
+        .task-home-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+        .task-card {
+            display: flex; align-items: center; gap: 14px; min-height: 84px; padding: 14px 16px;
+            border: 1px solid var(--border); border-radius: 14px; background: var(--surface);
+            color: var(--text); font: inherit; text-align: left; cursor: pointer;
+            box-shadow: var(--shadow-sm); transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+        }
+        .task-card:hover { border-color: var(--primary); box-shadow: var(--shadow); }
+        .task-card:focus-visible { outline: 3px solid var(--official-gold); outline-offset: 2px; }
+        .task-card ion-icon {
+            flex: 0 0 auto; width: 26px; height: 26px; padding: 11px; box-sizing: content-box;
+            border-radius: 12px; background: var(--primary-soft); color: var(--primary);
+        }
+        .task-card-text { display: grid; gap: 2px; min-width: 0; }
+        .task-card-text strong { font-size: .98rem; line-height: 1.45; }
+        .task-card-text small { color: var(--muted); font-size: .76rem; line-height: 1.45; }
+        .task-card-primary { border-color: #0d1d41; background: #0d1d41; color: #fff; }
+        .task-card-primary:hover { border-color: #0d1d41; background: #142a5c; }
+        .task-card-primary ion-icon { background: var(--official-gold); color: #0d1d41; }
+        .task-card-primary .task-card-text small { color: #c9d6ea; }
+        html[data-theme="dark"] .task-card-primary { border-color: var(--primary); background: var(--primary); }
+        body.mobile-form-view .task-home,
+        body.class-browser-view .task-home,
+        body.report-page .task-home { display: none !important; }
+        @media (max-width: 1100px) { .task-home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        /* Phones already have the four jobs in the bottom tab bar. */
+        @media (max-width: 600px) { .task-home { display: none; } }
+        @media (prefers-reduced-motion: reduce) { .task-card { transition: none; } }
+
+        .field-check { display: block; margin-top: 6px; font-size: .78rem; line-height: 1.5; }
+        .field-check[data-level="warning"] { color: #8a5a00; }
+        .field-check[data-level="error"] { color: var(--red, #b91c1c); font-weight: 700; }
+
+        .similar-students {
+            margin-top: 4px; padding: 12px 14px; border: 1px solid #e7c873; border-left-width: 4px;
+            border-radius: 12px; background: var(--official-gold-soft); color: var(--text);
+        }
+        .similar-students[data-level="strong"] { border-color: #e9a3a3; background: #fff4f4; }
+        .similar-students[hidden] { display: none !important; }
+        .similar-students-title { display: flex; align-items: center; gap: 7px; margin: 0 0 8px; font-weight: 700; font-size: .88rem; }
+        .similar-students-title ion-icon { width: 18px; height: 18px; flex: 0 0 auto; color: #8a5a00; }
+        .similar-students[data-level="strong"] .similar-students-title ion-icon { color: var(--red, #b91c1c); }
+        .similar-students ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+        .similar-students li {
+            display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px;
+            padding: 8px 10px; border-radius: 9px; background: var(--surface);
+        }
+        .similar-name { font-weight: 700; }
+        .similar-meta { grid-column: 1; color: var(--muted); font-size: .76rem; }
+        .similar-reason { grid-column: 1; color: #8a5a00; font-size: .72rem; font-weight: 700; }
+        .similar-open { grid-column: 2; grid-row: 1 / span 3; }
+        html[data-theme="dark"] .similar-students { background: #3a3020; border-color: #6b5524; }
+        html[data-theme="dark"] .similar-students[data-level="strong"] { background: #3a1f22; border-color: #7a3b3f; }
+
+        /* Tablet widths: the card and tab icons were sized only in the phone layout. */
+        .mobile-tab-btn svg { flex: 0 0 auto; width: 20px; height: 20px; }
+        .mobile-card-chevron, .mobile-card-chevron svg { display: block; width: 16px; height: 16px; }
+        .mobile-quick-actions button svg { flex: 0 0 auto; width: 19px; height: 19px; }
+        .mobile-card-toggle .data-status-badge svg { flex: 0 0 12px; width: 12px; height: 12px; }
     </style>
 </head>
 <body class="sidebar-open">
@@ -4610,6 +4674,30 @@
         <div class="mobile-gender-stats">
             <div class="mobile-gender-stat male"><span>ប្រុស · <span id="mobile-male-percent">0%</span></span><strong id="mobile-male-students">--</strong></div>
             <div class="mobile-gender-stat female"><span>ស្រី · <span id="mobile-female-percent">0%</span></span><strong id="mobile-female-students">--</strong></div>
+        </div>
+    </section>
+
+    <!-- ======================== TASK HOME ======================== -->
+    <!-- The four everyday jobs, one click each. Reuses the existing navigation. -->
+    <section class="task-home" aria-labelledby="task-home-title">
+        <h2 id="task-home-title" class="task-home-title">តើថ្ងៃនេះចង់ធ្វើអ្វី?</h2>
+        <div class="task-home-grid">
+            <button class="task-card task-card-primary" type="button" data-task="form">
+                <ion-icon name="person-add-outline" aria-hidden="true"></ion-icon>
+                <span class="task-card-text"><strong>ចុះឈ្មោះសិស្សថ្មី</strong><small>បញ្ចូលព័ត៌មាន និងរូបថតសិស្ស</small></span>
+            </button>
+            <button class="task-card" type="button" data-task="search">
+                <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+                <span class="task-card-text"><strong>ស្វែងរកសិស្ស</strong><small>តាមឈ្មោះ អត្តលេខ ឬលេខទូរសព្ទ</small></span>
+            </button>
+            <button class="task-card" type="button" data-task="classes">
+                <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
+                <span class="task-card-text"><strong>សិស្សតាមថ្នាក់</strong><small>មើលបញ្ជីថ្នាក់នីមួយៗ</small></span>
+            </button>
+            <button class="task-card" type="button" data-task="report">
+                <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
+                <span class="task-card-text"><strong>របាយការណ៍ និងបោះពុម្ព</strong><small>បញ្ជីឈ្មោះ កាតសិស្ស Excel</small></span>
+            </button>
         </div>
     </section>
 
@@ -4898,7 +4986,9 @@
                                     </div>
                                     <input id="dob" name="dob" type="hidden">
                                     <small id="dob-help" class="field-help">ជ្រើសថ្ងៃ ខែ និងឆ្នាំពីបញ្ជី</small>
+                                    <small id="dob-check" class="field-check" role="status" hidden></small>
                                 </div>
+                                <div id="similar-students" class="similar-students field-full" role="status" aria-live="polite" hidden></div>
                             </div>
                             <details id="family-details" class="family-details">
                                 <summary>ព័ត៌មានឪពុក ម្តាយ និងអាណាព្យាបាល</summary>
@@ -5303,7 +5393,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.80</span>
+        <span class="footer-version">កំណែ 2.1.82</span>
     </footer>
 
 </main><!-- end .app -->
@@ -8558,6 +8648,112 @@
         return `ព័ត៌មានសិស្សនេះមានរួចហើយ: ${studentFullName(dup.student)} (${studentDisplayId(dup.student) || "គ្មានអត្តលេខ"})`;
     }
 
+    // ----- Live checks while registering -----
+    // The exact check above only catches identical records. These catch the
+    // spelling variants and impossible birth dates that slip through (for
+    // example គឺន សុកា / គឿន ស្រីកា with the same birth date).
+    function nameSimilarity(a, b) {
+        const left = [...normText(a)], right = [...normText(b)];
+        if (!left.length || !right.length) return 0;
+        let previous = Array.from({ length:right.length + 1 }, (_, index) => index);
+        for (let i = 1; i <= left.length; i++) {
+            const current = [i];
+            for (let j = 1; j <= right.length; j++) {
+                current[j] = Math.min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + (left[i - 1] === right[j - 1] ? 0 : 1));
+            }
+            previous = current;
+        }
+        return 1 - previous[right.length] / Math.max(left.length, right.length);
+    }
+
+    function findSimilarStudents(draft, ignoreId="", source=allStudents, limit=3) {
+        const name = studentFullName(draft);
+        if (normText(name).length < 3) return [];
+        const gender = normGender(draft.gender);
+        const dob = normDate(draft.dob);
+        const matches = [];
+        for (const student of source) {
+            if (!student || (ignoreId && student.id === ignoreId)) continue;
+            const similarity = nameSimilarity(name, studentFullName(student));
+            const sameGender = !gender || normGender(student.gender) === gender;
+            const sameDob = !!dob && normDate(student.dob) === dob;
+            let reason = "";
+            if (similarity === 1) reason = "ឈ្មោះដូចគ្នា";
+            else if (sameDob && sameGender && similarity >= 0.5) reason = "ថ្ងៃកំណើត និងភេទដូចគ្នា ឈ្មោះស្រដៀង";
+            else if (sameGender && similarity >= 0.8) reason = "ឈ្មោះស្រដៀង";
+            if (!reason) continue;
+            const strong = similarity === 1 || (sameDob && sameGender);
+            matches.push({ student, similarity, sameDob, strong, reason });
+        }
+        return matches
+            .sort((a, b) => Number(b.strong) - Number(a.strong) || Number(b.sameDob) - Number(a.sameDob) || b.similarity - a.similarity)
+            .slice(0, limit);
+    }
+
+    // Age on 1 November of the academic year, when the school year starts.
+    function dobCheck(dob, className) {
+        const value = normDate(dob);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return { level:"", message:"" };
+        const birth = new Date(`${value}T00:00:00`);
+        if (Number.isNaN(birth.getTime())) return { level:"error", message:"ថ្ងៃខែឆ្នាំកំណើតមិនត្រឹមត្រូវ" };
+        if (birth > new Date()) return { level:"error", message:"ថ្ងៃកំណើតមិនអាចនៅថ្ងៃអនាគតបានទេ" };
+        const year = Number(appSettings.academicYearStart) || new Date().getFullYear();
+        const reference = new Date(`${year}-11-01T00:00:00`);
+        let age = reference.getFullYear() - birth.getFullYear();
+        if (reference < new Date(reference.getFullYear(), birth.getMonth(), birth.getDate())) age--;
+        if (age < 6) return { level:"error", message:`សិស្សមានអាយុត្រឹម ${age} ឆ្នាំ។ សូមពិនិត្យឆ្នាំកំណើតម្ដងទៀត` };
+        const grade = classGrade(className);
+        const low = grade ? grade + 2 : 10, high = grade ? grade + 11 : 25;
+        if (age < low || age > high) {
+            return { level:"warning", message:`អាយុ ${age} ឆ្នាំ មិនធម្មតាសម្រាប់${grade ? ` ថ្នាក់ទី ${grade}` : "អនុវិទ្យាល័យ/វិទ្យាល័យ"}។ សូមពិនិត្យឆ្នាំកំណើត` };
+        }
+        return { level:"", message:`អាយុ ${age} ឆ្នាំ` };
+    }
+
+    function registrationDraft() {
+        return {
+            studentSurname:getValue("studentSurname"),
+            studentGivenName:getValue("studentGivenName"),
+            gender:document.querySelector('input[name="gender"]:checked')?.value || "",
+            dob:getValue("dob"),
+            className:getValue("className")
+        };
+    }
+
+    function renderRegistrationChecks() {
+        const draft = registrationDraft();
+        const editingId = els.editingId.value;
+        const check = dobCheck(draft.dob, draft.className);
+        const dobNote = document.getElementById("dob-check");
+        if (dobNote) {
+            dobNote.hidden = !check.level;
+            dobNote.textContent = check.message;
+            dobNote.dataset.level = check.level;
+        }
+        const panel = document.getElementById("similar-students");
+        if (!panel) return;
+        const similar = editingId ? [] : findSimilarStudents(draft, editingId);
+        panel.hidden = !similar.length;
+        if (!similar.length) { panel.innerHTML = ""; return; }
+        panel.dataset.level = similar.some(item => item.strong) ? "strong" : "weak";
+        panel.innerHTML = `
+            <p class="similar-students-title"><ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                ${similar.some(item => item.strong) ? "ប្រហែលជាសិស្សនេះមានរួចហើយ" : "មានសិស្សឈ្មោះស្រដៀង"} — សូមពិនិត្យមុនរក្សាទុក</p>
+            <ul>${similar.map(({ student, reason }) => `
+                <li>
+                    <span class="similar-name">${esc(studentFullName(student))}</span>
+                    <span class="similar-meta">${esc(student.gender || "–")} · ${esc(formatDate(student.dob) || "–")} · ថ្នាក់ ${esc(student.className || "–")} · ${esc(studentDisplayId(student) || "គ្មានអត្តលេខ")}</span>
+                    <span class="similar-reason">${esc(reason)}</span>
+                    <button type="button" class="btn btn-ghost btn-sm similar-open" data-id="${esc(student.id)}">បើកមើល</button>
+                </li>`).join("")}</ul>`;
+    }
+
+    let registrationCheckTimer = 0;
+    function scheduleRegistrationChecks() {
+        clearTimeout(registrationCheckTimer);
+        registrationCheckTimer = setTimeout(renderRegistrationChecks, 250);
+    }
+
     // ===================== STUDENT CODE GENERATION =====================
     function classGrade(className) {
         const text = String(className || "").replace(/[០-៩]/g, digit => String(digit.charCodeAt(0) - 0x17E0))
@@ -10097,6 +10293,7 @@
     }
 
     function resetForm() {
+        setTimeout(renderRegistrationChecks, 0);
         const wasEditing = Boolean(els.editingId.value);
         if (!wasEditing) clearFormDraft();
         photoSelectedByUser = false;
@@ -10255,6 +10452,24 @@
         };
         const localDuplicate = findDuplicate(payload, editingId, allStudents, duplicateOptions);
         if (localDuplicate) { showToast(duplicateMsg(localDuplicate), "warning"); return; }
+        const dateCheck = dobCheck(payload.dob, payload.className);
+        if (dateCheck.level === "error") {
+            setFormStage(1);
+            renderRegistrationChecks();
+            showToast(dateCheck.message, "warning");
+            document.getElementById("dob-year")?.focus();
+            return;
+        }
+        if (dateCheck.level === "warning" && !confirm(`${dateCheck.message}\n\nនៅតែរក្សាទុក?`)) return;
+        if (!editingId) {
+            const likely = findSimilarStudents(payload, "", allStudents).filter(match => match.strong);
+            if (likely.length && !confirm(`ប្រហែលជាសិស្សនេះមានរួចហើយ៖\n${likely.map(({ student }) =>
+                `• ${studentFullName(student)} · ${formatDate(student.dob) || "–"} · ថ្នាក់ ${student.className || "–"} · ${studentDisplayId(student) || "គ្មានអត្តលេខ"}`).join("\n")}\n\nនេះជាសិស្សម្នាក់ផ្សេងទៀតមែនទេ? ចុច OK ដើម្បីរក្សាទុក។`)) {
+                setFormStage(1);
+                renderRegistrationChecks();
+                return;
+            }
+        }
         if (!payload.studentCode && !classGrade(payload.className)) {
             showToast("សូមបំពេញថ្នាក់ទី ៧–១២ មុនបង្កើតអត្តលេខស្វ័យប្រវត្តិ", "warning");
             return;
@@ -12569,6 +12784,36 @@
             if (button) setFormStage(button.dataset.formStageButton);
         });
         document.getElementById("form-stage-back")?.addEventListener("click", () => setFormStage(activeFormStage - 1));
+        // Live similar-student and birth-date checks while typing.
+        const checkedFields = new Set(["studentSurname", "studentGivenName", "dob-day", "dob-month", "dob-year", "className"]);
+        const onRegistrationEdit = event => {
+            if (!checkedFields.has(event.target.id) && event.target.name !== "gender") return;
+            syncAllDateSelectors();
+            scheduleRegistrationChecks();
+        };
+        els.registrationForm.addEventListener("input", onRegistrationEdit);
+        els.registrationForm.addEventListener("change", onRegistrationEdit);
+        document.getElementById("similar-students")?.addEventListener("click", async event => {
+            const button = event.target.closest(".similar-open");
+            if (!button) return;
+            const typed = getValue("studentSurname") || getValue("studentGivenName");
+            if (typed && !confirm("បើកព័ត៌មានសិស្សដែលមានរួចហើយ? អ្វីដែលបានវាយក្នុងទម្រង់នេះនឹងមិនត្រូវបានរក្សាទុកទេ។")) return;
+            await loadStudentIntoForm(button.dataset.id);
+        });
+        // Task home: each card reuses the existing navigation.
+        document.querySelector(".task-home")?.addEventListener("click", event => {
+            const task = event.target.closest("[data-task]")?.dataset.task;
+            if (!task) return;
+            if (task === "search") {
+                setActiveTab("list");
+                els.searchInput.scrollIntoView({ block:"center", behavior:"smooth" });
+                els.searchInput.focus({ preventScroll:true });
+                return;
+            }
+            const target = document.querySelector(`#app-actions [data-sidebar-view="${task}"]`);
+            if (target) target.click();
+            else document.getElementById({ form:"tab-form-btn", classes:"tab-classes-btn", report:"tab-report-btn" }[task])?.click();
+        });
         document.getElementById("form-stage-next")?.addEventListener("click", () => {
             syncAllDateSelectors();
             const invalid = firstInvalidInStage(activeFormStage);
