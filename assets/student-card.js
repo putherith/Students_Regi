@@ -55,8 +55,13 @@
                 return `<article class="certificate-student-card certificate-student-card-back" style="grid-column:${mirroredColumn};grid-row:${row}" aria-label="បទបញ្ជាផ្ទៃក្នុងសម្រាប់កាត ${escape(student.studentName)}">
                   <img class="regulations-watermark" src="${escape(schoolEmblemUrl)}" alt="">
                   <div class="regulations-content">
-                    <header class="regulations-heading">បទបញ្ជាផ្ទៃក្នុងសាលា</header>
-                    <div class="regulations-school-name">វិទ្យាល័យសុខអានព្រៃមេលង</div>
+                    <div class="regulations-masthead">
+                      <img class="regulations-emblem" src="${escape(schoolEmblemUrl)}" alt="">
+                      <div class="regulations-titles">
+                        <header class="regulations-heading">បទបញ្ជាផ្ទៃក្នុងសាលា</header>
+                        <div class="regulations-school-name">វិទ្យាល័យសុខអានព្រៃមេលង</div>
+                      </div>
+                    </div>
                     <div class="regulations-sections">
                     <section class="regulations-do"><h2>ផ្នែកទី១៖ ត្រូវធ្វើ</h2><ol>
                       <li>មកសាលាមុន ១៥ នាទី ដើម្បីគោរពទង់ជាតិ និងចូលរៀនទាន់ពេល។</li>
@@ -92,20 +97,33 @@
           .cards-grid.card-back-page { direction:ltr; }
           .cards-grid:last-child { break-after:auto; page-break-after:auto; }
           .certificate-student-card { position:relative; width:95mm; height:120mm; border:.38mm solid #1717ff; background:#fff; box-sizing:border-box; overflow:hidden; break-inside:avoid; page-break-inside:avoid; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
-          .certificate-student-card-back { border-color:transparent; padding:3mm 3.5mm; display:flex; isolation:isolate; color:#111; font:11px/1.55 "Khmer OS Siemreap","Siemreap",sans-serif; }
-          .regulations-watermark { position:absolute; z-index:0; width:78mm; height:78mm; left:50%; top:52%; transform:translate(-50%,-50%); object-fit:contain; opacity:.075; pointer-events:none; }
+          /* Card back: school rules. No outer border, because duplex printers
+             never line a back border up exactly with the front's cut edge. */
+          .certificate-student-card-back { border-color:transparent; padding:2.2mm 2.6mm 2mm; display:flex; isolation:isolate; color:#14222e; font:11px/1.5 "Khmer OS Siemreap","Siemreap",sans-serif; }
+          .regulations-watermark { position:absolute; z-index:0; width:74mm; height:74mm; left:50%; top:56%; transform:translate(-50%,-50%); object-fit:contain; opacity:.06; pointer-events:none; }
           .regulations-content { position:relative; z-index:1; flex:1; min-height:0; display:flex; flex-direction:column; }
-          .regulations-heading { color:#204e78; text-align:center; font:16px/1.4 "Khmer OS Muol Light","Khmer OS Moul","Moul",serif; }
-          .regulations-school-name { margin:.3mm 0 1.5mm; text-align:center; color:#234c8c; font:11px/1.4 "Khmer OS Siemreap","Siemreap",sans-serif; font-weight:bold; }
-          .regulations-sections { flex:1; display:flex; flex-direction:column; gap:2.5mm; }
-          .regulations-sections section { margin:0; }
-          .regulations-sections h2 { margin:0; padding:.5mm 1mm; color:#fff; font:700 11px/1.4 "Khmer OS Siemreap","Siemreap",sans-serif; }
+          .regulations-masthead { display:flex; align-items:center; justify-content:center; gap:2.4mm; padding-bottom:1mm; margin-bottom:1.5mm; border-bottom:.45mm solid #c7982e; box-shadow:0 .5mm 0 #fff, 0 .75mm 0 #20517d; }
+          .regulations-emblem { flex:0 0 auto; width:9.5mm; height:9.5mm; object-fit:contain; }
+          .regulations-titles { text-align:center; }
+          .regulations-heading { color:#173e6e; font:15px/1.38 "Khmer OS Muol Light","Khmer OS Moul","Moul",serif; letter-spacing:.01em; }
+          .regulations-school-name { color:#8a6900; font:700 10.5px/1.35 "Khmer OS Siemreap","Siemreap",sans-serif; }
+          .regulations-sections { flex:1; display:flex; flex-direction:column; justify-content:space-between; gap:2mm; }
+          .regulations-sections section { --rule:#20517d; --tint:rgba(32,81,125,.07); margin:0; padding:1.1mm 1.6mm 1.2mm 1.9mm; border-left:.9mm solid var(--rule); border-radius:0 1.6mm 1.6mm 0; background:var(--tint); }
+          .regulations-dont { --rule:#c70000 !important; --tint:rgba(199,0,0,.055) !important; }
+          .regulations-discipline { --rule:#8a6900 !important; --tint:rgba(199,152,46,.11) !important; }
+          .regulations-sections h2 { display:inline-flex; align-items:center; gap:1.2mm; margin:0 0 .6mm; padding:.2mm 2.4mm .2mm .9mm; border-radius:99px; color:#fff; font:700 10.8px/1.4 "Khmer OS Siemreap","Siemreap",sans-serif; }
+          .regulations-sections h2::before { display:inline-grid; place-items:center; width:3.6mm; height:3.6mm; border-radius:50%; background:#fff; font:700 9px/1 Arial,sans-serif; }
           .regulations-do h2 { background:#20517d; }
+          .regulations-do h2::before { content:"\\2713"; color:#20517d; }
           .regulations-dont h2 { background:#c70000; }
+          .regulations-dont h2::before { content:"\\2715"; color:#c70000; }
           .regulations-discipline h2 { background:#8a6900; }
-          .regulations-sections ol { margin:1mm 0 0; padding-left:5mm; display:grid; gap:.4mm; }
-          .regulations-sections li { padding-left:.25mm; font:11px/1.55 "Khmer OS Siemreap","Siemreap",sans-serif; }
-          .regulations-sections li::marker { font-family:Arial,sans-serif; font-size:10px; }
+          .regulations-discipline h2::before { content:"!"; color:#8a6900; font-size:10px; }
+          .regulations-sections ol { counter-reset:rule; margin:0; padding:0; list-style:none; display:grid; gap:.2mm; }
+          .regulations-sections li { counter-increment:rule; position:relative; padding-left:4.3mm; font:11px/1.54 "Khmer OS Siemreap","Siemreap",sans-serif; }
+          .regulations-sections li::before { content:counter(rule, khmer); position:absolute; left:0; top:.62mm; width:3.3mm; height:3.3mm; display:grid; place-items:center; border-radius:50%; background:var(--rule); color:#fff; font:700 8.5px/1 "Khmer OS Siemreap","Siemreap",sans-serif; }
+          .regulations-discipline li strong { color:#6e5400; }
+          .regulations-discipline ol { gap:.25mm; }
           .reference-artwork { --card-body:"Khmer OS Siemreap","KhmerOSSiemreap","Siemreap",sans-serif; --card-heading:"Khmer OS Muol Light","Khmer OS Moul","Moul",serif; position:relative; width:584px; height:608px; transform-origin:top left; transform:scale(${artworkScaleX.toFixed(9)},${artworkScaleY.toFixed(9)}); color:#102932; font:18px/1.65 var(--card-body); }
           .reference-artwork * { box-sizing:border-box; }
           .reference-artwork strong { color:#1111ff; font-weight:400; }
