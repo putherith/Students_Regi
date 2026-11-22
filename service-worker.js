@@ -1,4 +1,4 @@
-const CACHE_NAME = "students-registration-web-v2.1.83-dress-rules";
+const CACHE_NAME = "students-registration-web-v2.1.84-ministry-standard";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -6,6 +6,7 @@ const APP_SHELL = [
   "./assets/moeys-logo.png",
   "./assets/school-emblem.png",
   "./assets/kaoh-andaet-addresses.js",
+  "./assets/school-document.js",
   "./assets/student-card.js",
   "./assets/student-export.js",
   "./assets/monthly-attendance.js",

@@ -126,27 +126,28 @@
     const workbookStyles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
   <numFmts count="1"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/></numFmts>
-  <fonts count="5">
+  <fonts count="6">
     <font><sz val="10"/><name val="Khmer OS Siemreap"/><family val="2"/></font>
-    <font><b/><color rgb="FFFFFFFF"/><sz val="15"/><name val="Khmer OS Siemreap"/></font>
-    <font><b/><color rgb="FF173F78"/><sz val="11"/><name val="Khmer OS Siemreap"/></font>
-    <font><i/><color rgb="FF64748B"/><sz val="9"/><name val="Khmer OS Siemreap"/></font>
-    <font><b/><color rgb="FFFFFFFF"/><sz val="10"/><name val="Khmer OS Siemreap"/></font>
+    <font><color rgb="FF000000"/><sz val="13"/><name val="Khmer OS Muol Light"/></font>
+    <font><b/><color rgb="FF000000"/><sz val="11"/><name val="Khmer OS Siemreap"/></font>
+    <font><color rgb="FF404040"/><sz val="9"/><name val="Khmer OS Siemreap"/></font>
+    <font><b/><color rgb="FF000000"/><sz val="10"/><name val="Khmer OS Siemreap"/></font>
+    <font><color rgb="FF000000"/><sz val="11"/><name val="Khmer OS Muol Light"/></font>
   </fonts>
   <fills count="4">
     <fill><patternFill patternType="none"/></fill>
     <fill><patternFill patternType="gray125"/></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FF173F78"/><bgColor indexed="64"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FF0F766E"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFF2F2F2"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFE6E6E6"/><bgColor indexed="64"/></patternFill></fill>
   </fills>
   <borders count="2">
     <border><left/><right/><top/><bottom/><diagonal/></border>
-    <border><left style="thin"><color rgb="FFCBD5E1"/></left><right style="thin"><color rgb="FFCBD5E1"/></right><top style="thin"><color rgb="FFCBD5E1"/></top><bottom style="thin"><color rgb="FFCBD5E1"/></bottom><diagonal/></border>
+    <border><left style="thin"><color rgb="FF000000"/></left><right style="thin"><color rgb="FF000000"/></right><top style="thin"><color rgb="FF000000"/></top><bottom style="thin"><color rgb="FF000000"/></bottom><diagonal/></border>
   </borders>
   <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
-  <cellXfs count="9">
+  <cellXfs count="11">
     <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
-    <xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
     <xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
     <xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
     <xf numFmtId="0" fontId="4" fillId="3" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>
@@ -154,17 +155,24 @@
     <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>
     <xf numFmtId="164" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
     <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="5" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="5" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>
   </cellXfs>
   <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
   <dxfs count="0"/>
   <tableStyles count="0" defaultTableStyle="TableStyleMedium2" defaultPivotStyle="PivotStyleLight16"/>
 </styleSheet>`;
 
+    // Ministry header rows (kingdom, nation, ornament, department, school).
+    const OFFICIAL_LINES = ["ព្រះរាជាណាចក្រកម្ពុជា", "ជាតិ សាសនា ព្រះមហាក្សត្រ", "✥✥✥",
+        "មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ", "វិទ្យាល័យសុខអានព្រៃមេលង"];
+    const TABLE_HEADER_ROW = 10;
+
     function worksheetXml(sheet, sheetIndex) {
         const columns = sheet.columns;
         const rows = Array.isArray(sheet.rows) ? sheet.rows : [];
         const lastColumn = columnName(columns.length - 1);
-        const tableHeaderRow = 5;
+        const tableHeaderRow = TABLE_HEADER_ROW;
         const firstDataRow = tableHeaderRow + 1;
         const lastRow = Math.max(firstDataRow, tableHeaderRow + rows.length);
         const columnXml = columns.map((column, index) =>
@@ -180,23 +188,32 @@
             ).join("");
             return `<row r="${excelRow}" ht="23" customHeight="1">${cells}</row>`;
         }).join("") : `<row r="${firstDataRow}" ht="23" customHeight="1">${columns.map((column, index) => dataCell(`${columnName(index)}${firstDataRow}`, "", column)).join("")}</row>`;
-        const merges = [1, 2, 3].map(row => `<mergeCell ref="A${row}:${lastColumn}${row}"/>`).join("");
+        // Kingdom, nation, ornament and the title lines span the sheet; the
+        // department and school lines stay left-aligned like ministry workbooks.
+        const mergedRows = [1, 2, 3, 6, 7, 8];
+        const merges = mergedRows.map(row => `<mergeCell ref="A${row}:${lastColumn}${row}"/>`).join("");
+        const official = OFFICIAL_LINES;
         return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
   <sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>
   <dimension ref="A1:${lastColumn}${lastRow}"/>
-  <sheetViews><sheetView workbookViewId="0"><pane ySplit="5" topLeftCell="A6" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
+  <sheetViews><sheetView workbookViewId="0"><pane ySplit="${tableHeaderRow}" topLeftCell="A${firstDataRow}" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
   <sheetFormatPr defaultRowHeight="20"/>
   <cols>${columnXml}</cols>
   <sheetData>
-    <row r="1" ht="30" customHeight="1">${inlineCell("A1", sheet.title || "បញ្ជីសិស្ស", 1)}</row>
-    <row r="2" ht="23" customHeight="1">${inlineCell("A2", sheet.subtitle || "", 2)}</row>
-    <row r="3" ht="20" customHeight="1">${inlineCell("A3", sheet.meta || "", 3)}</row>
-    <row r="4" ht="8" customHeight="1"/>
-    <row r="5" ht="34" customHeight="1">${headerCells}</row>
+    <row r="1" ht="22" customHeight="1">${inlineCell("A1", official[0], 9)}</row>
+    <row r="2" ht="22" customHeight="1">${inlineCell("A2", official[1], 9)}</row>
+    <row r="3" ht="16" customHeight="1">${inlineCell("A3", official[2], 9)}</row>
+    <row r="4" ht="22" customHeight="1">${inlineCell("A4", official[3], 10)}</row>
+    <row r="5" ht="22" customHeight="1">${inlineCell("A5", official[4], 10)}</row>
+    <row r="6" ht="30" customHeight="1">${inlineCell("A6", sheet.title || "បញ្ជីសិស្ស", 1)}</row>
+    <row r="7" ht="22" customHeight="1">${inlineCell("A7", sheet.subtitle || "", 2)}</row>
+    <row r="8" ht="20" customHeight="1">${inlineCell("A8", sheet.meta || "", 3)}</row>
+    <row r="9" ht="8" customHeight="1"/>
+    <row r="${tableHeaderRow}" ht="34" customHeight="1">${headerCells}</row>
     ${dataRows}
   </sheetData>
-  <mergeCells count="3">${merges}</mergeCells>
+  <mergeCells count="${mergedRows.length}">${merges}</mergeCells>
   <pageMargins left="0.25" right="0.25" top="0.45" bottom="0.45" header="0.2" footer="0.2"/>
   <pageSetup paperSize="${Number(sheet.paperSize) || 9}" orientation="landscape" fitToWidth="${Math.max(1, Number(sheet.fitToWidth) || 1)}" fitToHeight="0"/>
   <headerFooter><oddFooter>&amp;Lវិទ្យាល័យសុខអានព្រៃមេលង&amp;Rទំព័រ &amp;P / &amp;N</oddFooter></headerFooter>
@@ -207,7 +224,7 @@
     function tableXml(sheet, tableIndex) {
         const columns = sheet.columns;
         const rowCount = Math.max(1, (sheet.rows || []).length);
-        const reference = `A5:${columnName(columns.length - 1)}${5 + rowCount}`;
+        const reference = `A${TABLE_HEADER_ROW}:${columnName(columns.length - 1)}${TABLE_HEADER_ROW + rowCount}`;
         const tableColumns = columns.map((column, index) =>
             `<tableColumn id="${index + 1}" name="${xml(column.header)}"/>`
         ).join("");
@@ -215,7 +232,7 @@
 <table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="${tableIndex}" name="StudentTable${tableIndex}" displayName="StudentTable${tableIndex}" ref="${reference}" totalsRowShown="0">
   <autoFilter ref="${reference}"/>
   <tableColumns count="${columns.length}">${tableColumns}</tableColumns>
-  <tableStyleInfo name="TableStyleMedium2" showFirstColumn="0" showLastColumn="0" showRowStripes="1" showColumnStripes="0"/>
+  <tableStyleInfo name="TableStyleLight1" showFirstColumn="0" showLastColumn="0" showRowStripes="1" showColumnStripes="0"/>
 </table>`;
     }
 

@@ -92,8 +92,8 @@ function localZipEntries(bytes) {
     assert.match(sheet, /paperSize="9" orientation="landscape" fitToWidth="1"/);
     assert.match(sheet, /width="24" customWidth="1"/);
     assert.match(sheet, /សុខ ស្រីនីត/);
-    assert.match(sheet, /<c r="D6" s="7"><v>\d+<\/v><\/c>/);
-    assert.match(table, /<autoFilter ref="A5:D7"\/>/);
+    assert.match(sheet, /<c r="D11" s="7"><v>\d+<\/v><\/c>/);
+    assert.match(table, /<autoFilter ref="A10:D12"\/>/);
     assert.match(table, /showRowStripes="1"/);
     assert.match(styles, /formatCode="dd\/mm\/yyyy"/);
     assert.match(styles, /Khmer OS Siemreap/);
