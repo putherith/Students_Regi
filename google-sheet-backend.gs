@@ -47,7 +47,8 @@ const HEADERS = [
   "motherDob",
   "guardianDob",
   "classTrack",
-  "studentLatinName"
+  "studentLatinName",
+  "note"
 ];
 
 const HEADER_LABELS = {
@@ -84,7 +85,8 @@ const HEADER_LABELS = {
   guardianDob: "ថ្ងៃខែឆ្នាំកំណើតអាណាព្យាបាល",
   applicationNumber: "លេខពាក្យ",
   fatherPhone: "លេខទូរសព្ទឪពុក",
-  motherPhone: "លេខទូរសព្ទម្តាយ"
+  motherPhone: "លេខទូរសព្ទម្តាយ",
+  note: "កំណត់សម្គាល់"
 };
 
 const VIEW_FIELDS = [
@@ -117,7 +119,8 @@ const VIEW_FIELDS = [
   "fatherPhone",
   "motherPhone",
   "applicationNumber",
-  "studentLatinName"
+  "studentLatinName",
+  "note"
 ];
 
 const HEADER_ROW = HEADERS.map(function(key) { return HEADER_LABELS[key] || key; });
@@ -145,8 +148,8 @@ function onEdit(e) {
   }
 }
 
-const STUDENT_COLUMN_WIDTHS = [90, 95, 170, 60, 105, 80, 165, 115, 135, 135, 135, 120, 130, 130, 125, 150, 150, 150, 100, 145, 145, 120, 120, 125, 125, 145, 105, 125, 125, 135, 135, 150, 165, 180];
-const VIEW_COLUMN_WIDTHS = [95, 120, 120, 60, 105, 80, 165, 165, 120, 130, 135, 125, 130, 135, 125, 145, 150, 115, 135, 135, 135, 125, 150, 150, 150, 100, 125, 125, 105, 180];
+const STUDENT_COLUMN_WIDTHS = [90, 95, 170, 60, 105, 80, 165, 115, 135, 135, 135, 120, 130, 130, 125, 150, 150, 150, 100, 145, 145, 120, 120, 125, 125, 145, 105, 125, 125, 135, 135, 150, 165, 180, 240];
+const VIEW_COLUMN_WIDTHS = [95, 120, 120, 60, 105, 80, 165, 165, 120, 130, 135, 125, 130, 135, 125, 145, 150, 115, 135, 135, 135, 125, 150, 150, 150, 100, 125, 125, 105, 180, 240];
 const CLASS_TAB_COLORS = ["#0f766e", "#2563eb", "#7c3aed", "#15803d", "#b45309", "#be123c", "#0891b2", "#4f46e5"];
 
 function doGet(e) {
@@ -161,7 +164,7 @@ function doGet(e) {
     if (action === "status") {
       return output_({
         ok: true,
-        capabilities: { studentLatinName:true, portalRememberLogin:true, drivePhotoStorage:true },
+        capabilities: { studentLatinName:true, studentNote:true, patchFields:true, portalRememberLogin:true, drivePhotoStorage:true },
         revision: getRevision_(DATA_REVISION_PROPERTY),
         settingsRevision: getRevision_(SETTINGS_REVISION_PROPERTY)
       }, e);
@@ -371,6 +374,14 @@ function doPost(e) {
         return result;
       });
       return output_({ ok: true, action: action, deleted:deleted }, e);
+    }
+    if (action === "patchfields") {
+      const result = withWriteLock_(function() {
+        const patched = patchStudentFields_(Array.isArray(body.patches) ? body.patches : []);
+        if (patched.changed) touchRevision_(DATA_REVISION_PROPERTY);
+        return patched;
+      });
+      return output_(Object.assign({ ok:true, action:action }, result), e);
     }
     if (action === "moveclass") {
       const result = withWriteLock_(function() {
@@ -910,6 +921,10 @@ function mergeStudentRecord_(existing, incoming) {
   if (incoming && incoming.__hasStudentLatinName === false) {
     merged.studentLatinName = String((existing && existing.studentLatinName) || "");
   }
+  // Clients older than the note field send no "note"; keep the stored one.
+  if (incoming && incoming.__hasNote === false) {
+    merged.note = String((existing && existing.note) || "");
+  }
   // Never let a text-only edit or an offline retry with no cached image clear a photo
   // that already exists in the shared Sheet.
   ["studentName", "studentSurname", "studentGivenName", "photo", "classTrack"].forEach(function(field) {
@@ -1023,6 +1038,47 @@ function deleteStudent_(identity) {
   return true;
 }
 
+// Writes only the note and Latin-name cells of the given records (by record ID).
+// Every other column, including updatedAt, is left exactly as it is.
+// patches: [{ id, note?, studentLatinName?, onlyIfEmpty?:["studentLatinName"] }]
+const PATCHABLE_FIELDS = ["note", "studentLatinName"];
+function patchStudentFields_(patches) {
+  if (patches.length > 2000) throw new Error("Too many patches in one request");
+  const sheet = getStudentsSheet_();
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return { changed:0, missing:patches.length, skipped:0 };
+  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getDisplayValues().map(function(row) { return String(row[0] || "").trim(); });
+  const rowById = {};
+  const duplicate = {};
+  ids.forEach(function(id, index) { if (!id) return; if (id in rowById) duplicate[id] = true; rowById[id] = index; });
+  const columns = {};
+  PATCHABLE_FIELDS.forEach(function(field) {
+    columns[field] = sheet.getRange(2, HEADERS.indexOf(field) + 1, lastRow - 1, 1).getValues();
+  });
+  const touched = {};
+  let changed = 0, missing = 0, skipped = 0;
+  patches.forEach(function(patch) {
+    const id = String((patch && patch.id) || "").trim();
+    if (!id || !(id in rowById) || duplicate[id]) { missing++; return; }
+    const index = rowById[id];
+    const onlyIfEmpty = Array.isArray(patch.onlyIfEmpty) ? patch.onlyIfEmpty : [];
+    PATCHABLE_FIELDS.forEach(function(field) {
+      if (!Object.prototype.hasOwnProperty.call(patch, field)) return;
+      const next = String(patch[field] == null ? "" : patch[field]).trim().slice(0, 500);
+      const current = String(columns[field][index][0] || "").trim();
+      if (current === next) return;
+      if (onlyIfEmpty.indexOf(field) >= 0 && current) { skipped++; return; }
+      columns[field][index][0] = next;
+      touched[field] = true;
+      changed++;
+    });
+  });
+  Object.keys(touched).forEach(function(field) {
+    sheet.getRange(2, HEADERS.indexOf(field) + 1, lastRow - 1, 1).setValues(columns[field]);
+  });
+  return { changed:changed, missing:missing, skipped:skipped };
+}
+
 function moveStudentClass_(recordId, change) {
   const id = String(recordId || change.recordId || change.id || "").trim();
   const className = String(change.className || "").trim();
@@ -1072,6 +1128,9 @@ function normalizeIncomingStudent_(item) {
   normalized.__hasStudentLatinName = Object.prototype.hasOwnProperty.call(student, "__hasStudentLatinName")
     ? student.__hasStudentLatinName === true
     : Object.prototype.hasOwnProperty.call(student, "studentLatinName");
+  normalized.__hasNote = Object.prototype.hasOwnProperty.call(student, "__hasNote")
+    ? student.__hasNote === true
+    : Object.prototype.hasOwnProperty.call(student, "note");
   normalized.__photoChanged = student.__photoChanged === true || student.photoChanged === true;
   normalized.id = cell_(student.recordId || student.id || student.studentCode || item.studentId);
   normalized.studentCode = cell_(student.studentCode || item.studentId || student.studentId);
