@@ -84,7 +84,7 @@ async function inspect(client, width, height, label) {
     })()`
   });
   const result = inspected.result.value;
-  if (result.scrollWidth > result.viewport + 1 || result.modalOpen || result.version !== 'កំណែ 2.1.84') {
+  if (result.scrollWidth > result.viewport + 1 || result.modalOpen || result.version !== 'កំណែ 2.1.85') {
     throw new Error(`${label} layout failed: ${JSON.stringify(result)}`);
   }
   if (width > 860 && (result.sidebar.x < 10 || result.sidebar.width < 210 || result.visibleMetrics !== 3)) {
