@@ -11,7 +11,8 @@ const context = {
         MimeType:{ JSON:'json', JAVASCRIPT:'javascript' },
         createTextOutput(text) { return { text, setMimeType() { return this; } }; }
     },
-    PropertiesService:{ getScriptProperties:() => ({ getProperty:() => '' }) }
+    // The backend now always requires an access key; this is a test-only value.
+    PropertiesService:{ getScriptProperties:() => ({ getProperty:name => name === 'STUDENT_APP_ACCESS_KEY' ? 'test-key' : '' }) }
 };
 vm.createContext(context);
 vm.runInContext(source, context);
@@ -44,7 +45,7 @@ context.getStudentsSheet_ = () => ({
 context.readAppSettings_ = () => ({ principalName:'Test', academicYearStart:2026 });
 context.getRevision_ = () => 'revision-1';
 
-const get = params => JSON.parse(context.doGet({ parameter:params }).text);
+const get = params => JSON.parse(context.doGet({ parameter:{ key:'test-key', ...params } }).text);
 const status = get({ action:'status' });
 assert.equal(status.capabilities.studentLatinName, true);
 const first = get({ action:'listpage', offset:'0', limit:'2' });

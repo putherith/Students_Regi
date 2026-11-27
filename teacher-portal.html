@@ -123,12 +123,39 @@
     .portal-hero h2{color:#fff}.class-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}.class-metric{padding:17px;border:1px solid #d9e8ef;border-radius:16px;background:linear-gradient(145deg,#f5fbff,#e9f5f6)}.class-metric span{display:block;color:#537085;font-size:12px}.class-metric strong{display:block;margin-top:6px;color:#123c60;font-size:25px;line-height:1.25}.class-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.class-info-panel{padding:20px;border:1px solid #dce9ef;border-radius:17px;background:#fbfdff}.class-info-panel h3{color:#164a70;margin-bottom:14px}.class-info-panel .grid{gap:12px}.class-info-panel textarea{min-height:154px;line-height:1.7}.contact-toolbar{display:flex;align-items:end;gap:12px;justify-content:space-between;flex-wrap:wrap;margin:18px 0}.contact-toolbar .field{max-width:420px;flex:1 1 250px}.contact-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.contact-card{padding:16px;border:1px solid #dce8ef;border-radius:16px;background:linear-gradient(150deg,#fff,#f4fafd);min-width:0}.contact-card h3{margin:0 0 3px;color:#123c60}.contact-card .contact-meta{color:#657e90;font-size:12px;margin-bottom:10px}.contact-lines{display:grid;gap:7px}.contact-line{display:flex;justify-content:space-between;gap:10px;border-top:1px solid #e7eef2;padding-top:7px}.contact-line span:first-child{color:#61798b;flex:none}.contact-line span:last-child{text-align:right;overflow-wrap:anywhere}.contact-line a{color:#0e6d8c;text-decoration:none}.contact-empty{padding:25px;border:1px dashed #a9c3d1;border-radius:15px;color:#557184;text-align:center}.class-info-note{font-size:12px;color:#61798b;line-height:1.7}.class-info-actions{margin-top:16px}
     @media(max-width:760px){.class-overview{grid-template-columns:repeat(2,minmax(0,1fr))}.class-info-grid,.contact-list{grid-template-columns:1fr}.class-info-panel{padding:15px}.contact-card{padding:14px}}
     @media(max-width:390px){.class-metric{padding:12px}.class-metric strong{font-size:21px}.contact-line{display:block}.contact-line span:last-child{display:block;text-align:left}}
+    /* Timetable: a readable six-day school grid, with editable lesson tiles. */
+    .brand-logo-wrap{width:52px;height:52px;padding:2px;border:1px solid #d5e7ed;border-radius:50%;background:#fff;overflow:hidden}
+    .brand-logo-wrap:after{display:none}
+    .brand-logo-wrap img{display:block;width:100%;height:100%;border-radius:50%;object-fit:contain}
+    .timetable-card{padding:0;overflow:hidden}
+    .timetable-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:20px 22px 16px;border-bottom:1px solid #dfe9f1}
+    .timetable-heading h2{display:flex;align-items:center;gap:9px;margin:0;color:#123c60;font-size:19px}
+    .timetable-heading h2:before{content:'';display:block;width:7px;height:27px;border-radius:8px;background:#1688b9}
+    .timetable-class-badge{display:inline-block;padding:5px 11px;border:1px solid #b8dff4;border-radius:999px;background:#e4f5ff;color:#126295;font-size:12px;white-space:nowrap}
+    .timetable-legend{display:flex;gap:13px;flex-wrap:wrap;color:#708399;font-size:12px}
+    .timetable-legend span{display:inline-flex;align-items:center;gap:5px}.timetable-legend i{display:block;width:8px;height:8px;border-radius:50%;background:#16b987}.timetable-legend .afternoon i{background:#f59e0b}
+    .timetable-tip{margin:0;padding:11px 22px;color:#647d92;font-size:12px;line-height:1.65;background:#f8fbfd}
+    .timetable-scroll{max-width:100%;overflow:auto;overscroll-behavior-inline:contain;border-top:1px solid #e2eaf2;scrollbar-color:#bdd1df transparent}
+    .timetable-table{min-width:1110px;width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;background:#fff}
+    .timetable-table th,.timetable-table td{width:calc((100% - 118px)/6);padding:6px;border:0;border-right:1px solid #e0e8ef;border-bottom:1px solid #e0e8ef;vertical-align:top;background:#fff}
+    .timetable-table thead th{height:56px;padding:7px 6px;background:#f4f8fc;text-align:center;color:#183a59;white-space:normal}
+    .timetable-table thead th small{display:block;color:#98a9ba;font:10px/1.25 Arial,sans-serif}
+    .timetable-table th:first-child,.timetable-table td:first-child{position:sticky;left:0;z-index:2;width:118px;min-width:118px;background:#f8fafc;text-align:center;box-shadow:2px 0 5px #1e4a680a}
+    .timetable-table thead th:first-child{z-index:3;background:#f4f8fc}
+    .timetable-period strong{display:block;color:#173b59;font-size:12px}.timetable-period small{display:block;margin-top:3px;color:#68819a;font:10px/1.3 Arial,sans-serif}.timetable-period em{display:inline-block;margin-top:5px;padding:2px 7px;border-radius:6px;background:#e8eef6;color:#647a96;font-size:11px;font-style:normal}
+    .lesson-cell{display:grid;align-content:center;gap:3px;width:100%;min-height:73px;padding:8px 9px;border:1px solid #a9ddf8;border-left:4px solid #0ea5e9;border-radius:11px;background:#eff8ff;color:#163b5a;text-align:left;box-shadow:none;transition:transform .16s,box-shadow .16s}
+    .lesson-cell:hover{transform:translateY(-2px);box-shadow:0 6px 13px #174c8017;filter:none}.lesson-cell strong{font-size:12px;line-height:1.35;overflow-wrap:anywhere}.lesson-cell small{display:block;color:#637c94;font-size:10px;line-height:1.25;overflow-wrap:anywhere}.lesson-cell.tone-1{background:#fff9e9;border-color:#f8d974;border-left-color:#f59e0b}.lesson-cell.tone-2{background:#ecfbf5;border-color:#9ee8c3;border-left-color:#10b981}.lesson-cell.tone-3{background:#eef2ff;border-color:#bfcafa;border-left-color:#6366f1}.lesson-cell.tone-4{background:#f9f1ff;border-color:#dfc2fc;border-left-color:#a855f7}.lesson-cell.tone-5{background:#fff1f2;border-color:#fecdd3;border-left-color:#f43f5e}
+    .lesson-cell.is-empty{place-items:center;border:1px dashed #d8e5f1;background:#fff;color:#bdd0df;font:700 21px/1 Arial,sans-serif}.lesson-cell.is-empty:hover{border-color:#79b8d6;background:#f6fbff;color:#2880ac}
+    .timetable-editor{margin:16px 22px;padding:17px;border:1px solid #c9e2ee;border-radius:15px;background:linear-gradient(145deg,#f3fbff,#fff);box-shadow:0 10px 22px #174c8010}.timetable-editor h3{margin:0 0 12px;color:#164a70}.timetable-editor .grid{grid-template-columns:repeat(3,minmax(0,1fr))}.timetable-editor .row{margin-top:13px}.timetable-editor .danger{background:#bd3c4b}
+    .timetable-notes{margin:18px 22px 0}.timetable-notes textarea{min-height:95px}.timetable-actions{display:flex;gap:9px;flex-wrap:wrap;padding:18px 22px 22px}
+    @media(max-width:760px){.brand-logo-wrap{width:44px;height:44px}.timetable-heading{padding:16px}.timetable-heading h2{font-size:16px}.timetable-tip{padding:10px 16px}.timetable-table{min-width:1050px}.timetable-editor{margin:14px 16px}.timetable-editor .grid{grid-template-columns:1fr}.timetable-notes{margin:15px 16px 0}.timetable-actions{padding:16px}.timetable-actions button{width:100%}}
+    @media(prefers-reduced-motion:reduce){.lesson-cell{transition:none}.lesson-cell:hover{transform:none}}
     @media print{.portal-ambient{display:none!important}}
   </style>
 </head>
 <body>
 <div class="portal-ambient" aria-hidden="true"></div>
-<header class="site-header"><div class="header-inner"><div class="brand"><div class="brand-logo-wrap" aria-hidden="true">ស</div><div><h1>ផ្ទាំងគ្រូបន្ទុកថ្នាក់</h1><small>វិទ្យាល័យសុខអានព្រៃមេលង</small></div></div><div class="header-actions"><button id="logout" class="secondary hidden" type="button">ចាកចេញ</button></div></div></header>
+<header class="site-header"><div class="header-inner"><div class="brand"><div class="brand-logo-wrap"><img src="https://putherith.github.io/Students_Regi/assets/school-emblem.png" alt="និមិត្តសញ្ញាវិទ្យាល័យសុខអានព្រៃមេលង"></div><div><h1>ផ្ទាំងគ្រូបន្ទុកថ្នាក់</h1><small>វិទ្យាល័យសុខអានព្រៃមេលង</small></div></div><div class="header-actions"><button id="logout" class="secondary hidden" type="button">ចាកចេញ</button></div></div></header>
 <main>
   <div id="notice" class="notice hidden" role="status" aria-live="polite"></div>
   <section id="deployment-gate" class="card portal-launch hidden" role="status">
@@ -145,9 +172,17 @@
     <div class="card portal-hero"><div class="row" style="align-items:center;justify-content:space-between"><div><span class="eyebrow">ផ្ទាំងគ្រប់គ្រងថ្នាក់</span><h2 id="portal-title"></h2><div id="portal-subtitle" class="muted"></div></div><button id="refresh" class="secondary" type="button">↻ ផ្ទុកឡើងវិញ</button></div><div class="portal-stats"><div class="stat"><strong id="portal-count">—</strong> សិស្ស</div><div class="stat">រូបថតបង្ហាញតាមតម្រូវការ</div></div></div>
     <div id="admin-area" class="hidden"><div class="card"><h2>លេខចូលគ្រូតាមថ្នាក់</h2><p class="subtle">អាចបញ្ចូលលេខទូរសព្ទគ្រូតាមថ្នាក់ ឬទុកទទេឱ្យប្រព័ន្ធបង្កើតលេខ ១០ ខ្ទង់។ លេខថ្មីនឹងជំនួសលេខចាស់ និងបញ្ឈប់ Session ចាស់។ ឯកសារ Excel បង្ហាញលេខកូដតែម្តង បន្ទាប់ពីបង្កើត។</p><div class="row" style="margin:14px 0"><button id="issue-all-codes" type="button">បង្កើតគ្រប់ថ្នាក់ និងទាញ Excel</button><button id="download-codes-again" class="secondary hidden" type="button">ទាញ Excel ម្ដងទៀត</button></div><div id="admin-list" class="table-wrap"></div><div id="issued-codes" class="table-wrap hidden" style="margin-top:16px"></div></div></div>
     <div id="teacher-area" class="hidden">
-      <nav class="tabs" aria-label="មុខងារគ្រូ"><button data-tab="students" class="active">បញ្ជីសិស្ស</button><button data-tab="class-info">ព័ត៌មានថ្នាក់</button><button data-tab="attendance">វត្តមាន</button><button data-tab="scores">ពិន្ទុ</button><button data-tab="activities">សកម្មភាពថ្នាក់</button></nav>
+      <nav class="tabs" aria-label="មុខងារគ្រូ"><button data-tab="students" class="active">បញ្ជីសិស្ស</button><button data-tab="class-info">ព័ត៌មានថ្នាក់</button><button data-tab="timetable-view">កាលវិភាគ</button><button data-tab="attendance">វត្តមាន</button><button data-tab="scores">ពិន្ទុ</button><button data-tab="activities">សកម្មភាពថ្នាក់</button></nav>
       <section id="students" class="card"><div class="row section-heading"><div><span class="eyebrow">បញ្ជីតាមថ្នាក់</span><h2>ព័ត៌មាន និងរូបថតសិស្ស</h2><div id="student-result-count" class="subtle"></div><button id="assign-missing-codes" class="secondary" type="button">បង្កើតអត្តលេខទទេ</button></div><div class="field"><label for="student-search">ស្វែងរកសិស្ស</label><input id="student-search" type="search" placeholder="ឈ្មោះ ឬ អត្តលេខ"></div></div><div id="student-list" class="list"></div></section>
       <section id="class-info" class="card hidden"><span class="eyebrow">ទិដ្ឋភាពថ្នាក់</span><h2>ព័ត៌មានថ្នាក់ និងទំនាក់ទំនង</h2><p class="class-info-note">ចំនួនសិស្សតាមដំណាក់កាល និងព័ត៌មានគណៈថ្នាក់រក្សាទុកដាច់ដោយឡែក។ ទំនាក់ទំនងគ្រួសារ និងអាសយដ្ឋានអានពីបញ្ជីសិស្សបច្ចុប្បន្ន មិនចម្លងទៅតារាងថ្មីទេ។</p><div class="class-overview"><div class="class-metric"><span>សិស្សបច្ចុប្បន្ន</span><strong id="current-class-count">—</strong></div><div class="class-metric"><span>សរុបដើមឆ្នាំ</span><strong id="start-class-count">—</strong></div><div class="class-metric"><span>បំណាច់ឆមាសទី១</span><strong id="semester-class-count">—</strong></div><div class="class-metric"><span>សរុបចុងឆ្នាំ</span><strong id="end-class-count">—</strong></div></div><div class="class-info-grid"><div class="class-info-panel"><h3>ព័ត៌មានទូទៅ និងរចនាសម្ព័ន្ធថ្នាក់</h3><div class="grid"><div class="field"><label for="class-start-count">សិស្សសរុបដើមឆ្នាំ</label><input id="class-start-count" type="number" min="0" max="3000" inputmode="numeric"></div><div class="field"><label for="class-semester-count">សិស្សសរុបបំណាច់ឆមាសទី១</label><input id="class-semester-count" type="number" min="0" max="3000" inputmode="numeric"></div><div class="field"><label for="class-end-count">សិស្សសរុបចុងឆ្នាំ</label><input id="class-end-count" type="number" min="0" max="3000" inputmode="numeric"></div><div class="field"><label for="class-president">ប្រធានថ្នាក់</label><input id="class-president"></div><div class="field"><label for="class-vice-president">អនុប្រធានថ្នាក់</label><input id="class-vice-president"></div><div class="field"><label for="class-secretary">លេខាធិការ</label><input id="class-secretary"></div><div class="field"><label for="class-treasurer">ហិរញ្ញិក</label><input id="class-treasurer"></div><div class="field full"><label for="class-timetable">កាលវិភាគថ្នាក់</label><textarea id="class-timetable" placeholder="ឧ. ចន្ទ ព្រឹក ៧:០០–១១:០០៖ ភាសាខ្មែរ, គណិតវិទ្យា…"></textarea></div></div></div><div class="class-info-panel"><h3>ទំនាក់ទំនងថ្នាក់ និងសាលា</h3><div class="grid"><div class="field"><label for="class-principal-name">ឈ្មោះនាយកសាលា</label><input id="class-principal-name"></div><div class="field"><label for="class-principal-phone">លេខទំនាក់ទំនងនាយក</label><input id="class-principal-phone" type="tel" inputmode="tel"></div><div class="field"><label for="class-vice-principal-name">ឈ្មោះនាយករង</label><input id="class-vice-principal-name"></div><div class="field"><label for="class-vice-principal-phone">លេខទំនាក់ទំនងនាយករង</label><input id="class-vice-principal-phone" type="tel" inputmode="tel"></div></div><p class="class-info-note">បញ្ជីខាងក្រោមបង្ហាញឪពុក ម្ដាយ និងអាណាព្យាបាលរបស់សិស្សថ្នាក់នេះតែប៉ុណ្ណោះ។</p></div></div><div class="row class-info-actions"><button id="save-class-info" type="button">រក្សាទុកព័ត៌មានថ្នាក់</button><button id="reload-class-info" class="secondary" type="button">ផ្ទុកព័ត៌មានឡើងវិញ</button></div><div class="contact-toolbar"><div><h3>បញ្ជីទំនាក់ទំនងគ្រួសារ</h3><span id="contact-result-count" class="subtle"></span></div><div class="field"><label for="contact-search">ស្វែងរកតាមឈ្មោះសិស្ស ឬលេខទូរសព្ទ</label><input id="contact-search" type="search" placeholder="ស្វែងរកទំនាក់ទំនង..."></div></div><div id="contact-list" class="contact-list"></div></section>
+      <section id="timetable-view" class="card timetable-card hidden" aria-labelledby="timetable-title">
+        <div class="timetable-heading"><h2 id="timetable-title">កាលវិភាគប្រចាំសប្តាហ៍ <span id="timetable-class-badge" class="timetable-class-badge">ថ្នាក់ —</span></h2><div class="timetable-legend"><span><i></i> ព្រឹក (០៧:០០–១១:៥០)</span><span class="afternoon"><i></i> រសៀល (១៣:៣០–១៦:២០)</span></div></div>
+        <p class="timetable-tip">ចុចលើក្រឡា + ដើម្បីបញ្ចូលមុខវិជ្ជា គ្រូ និងបន្ទប់។ លើទូរសព្ទ អូសតារាងទៅឆ្វេង–ស្ដាំដើម្បីមើលថ្ងៃផ្សេងៗ។</p>
+        <div id="timetable-editor" class="timetable-editor hidden" role="region" aria-labelledby="timetable-editor-title"><h3 id="timetable-editor-title">កែម៉ោងសិក្សា</h3><div class="grid"><div class="field"><label for="lesson-subject">មុខវិជ្ជា</label><input id="lesson-subject" required maxlength="80" placeholder="ឧ. គណិតវិទ្យា"></div><div class="field"><label for="lesson-teacher">ឈ្មោះគ្រូ</label><input id="lesson-teacher" maxlength="80" placeholder="ឧ. អ្នកគ្រូ សុខា"></div><div class="field"><label for="lesson-room">បន្ទប់</label><input id="lesson-room" maxlength="40" placeholder="ឧ. បន្ទប់ ១០១"></div></div><div class="row"><button id="apply-lesson" type="button">ដាក់ក្នុងតារាង</button><button id="clear-lesson" class="danger" type="button">លុបម៉ោងនេះ</button><button id="cancel-lesson" class="secondary" type="button">បោះបង់</button></div></div>
+        <div id="timetable-grid" class="timetable-scroll" role="region" tabindex="0" aria-label="តារាងកាលវិភាគប្រចាំសប្តាហ៍"></div>
+        <div class="field timetable-notes"><label for="timetable-notes">កំណត់ចំណាំកាលវិភាគ / អត្ថបទចាស់</label><textarea id="timetable-notes" maxlength="4000" placeholder="ព័ត៌មានបន្ថែមអំពីម៉ោងសិក្សា"></textarea></div>
+        <div class="timetable-actions"><button id="save-timetable" type="button">រក្សាទុកកាលវិភាគ</button><button id="reload-timetable" class="secondary" type="button">ផ្ទុកកាលវិភាគឡើងវិញ</button></div>
+      </section>
       <section id="edit-card" class="card hidden"><h2 id="edit-title">កែព័ត៌មានសិស្ស</h2><p class="subtle">មិនអាចកែអត្តលេខ ថ្នាក់ និងរូបថតក្នុង Portal នេះទេ។</p><div id="edit-fields" class="grid"></div><div class="row" style="margin-top:12px"><button id="save-student">រក្សាទុក</button><button id="cancel-edit" class="secondary">បោះបង់</button></div></section>
       <section id="attendance" class="card hidden"><h2>កត់ត្រាវត្តមាន</h2><div class="row"><div class="field"><label for="attendance-date">កាលបរិច្ឆេទ</label><input id="attendance-date" type="date"></div><div class="field"><label for="attendance-period">វេន</label><select id="attendance-period"><option>ព្រឹក</option><option>រសៀល</option><option>ពេញថ្ងៃ</option></select></div><button id="load-attendance" class="secondary">បង្ហាញ</button></div><p class="subtle">លំនាំដើម៖ មានវត្តមាន។ ជ្រើសតែសិស្សដែលត្រូវកែស្ថានភាព។</p><div id="attendance-table" class="table-wrap"></div><button id="save-attendance">រក្សាទុកវត្តមាន</button></section>
       <section id="scores" class="card hidden"><h2>បញ្ចូលពិន្ទុ</h2><div class="row"><div class="field"><label for="score-subject">មុខវិជ្ជា</label><input id="score-subject" placeholder="ឧ. គណិតវិទ្យា"></div><div class="field"><label for="score-assessment">ប្រភេទពិន្ទុ</label><input id="score-assessment" placeholder="ឧ. ប្រចាំខែ"></div><div class="field"><label for="score-date">កាលបរិច្ឆេទ</label><input id="score-date" type="date"></div><div class="field"><label for="score-max">ពិន្ទុពេញ</label><input id="score-max" type="number" min="1" max="1000" value="100"></div><button id="load-scores" class="secondary">បង្ហាញពិន្ទុ</button></div><div id="score-table" class="table-wrap"></div><button id="save-scores">រក្សាទុកពិន្ទុ</button></section>
@@ -199,17 +234,95 @@
   async function loadActivities(){try{const data=await rpc('teacherPortalActivities',state.token,state.className);const box=$('activity-list');box.replaceChildren();data.forEach(a=>{const card=element('div');card.className='student';const copy=element('div');copy.append(element('strong',a.date+' — '+a.title),element('p',a.details||''));const btn=element('button','កែ');btn.className='secondary';btn.onclick=()=>{state.activity=a;$('activity-date').value=a.date;$('activity-title').value=a.title;$('activity-details').value=a.details;$('cancel-activity').classList.remove('hidden')};card.append(copy,btn);box.append(card)});if(!data.length)box.append(element('p','មិនទាន់មានសកម្មភាព'))}catch(e){fail(e)}}
   async function saveActivity(){try{await rpc('teacherPortalSaveActivity',state.token,state.className,{id:state.activity?.id||'',date:$('activity-date').value,title:$('activity-title').value,details:$('activity-details').value});cancelActivity();await loadActivities();notice('រក្សាទុកសកម្មភាពបានជោគជ័យ')}catch(e){fail(e)}}
   function cancelActivity(){state.activity=null;$('activity-title').value='';$('activity-details').value='';$('cancel-activity').classList.add('hidden')}
+  const timetableDays=[['mon','ចន្ទ','Monday'],['tue','អង្គារ','Tuesday'],['wed','ពុធ','Wednesday'],['thu','ព្រហស្បតិ៍','Thursday'],['fri','សុក្រ','Friday'],['sat','សៅរ៍','Saturday']];
+  const timetablePeriods=[['០៧:០០–០៧:៥០','ព្រឹក'],['០៧:៥៥–០៨:៤៥','ព្រឹក'],['០៩:០៥–០៩:៥៥','ព្រឹក'],['១០:០០–១០:៥០','ព្រឹក'],['១១:០០–១១:៥០','ព្រឹក'],['១៣:៣០–១៤:២០','រសៀល'],['១៤:២៥–១៥:១៥','រសៀល'],['១៥:៣០–១៦:២០','រសៀល']];
+  let timetableSlots=Object.create(null),editingTimetableKey='',timetableDirty=false;
+  function parseTimetable(raw){
+    const text=String(raw||'');
+    try{
+      const data=JSON.parse(text);
+      if(data&&data.v===1&&data.slots&&typeof data.slots==='object'&&!Array.isArray(data.slots)){
+        const slots=Object.create(null);
+        timetableDays.forEach(([day])=>timetablePeriods.forEach((_,index)=>{
+          const key=day+'-'+(index+1),entry=data.slots[key];
+          if(entry&&typeof entry==='object'&&!Array.isArray(entry)){
+            const subject=String(entry.subject||'').slice(0,80),teacher=String(entry.teacher||'').slice(0,80),room=String(entry.room||'').slice(0,40);
+            if(subject||teacher||room)slots[key]={subject,teacher,room};
+          }
+        }));
+        return {slots,notes:String(data.notes||'')};
+      }
+    }catch(_error){}
+    return {slots:Object.create(null),notes:text};
+  }
+  function serializeTimetable(){
+    const notes=$('timetable-notes').value.trim();
+    if(!Object.keys(timetableSlots).length)return notes;
+    const slots={};
+    Object.keys(timetableSlots).sort().forEach(key=>{
+      const entry=timetableSlots[key];
+      slots[key]={subject:String(entry.subject||'').trim(),teacher:String(entry.teacher||'').trim(),room:String(entry.room||'').trim()};
+    });
+    return JSON.stringify({v:1,slots,notes});
+  }
+  function closeLessonEditor(){editingTimetableKey='';$('timetable-editor').classList.add('hidden')}
+  function renderTimetable(){
+    $('timetable-class-badge').textContent='ថ្នាក់ '+(state.className||'—');
+    const table=element('table');table.className='timetable-table';
+    const thead=element('thead'),header=element('tr');header.append(element('th','ម៉ោងសិក្សា'));
+    timetableDays.forEach(([,kh,en])=>{const th=element('th',kh),small=element('small',en);th.append(small);header.append(th)});
+    thead.append(header);table.append(thead);
+    const tbody=element('tbody');
+    timetablePeriods.forEach(([time,shift],index)=>{
+      const tr=element('tr'),period=element('td');period.className='timetable-period';
+      period.append(element('strong','ម៉ោងទី '+['១','២','៣','៤','៥','៦','៧','៨'][index]),element('small',time),element('em',shift));tr.append(period);
+      timetableDays.forEach(([day,kh])=>{
+        const key=day+'-'+(index+1),entry=timetableSlots[key],td=element('td'),button=element('button');
+        button.type='button';button.className='lesson-cell';
+        if(entry){
+          let tone=0;for(const char of entry.subject||'')tone=(tone+char.codePointAt(0))%6;
+          button.classList.add('tone-'+tone);
+          button.append(element('strong',entry.subject||'មុខវិជ្ជាមិនទាន់កំណត់'));
+          if(entry.teacher)button.append(element('small','♟  '+entry.teacher));
+          if(entry.room)button.append(element('small','▥  '+entry.room));
+        }else{button.classList.add('is-empty');button.textContent='+'}
+        button.setAttribute('aria-label',(entry?'កែ':'បន្ថែម')+'កាលវិភាគ ថ្ងៃ'+kh+' ម៉ោងទី '+(index+1));
+        button.addEventListener('click',()=>openLessonEditor(key));td.append(button);tr.append(td);
+      });tbody.append(tr);
+    });table.append(tbody);$('timetable-grid').replaceChildren(table);
+  }
+  function openLessonEditor(key){
+    const [day,period]=key.split('-'),label=timetableDays.find(item=>item[0]===day)?.[1]||'',entry=timetableSlots[key]||{};
+    editingTimetableKey=key;$('timetable-editor-title').textContent='ថ្ងៃ'+label+' · ម៉ោងទី '+period;
+    $('lesson-subject').value=entry.subject||'';$('lesson-teacher').value=entry.teacher||'';$('lesson-room').value=entry.room||'';
+    $('timetable-editor').classList.remove('hidden');$('timetable-editor').scrollIntoView({behavior:'smooth',block:'nearest'});$('lesson-subject').focus({preventScroll:true});
+  }
+  function applyLesson(){
+    if(!editingTimetableKey)return;
+    const subject=$('lesson-subject').value.trim();
+    if(!subject){$('lesson-subject').reportValidity();$('lesson-subject').focus();return}
+    timetableSlots[editingTimetableKey]={subject,teacher:$('lesson-teacher').value.trim(),room:$('lesson-room').value.trim()};
+    timetableDirty=true;closeLessonEditor();renderTimetable();
+  }
+  function clearLesson(){if(!editingTimetableKey)return;delete timetableSlots[editingTimetableKey];timetableDirty=true;closeLessonEditor();renderTimetable()}
   const classInfoFields=[['startCount','class-start-count'],['semesterOneCount','class-semester-count'],['endCount','class-end-count'],['classPresident','class-president'],['classVicePresident','class-vice-president'],['classSecretary','class-secretary'],['classTreasurer','class-treasurer'],['timetable','class-timetable'],['principalName','class-principal-name'],['principalPhone','class-principal-phone'],['vicePrincipalName','class-vice-principal-name'],['vicePrincipalPhone','class-vice-principal-phone']];
-  function renderClassInfo(){const info=state.classInfo||{};classInfoFields.forEach(([key,id])=>$(id).value=info[key]||'');$('start-class-count').textContent=info.startCount||'—';$('semester-class-count').textContent=info.semesterOneCount||'—';$('end-class-count').textContent=info.endCount||'—';$('current-class-count').textContent=state.students.length;renderContacts()}
+  function renderClassInfo(){const info=state.classInfo||{};classInfoFields.forEach(([key,id])=>$(id).value=info[key]||'');const schedule=parseTimetable(info.timetable);timetableSlots=schedule.slots;$('timetable-notes').value=schedule.notes;timetableDirty=false;closeLessonEditor();renderTimetable();$('start-class-count').textContent=info.startCount||'—';$('semester-class-count').textContent=info.semesterOneCount||'—';$('end-class-count').textContent=info.endCount||'—';$('current-class-count').textContent=state.students.length;renderContacts()}
   async function loadClassInfo(){try{state.classInfo=await rpc('teacherPortalClassInfo',state.token,state.className);renderClassInfo()}catch(e){fail(e)}}
-  async function saveClassInfo(){const button=$('save-class-info');if(button.disabled)return;button.disabled=true;try{const changes={};classInfoFields.forEach(([key,id])=>changes[key]=$(id).value);state.classInfo=await rpc('teacherPortalSaveClassInfo',state.token,state.className,changes,state.classInfo?.updatedAt||'');renderClassInfo();notice('បានរក្សាទុកព័ត៌មានថ្នាក់')}catch(e){fail(e)}finally{button.disabled=false}}
+  async function saveClassInfo(buttonId='save-class-info'){if(editingTimetableKey){applyLesson();if(editingTimetableKey)return}const button=$(buttonId);if(button.disabled)return;button.disabled=true;try{const changes={};classInfoFields.forEach(([key,id])=>changes[key]=$(id).value);changes.timetable=serializeTimetable();if(changes.timetable.length>20000)throw new Error('កាលវិភាគវែងពេក។ សូមកាត់កំណត់ចំណាំខ្លះៗ');state.classInfo=await rpc('teacherPortalSaveClassInfo',state.token,state.className,changes,state.classInfo?.updatedAt||'');renderClassInfo();notice(buttonId==='save-timetable'?'បានរក្សាទុកកាលវិភាគ':'បានរក្សាទុកព័ត៌មានថ្នាក់')}catch(e){fail(e)}finally{button.disabled=false}}
   function contactLine(label,value,phone=false){const line=element('div');line.className='contact-line';line.append(element('span',label));const content=element('span');const text=String(value||'').trim();if(phone&&/^\+?[\d\s().-]{8,20}$/.test(text)){const link=element('a',text);link.href='tel:'+text.replace(/[^+\d]/g,'');content.append(link)}else content.textContent=text||'—';line.append(content);return line}
   function addressOf(student){return [student.currentVillage,student.currentCommune,student.currentDistrict,student.currentProvince].filter(Boolean).join(' · ')}
   function renderContacts(){const box=$('contact-list'),info=state.classInfo||{},query=$('contact-search').value.trim().toLowerCase();box.replaceChildren();let shown=0;[['នាយកសាលា',info.principalName,info.principalPhone],['នាយករង',info.vicePrincipalName,info.vicePrincipalPhone]].forEach(([role,name,phone])=>{if(!name&&!phone)return;if(query&&![role,name,phone].some(value=>String(value||'').toLowerCase().includes(query)))return;const card=element('article');card.className='contact-card';card.append(element('h3',role));const lines=element('div');lines.className='contact-lines';lines.append(contactLine('ឈ្មោះ',name),contactLine('ទូរសព្ទ',phone,true));card.append(lines);box.append(card);shown++});state.students.forEach(student=>{const values=[nameOf(student),student.studentLatinName,student.studentCode,student.fatherName,student.fatherPhone,student.motherName,student.motherPhone,student.guardianName,student.contact,addressOf(student)];if(query&&!values.some(value=>String(value||'').toLowerCase().includes(query)))return;const card=element('article');card.className='contact-card';card.append(element('h3',nameOf(student)||'សិស្ស'));const meta=element('div',student.studentCode||'គ្មានអត្តលេខ');meta.className='contact-meta';card.append(meta);const lines=element('div');lines.className='contact-lines';lines.append(contactLine('ឪពុក',student.fatherName),contactLine('ទូរសព្ទឪពុក',student.fatherPhone,true),contactLine('ម្ដាយ',student.motherName),contactLine('ទូរសព្ទម្ដាយ',student.motherPhone,true),contactLine('អាណាព្យាបាល',student.guardianName),contactLine('លេខទំនាក់ទំនង',student.contact,true),contactLine('អាសយដ្ឋាន',addressOf(student)));card.append(lines);box.append(card);shown++});$('contact-result-count').textContent='បង្ហាញ '+shown+' ទំនាក់ទំនង';if(!shown){const empty=element('p','មិនមានទំនាក់ទំនងត្រូវនឹងការស្វែងរក');empty.className='contact-empty';box.append(empty)}}
-  function tab(name){['students','class-info','attendance','scores','activities'].forEach(id=>$(id).classList.toggle('hidden',id!==name));$('edit-card').classList.add('hidden');document.querySelectorAll('.tabs button').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===name));if(name==='activities')loadActivities();if(name==='class-info'){if(!state.classInfo)void loadClassInfo();else renderContacts()}}
+  function tab(name){['students','class-info','timetable-view','attendance','scores','activities'].forEach(id=>$(id).classList.toggle('hidden',id!==name));$('edit-card').classList.add('hidden');document.querySelectorAll('.tabs button').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===name));if(name==='activities')loadActivities();if(name==='class-info'||name==='timetable-view'){if(!state.classInfo)void loadClassInfo();else if(name==='class-info')renderContacts();else renderTimetable()}}
   $('login').onclick=login;$('pin-login').onkeydown=e=>{if(e.key==='Enter')login()};$('logout').onclick=logout;$('issue-all-codes').onclick=issueAllCodes;$('download-codes-again').onclick=()=>{if(state.lastCodeExport)downloadCodeWorkbook(state.lastCodeExport)};$('refresh').onclick=async()=>{try{if(state.role==='admin')await adminOverview();else{state.photoCache.clear();await roster()}notice('បានផ្ទុកទិន្នន័យថ្មី')}catch(e){fail(e)}};$('student-search').oninput=renderStudents;$('assign-missing-codes').onclick=assignMissingCodes;$('save-student').onclick=saveStudent;$('cancel-edit').onclick=()=>{$('edit-card').classList.add('hidden');$('students').classList.remove('hidden')};$('load-attendance').onclick=loadAttendance;$('save-attendance').onclick=saveAttendance;$('load-scores').onclick=loadScores;$('save-scores').onclick=saveScores;$('save-activity').onclick=saveActivity;$('cancel-activity').onclick=cancelActivity;document.querySelectorAll('.tabs button').forEach(btn=>btn.onclick=()=>tab(btn.dataset.tab));['attendance-date','score-date','activity-date'].forEach(id=>$(id).value=today());
-  $('save-class-info').onclick=saveClassInfo;
+  $('class-timetable').closest('.field').classList.add('hidden');
+  $('save-class-info').onclick=()=>saveClassInfo('save-class-info');
   $('reload-class-info').onclick=loadClassInfo;
+  $('save-timetable').onclick=()=>saveClassInfo('save-timetable');
+  $('reload-timetable').onclick=()=>{if(!timetableDirty||confirm('កាលវិភាគមិនទាន់រក្សាទុក។ តើចង់ផ្ទុកទិន្នន័យចាស់ឡើងវិញទេ?'))void loadClassInfo()};
+  $('apply-lesson').onclick=applyLesson;
+  $('clear-lesson').onclick=clearLesson;
+  $('cancel-lesson').onclick=closeLessonEditor;
+  $('timetable-notes').oninput=()=>{timetableDirty=true};
   $('contact-search').oninput=renderContacts;
   $('class-login').addEventListener('change',updateRememberOption);
   if (window.google && window.google.script && window.google.script.run) {
