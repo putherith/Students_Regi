@@ -35,6 +35,23 @@ Student IDs are assigned by Apps Script inside the write lock: school code `902`
 
 After updating `google-sheet-backend.gs`, use `Deploy -> Manage deployments -> Edit -> New version -> Deploy`; editing the script without deploying a new version does not update the web app.
 
+### Apps Script project files
+
+The live Apps Script project contains several files. The repo keeps one copy of each, synced from the deployed version (version 33):
+
+| Apps Script file | Repo file |
+|---|---|
+| `Code.gs` | `google-sheet-backend.gs` |
+| `TeacherPortalBackend.gs` | `teacher-portal.gs` |
+| `TeacherPortal.html` | `teacher-portal.html` |
+| `DigitalClassBackend.gs` | `digital-class-backend.gs` |
+| `SheetLinkDigitalClass.gs` | `sheet-link-digital-class.gs` |
+| `appsscript.json` | `appsscript.json` |
+
+Replace only the file you changed, and keep the others. Before pasting a repo file over the live one, check that the live file has no edits missing from the repo; otherwise those edits are lost.
+
+`sheet-link-digital-class.gs` stores `SHL_KEY = 'SET_IN_APPS_SCRIPT_ONLY'` in the repo. The real key exists only in the deployed Apps Script project. When updating that file in Apps Script, keep the existing key line and never commit the real key.
+
 ### Restore missing photos
 
 Before clicking **Backup** or rebuilding the Sheet, deploy the latest `google-sheet-backend.gs` as a new version of the **existing** Web App deployment. Then open the updated app on a computer or phone that previously displayed the missing photos and click **ស្ដាររូបថត**. The recovery fills only blank photo cells in `Students`, using that device's photo cache and any surviving photos in `By Class` or `Class - ...` tabs. It never replaces an existing photo. Check the reported remaining count afterward, and repeat on other previously used devices if needed. Do not clear browser site data or rebuild the class tabs before recovery.

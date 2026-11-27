@@ -76,13 +76,78 @@
         return [KINGDOM, NATION, "✥✥✥", DEPARTMENT, SCHOOL];
     }
 
-    window.SchoolDocument = Object.freeze({ DEPARTMENT, SCHOOL, PLACE, header, footer, css, excelHeaderLines, khmerDigits });
+    /* ---- Student list: the school's class-list form (see the Digital Class print) ----
+       Offices on the left, kingdom on the right, one flowing table whose header repeats
+       on every printed page, a total row, then the dated signatures. Khmer digits
+       everywhere except the dates of birth and phone numbers. */
+    const LIST_OFFICE_LINES = ["មន្ទីរអប់រំ យុវជន និងកីឡា ខេត្តតាកែវ", "ការិយាល័យអប់រំ យុវជន និងកីឡា ស្រុកកោះអណ្តែត", "វិទ្យាល័យ សុខអាន ព្រៃមេលង"];
+    const LIST_KINGDOM_LINES = [KINGDOM, NATION, "❖ ❖ ❖"];
+    const KHMER_MONTHS = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+
+    /* "ធ្វើនៅព្រៃមេលង, ថ្ងៃទី ២៧ ខែវិច្ឆិកា ឆ្នាំ២០២៦" for the given date (default: today). */
+    function listDateLine(date = new Date()) {
+        const d = date instanceof Date && !Number.isNaN(date.getTime()) ? date : new Date();
+        return `ធ្វើនៅ${PLACE}, ថ្ងៃទី ${khmerDigits(String(d.getDate()).padStart(2, "0"))} ខែ${KHMER_MONTHS[d.getMonth()]} ឆ្នាំ${khmerDigits(d.getFullYear())}`;
+    }
+
+    /* columns: [{ header, width (%), align:"left"|"center" }]; rows: arrays of cell text (already formatted).
+       The first column is the row number (pass Khmer digits); dates of birth stay as given. */
+    function studentList({ title = "បញ្ជីឈ្មោះសិស្ស", subtitle = "", columns = [], rows = [], total = 0, female = 0, male = 0,
+        principal = "", teacherTitle = "គ្រូបន្ទុកថ្នាក់", teacher = "", date = new Date(), emptyText = "មិនមានសិស្ស" } = {}) {
+        const colgroup = `<colgroup>${columns.map(column => `<col style="width:${Number(column.width) || 10}%">`).join("")}</colgroup>`;
+        const head = `<tr>${columns.map(column => `<th>${escape(column.header)}</th>`).join("")}</tr>`;
+        const body = rows.length ? rows.map(cells => `<tr>${columns.map((column, index) =>
+            `<td class="${column.align === "left" ? "sl-left" : "sl-center"}">${escape(cells[index] ?? "")}</td>`).join("")}</tr>`).join("")
+            : `<tr><td class="sl-center" colspan="${columns.length}">${escape(emptyText)}</td></tr>`;
+        const totalRow = `<tr class="sl-total"><td colspan="2" class="sl-center">សរុប</td><td colspan="${Math.max(1, columns.length - 2)}" class="sl-center">${khmerDigits(total)} នាក់</td></tr>`;
+        return `<section class="sl-page">
+            <header class="sl-head">
+                <div class="sl-office">${LIST_OFFICE_LINES.map(line => `<div>${line}</div>`).join("")}</div>
+                <div class="sl-kingdom">${LIST_KINGDOM_LINES.map((line, index) => `<div${index === 2 ? ' class="sl-ornament"' : ""}>${line}</div>`).join("")}</div>
+            </header>
+            <h1 class="sl-title">${escape(title)}</h1>
+            ${subtitle ? `<p class="sl-subtitle">${escape(subtitle)}</p>` : ""}
+            <table class="sl-table">${colgroup}<thead>${head}</thead><tbody>${body}${totalRow}</tbody></table>
+            <p class="sl-breakdown">ក្នុងនោះ ស្រី ${khmerDigits(female)} នាក់ · ប្រុស ${khmerDigits(male)} នាក់</p>
+            <div class="sl-signatures">
+                <div class="sl-sign sl-sign-left"><div>បានឃើញ និងឯកភាព</div><div>នាយកសាលា</div><div class="sl-sign-name">${escape(principal)}</div></div>
+                <div class="sl-sign"><div>${listDateLine(date)}</div><div>${escape(teacherTitle)}</div><div class="sl-sign-name">${escape(teacher)}</div></div>
+            </div>
+        </section>`;
+    }
+
+    function studentListCss() {
+        return `
+            .sl-page { color:#000; font:11pt/1.5 "Khmer OS Siemreap","Siemreap",sans-serif; break-after:page; page-break-after:always; }
+            .sl-page:last-child { break-after:auto; page-break-after:auto; }
+            .sl-head { display:flex; justify-content:space-between; align-items:flex-start; padding:3mm 22mm 0 11mm; }
+            .sl-office { text-align:center; font-size:10.5pt; line-height:1.55; }
+            .sl-kingdom { text-align:center; font:10.5pt/1.75 "Khmer OS Muol Light","Moul",serif; }
+            .sl-kingdom .sl-ornament { font:10pt/1.8 "Khmer OS Siemreap","Siemreap",sans-serif; letter-spacing:.6mm; }
+            .sl-title { margin:7mm 0 0; text-align:center; font:13pt/1.7 "Khmer OS Muol Light","Moul",serif; font-weight:400; }
+            .sl-subtitle { margin:0 0 2mm; text-align:center; font-size:10.5pt; }
+            .sl-table { width:100%; border-collapse:collapse; table-layout:fixed; }
+            .sl-table thead { display:table-header-group; }
+            .sl-table tr { break-inside:avoid; page-break-inside:avoid; }
+            .sl-table th, .sl-table td { height:7.4mm; padding:0 1.6mm; border:.25mm solid #000; background:#fff; color:#000; font-size:10.5pt; font-weight:400; line-height:1.3; vertical-align:middle; overflow:hidden; white-space:nowrap; text-overflow:clip; }
+            .sl-table th { text-align:center; }
+            .sl-table .sl-left { text-align:left; }
+            .sl-table .sl-center { text-align:center; }
+            .sl-breakdown { margin:1mm 0 0; font-size:10.5pt; break-after:avoid; page-break-after:avoid; }
+            .sl-signatures { display:grid; grid-template-columns:1fr 1fr; margin-top:6mm; text-align:center; font-size:10.5pt; line-height:1.6; break-inside:avoid; page-break-inside:avoid; }
+            .sl-sign-left { padding-top:1.6em; }
+            .sl-sign-name { margin-top:17mm; }
+        `;
+    }
+
+    window.SchoolDocument = Object.freeze({ DEPARTMENT, SCHOOL, PLACE, header, footer, css, excelHeaderLines, khmerDigits,
+        LIST_OFFICE_LINES, LIST_KINGDOM_LINES, listDateLine, studentList, studentListCss });
 
     // On-screen previews (e.g. the class roster in Reports) use the same styles.
     if (typeof document !== "undefined" && document.head && !document.getElementById("school-document-style")) {
         const style = document.createElement("style");
         style.id = "school-document-style";
-        style.textContent = css();
+        style.textContent = css() + studentListCss();
         document.head.append(style);
     }
 })();

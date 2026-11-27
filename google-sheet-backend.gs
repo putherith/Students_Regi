@@ -12,6 +12,10 @@ const PHOTO_REFERENCE_PREFIX = "drive:";
 const PHOTO_MIGRATION_BATCH_LIMIT = 12;
 const WRITE_LOCK_TIMEOUT_MS = 30000;
 const STUDENT_SCHOOL_CODE = "902";
+const STUDENT_AUDIT_SHEET_NAME = "_Student Audit";
+const STUDENT_AUDIT_HEADERS = ["eventId", "at", "action", "state", "recordIds", "backupFileId", "actor", "details", "beforeJson"];
+const STUDENT_BACKUP_FOLDER_PROPERTY = "STUDENT_BACKUP_FOLDER_ID";
+const STUDENT_BACKUP_FOLDER_NAME = "Student Registration Private Backups";
 
 const HEADERS = [
   "id",
@@ -155,6 +159,7 @@ const CLASS_TAB_COLORS = ["#0f766e", "#2563eb", "#7c3aed", "#15803d", "#b45309",
 function doGet(e) {
   try {
     const action = String((e && e.parameter && e.parameter.action) || "list").toLowerCase();
+    if (action.indexOf("digitalclass") === 0) return digitalClassGet_(action, e);
     // The public landing page contains no student data. Every portal RPC checks
     // its own class-scoped session before reading or changing records.
     if (action === "teacherportal") {
@@ -165,6 +170,7 @@ function doGet(e) {
       return output_({
         ok: true,
         capabilities: { studentLatinName:true, studentNote:true, patchFields:true, portalRememberLogin:true, drivePhotoStorage:true },
+        security: { accessKeyRequired:true, classScopedPortal:true, auditBackups:true },
         revision: getRevision_(DATA_REVISION_PROPERTY),
         settingsRevision: getRevision_(SETTINGS_REVISION_PROPERTY)
       }, e);
@@ -173,15 +179,19 @@ function doGet(e) {
       const sheet = getStudentsSheet_();
       const total = Math.max(0, sheet.getLastRow() - 1);
       const photos = total ? sheet.getRange(2, HEADERS.indexOf("photo") + 1, total, 1).getValues() : [];
-      const codes = total ? sheet.getRange(2, HEADERS.indexOf("studentCode") + 1, total, 1).getDisplayValues() : [];
-      const missingCodes = photos.map(function(row, index) {
-        return !String(row[0] || "").trim() ? String(codes[index][0] || "").trim() : "";
-      }).filter(Boolean);
+      const identities = total ? sheet.getRange(2, 1, total, 2).getDisplayValues() : [];
+      const missing = photos.reduce(function(result, row, index) {
+        if (!String(row[0] || "").trim()) {
+          result.push({ id:String(identities[index][0] || "").trim(), studentCode:String(identities[index][1] || "").trim() });
+        }
+        return result;
+      }, []);
       return output_({
         ok: true,
         total: total,
-        missing: photos.filter(function(row) { return !String(row[0] || "").trim(); }).length,
-        missingCodes: missingCodes,
+        missing: missing.length,
+        missingIds: missing.map(function(row) { return row.id; }).filter(Boolean),
+        missingCodes: missing.map(function(row) { return row.studentCode; }).filter(Boolean),
         revision: getRevision_(DATA_REVISION_PROPERTY)
       }, e);
     }
@@ -202,6 +212,12 @@ function doGet(e) {
         updatedAt:String(row[HEADERS.indexOf("updatedAt")] || ""),
         hasPhoto: !!photo.trim(), photoLength: photoStoredSourceLength_(photo),
         photoStorage: photoStorageKind_(photo) }, e);
+    }
+    if (action === "audithistory") {
+      return output_({ ok:true, events:studentAuditHistory_(Math.min(100, Math.max(1, Number(e.parameter.limit) || 30))) }, e);
+    }
+    if (action === "auditpreview") {
+      return output_(Object.assign({ ok:true }, studentAuditRestorePreview_(e.parameter.eventId, e.parameter.className)), e);
     }
     if (action === "list") {
       ensureMissingStudentCodes_();
@@ -280,11 +296,12 @@ function doGet(e) {
       ensureMissingStudentCodes_();
       const sheet = getStudentsSheet_();
       const count = Math.max(0, sheet.getLastRow() - 1);
-      const left = count ? sheet.getRange(2, 1, count, 3).getDisplayValues() : [];
+      const left = count ? sheet.getRange(2, 1, count, 6).getDisplayValues() : [];
       const names = count ? sheet.getRange(2, HEADERS.indexOf("studentSurname") + 1, count, 2).getDisplayValues() : [];
       const students = left.map(function(row, index) {
         return {
           id: row[0], studentCode: row[1], studentName: row[2],
+          gender: row[3], dob: row[4], className: row[5],
           studentSurname: names[index][0], studentGivenName: names[index][1]
         };
       }).filter(function(student) { return student.id || student.studentCode || student.studentName; });
@@ -311,13 +328,30 @@ function doGet(e) {
 function doPost(e) {
   try {
     const body = JSON.parse((e && e.postData && e.postData.contents) || "{}");
+    const digitalClassAction = String(body.action || "").toLowerCase();
+    if (digitalClassAction.indexOf("digitalclass") === 0) return digitalClassPost_(digitalClassAction, body, e);
     assertAuthorized_(e, body);
     const action = String(body.action || "").toLowerCase();
+    if (action === "snapshot") {
+      if (body.confirm !== "CREATE_SNAPSHOT") throw new Error("Explicit snapshot confirmation is required");
+      const requestId = String(body.requestId || "").trim();
+      if (!/^[A-Za-z0-9-]{8,80}$/.test(requestId)) throw new Error("Snapshot request ID is invalid");
+      const result = withWriteLock_(function() {
+        const students = readStudents_();
+        if (!students.length) throw new Error("No students to snapshot");
+        const auditRow = auditBeforeStudentChange_("manual-snapshot", students, "admin-app", requestId + " · " + students.length + " students");
+        auditAppliedStudentChange_(auditRow, requestId + " · " + students.length + " students");
+        return students.length;
+      });
+      return output_({ ok:true, action:action, count:result }, e);
+    }
     if (action === "backup") {
       const rows = Array.isArray(body.students) ? body.students : [];
       const count = withWriteLock_(function() {
+        const auditRow = auditBeforeStudentChange_("backup-merge", readStudents_(), "admin-app", "incoming " + rows.length);
         const mergedCount = mergeStudents_(rows.map(normalizeIncomingStudent_));
         touchRevision_(DATA_REVISION_PROPERTY);
+        auditAppliedStudentChange_(auditRow, "merged " + mergedCount);
         return mergedCount;
       });
       return output_({ ok: true, action: action, mode: "merge", count: count }, e);
@@ -325,24 +359,31 @@ function doPost(e) {
     if (action === "replace") {
       const rows = Array.isArray(body.students) ? body.students : [];
       withWriteLock_(function() {
+        const auditRow = auditBeforeStudentChange_("replace", readStudents_(), "admin-app", "incoming " + rows.length);
         replaceStudents_(rows.map(normalizeIncomingStudent_));
         touchRevision_(DATA_REVISION_PROPERTY);
+        auditAppliedStudentChange_(auditRow, "replaced with " + rows.length);
       });
       return output_({ ok: true, action: action, mode: "replace", count: rows.length }, e);
     }
     if (action === "upsert") {
       const student = normalizeIncomingStudent_(body);
       withWriteLock_(function() {
+        const before = findStoredStudentForAudit_(student.id, student.studentCode);
+        const auditRow = auditBeforeStudentChange_("upsert", before ? [before] : [], "admin-app", String(student.id || ""));
         upsertStudent_(student);
         touchRevision_(DATA_REVISION_PROPERTY);
+        auditAppliedStudentChange_(auditRow, String(student.id || "") + " · " + String(student.studentCode || ""));
       });
       return output_({ ok: true, action: action, studentId: student.studentCode || student.id }, e);
     }
     if (action === "upsertmany") {
       const rows = Array.isArray(body.students) ? body.students : [];
       const count = withWriteLock_(function() {
+        const auditRow = auditBeforeStudentChange_("upsert-many", readStudents_(), "admin-app", "incoming " + rows.length);
         const mergedCount = mergeStudents_(rows.map(normalizeIncomingStudent_));
         touchRevision_(DATA_REVISION_PROPERTY);
+        auditAppliedStudentChange_(auditRow, "merged " + mergedCount);
         return mergedCount;
       });
       return output_({ ok: true, action: action, mode: "merge", count: count }, e);
@@ -366,11 +407,19 @@ function doPost(e) {
     }
     if (action === "delete") {
       const deleted = withWriteLock_(function() {
-        const result = deleteStudent_({
+        const identity = {
           recordId:body.student && (body.student.recordId || body.student.id) || body.studentId,
           studentCode:body.student && body.student.studentCode
+        };
+        const before = findStoredStudentForAudit_(identity.recordId, identity.studentCode);
+        if (!before) return false;
+        const auditRow = auditBeforeStudentChange_("delete", [before], "admin-app", String(before.id || ""));
+        const result = deleteStudent_({
+          recordId:identity.recordId,
+          studentCode:identity.studentCode
         });
         if (result) touchRevision_(DATA_REVISION_PROPERTY);
+        if (result) auditAppliedStudentChange_(auditRow, String(before.id || ""));
         return result;
       });
       return output_({ ok: true, action: action, deleted:deleted }, e);
@@ -385,9 +434,22 @@ function doPost(e) {
     }
     if (action === "moveclass") {
       const result = withWriteLock_(function() {
+        const before = findStoredStudentForAudit_(body.studentId, body.student && body.student.studentCode);
+        if (!before) throw new Error("Student record not found");
+        const auditRow = auditBeforeStudentChange_("move-class", [before], "admin-app", String(before.className || ""));
         const moved = moveStudentClass_(body.studentId, body.student || {});
         if (moved.changed) touchRevision_(DATA_REVISION_PROPERTY);
+        auditAppliedStudentChange_(auditRow, String(before.className || "") + " → " + String(moved.className || ""));
         return moved;
+      });
+      return output_(Object.assign({ ok:true, action:action }, result), e);
+    }
+    if (action === "restoremissing") {
+      if (body.confirm !== "RESTORE_MISSING") throw new Error("Explicit restore confirmation is required");
+      const result = withWriteLock_(function() {
+        const restored = restoreMissingStudentsFromAudit_(body.eventId, body.className);
+        if (restored.restored) touchRevision_(DATA_REVISION_PROPERTY);
+        return restored;
       });
       return output_(Object.assign({ ok:true, action:action }, result), e);
     }
@@ -416,7 +478,7 @@ function doPost(e) {
 function output_(payload, e) {
   const callback = e && e.parameter && e.parameter.callback;
   const json = JSON.stringify(payload);
-  if (callback) {
+  if (callback && /^[A-Za-z_$][\w$]{0,100}$/.test(callback)) {
     return ContentService
       .createTextOutput(callback + "(" + json + ");")
       .setMimeType(ContentService.MimeType.JAVASCRIPT);
@@ -436,8 +498,171 @@ function assertAuthorized_(e, body) {
     throw new Error("Unauthorized: admin credential is unavailable; contact the school administrator");
   }
   const expected = String(PropertiesService.getScriptProperties().getProperty(ACCESS_KEY_PROPERTY) || "").trim();
-  if (!expected) return;
+  if (!expected) throw new Error("Unauthorized: configure STUDENT_APP_ACCESS_KEY or an admin credential before accessing student data");
   if (supplied !== expected) throw new Error("Unauthorized: access key is missing or incorrect");
+}
+
+function studentAuditSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(STUDENT_AUDIT_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(STUDENT_AUDIT_SHEET_NAME);
+    sheet.getRange(1, 1, 1, STUDENT_AUDIT_HEADERS.length).setValues([STUDENT_AUDIT_HEADERS]);
+    sheet.setFrozenRows(1);
+    sheet.hideSheet();
+  }
+  const actual = sheet.getRange(1, 1, 1, STUDENT_AUDIT_HEADERS.length).getDisplayValues()[0];
+  if (actual.some(function(value, index) { return value !== STUDENT_AUDIT_HEADERS[index]; })) {
+    throw new Error("Student audit header mismatch; no data was changed");
+  }
+  return sheet;
+}
+
+function studentBackupFolder_() {
+  const properties = PropertiesService.getScriptProperties();
+  const savedId = properties.getProperty(STUDENT_BACKUP_FOLDER_PROPERTY);
+  if (savedId) return DriveApp.getFolderById(savedId);
+  const folder = DriveApp.createFolder(STUDENT_BACKUP_FOLDER_NAME);
+  folder.setDescription("Private student pre-change snapshots. Do not share publicly.");
+  properties.setProperty(STUDENT_BACKUP_FOLDER_PROPERTY, folder.getId());
+  return folder;
+}
+
+function auditBeforeStudentChange_(action, beforeStudents, actor, details) {
+  const rows = (Array.isArray(beforeStudents) ? beforeStudents : [beforeStudents]).filter(Boolean);
+  const eventId = Utilities.getUuid();
+  const at = new Date().toISOString();
+  let backupFileId = "";
+  let beforeJson = "";
+  if (rows.length) {
+    const payload = JSON.stringify({ version:1, eventId:eventId, at:at, action:action, students:rows });
+    if (payload.length > 9000000) throw new Error("Snapshot too large; split the operation before changing student data");
+    if (rows.length === 1 && ["upsert", "teacher-update", "move-class"].indexOf(action) >= 0 && payload.length < 40000) {
+      // A small edit stays fast; destructive/bulk operations always get a separate Drive snapshot.
+      beforeJson = payload;
+    } else {
+      const file = studentBackupFolder_().createFile("students-before-" + action + "-" + eventId + ".json", payload, MimeType.PLAIN_TEXT);
+      backupFileId = file.getId();
+    }
+  }
+  const sheet = studentAuditSheet_();
+  const rowNumber = sheet.getLastRow() + 1;
+  sheet.getRange(rowNumber, 1, 1, STUDENT_AUDIT_HEADERS.length).setValues([[
+    eventId, at, action, "prepared", rows.map(function(student) { return String(student.id || ""); }).join(","),
+    backupFileId, String(actor || "admin-app"), String(details || ""), beforeJson
+  ]]);
+  return rowNumber;
+}
+
+function auditAppliedStudentChange_(rowNumber, details) {
+  // The pre-change snapshot is already durable if this final marker fails.
+  try {
+    const sheet = studentAuditSheet_();
+    sheet.getRange(rowNumber, 4).setValue("applied");
+    if (details) sheet.getRange(rowNumber, 8).setValue(String(details));
+  } catch (error) { console.error("Audit marker failed:", error); }
+}
+
+function findStoredStudentForAudit_(recordId, studentCode) {
+  const id = String(recordId || "").trim();
+  const code = String(studentCode || "").trim();
+  if (!id && !code) return null;
+  const sheet = getStudentsSheet_();
+  const count = Math.max(0, sheet.getLastRow() - 1);
+  if (!count) return null;
+  const identities = sheet.getRange(2, 1, count, 2).getDisplayValues();
+  const idMatches = identities.map(function(row, index) { return id && row[0] === id ? index : -1; })
+    .filter(function(index) { return index >= 0; });
+  const matches = idMatches.length ? idMatches : identities.map(function(row, index) {
+    return code && row[1] === code ? index : -1;
+  }).filter(function(index) { return index >= 0; });
+  if (matches.length > 1) throw new Error("Ambiguous student identity; no data was changed");
+  if (matches.length && id && identities[matches[0]][0] && identities[matches[0]][0] !== id && identities[matches[0]][0] !== code) {
+    throw new Error("Record ID mismatch; no data was changed");
+  }
+  return matches.length ? rowToStudent_(sheet.getRange(matches[0] + 2, 1, 1, HEADERS.length).getValues()[0]) : null;
+}
+
+function studentAuditHistory_(limit) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(STUDENT_AUDIT_SHEET_NAME);
+  if (!sheet) return [];
+  const count = Math.min(sheet.getLastRow() - 1, limit);
+  if (count <= 0) return [];
+  return sheet.getRange(sheet.getLastRow() - count + 1, 1, count, STUDENT_AUDIT_HEADERS.length)
+    .getDisplayValues().reverse().map(function(row) { return {
+      eventId:row[0], at:row[1], action:row[2], state:row[3], recordIds:row[4],
+      hasBackup:!!row[5] || !!row[8], actor:row[6], details:row[7]
+    }; });
+}
+
+function studentAuditRestorePreview_(eventId, className) {
+  const id = String(eventId || "").trim();
+  const wantedClass = String(className || "").trim();
+  if (!id || !wantedClass) throw new Error("Event ID and class are required");
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(STUDENT_AUDIT_SHEET_NAME);
+  if (!sheet) throw new Error("No audit snapshots exist yet");
+  const count = Math.max(0, sheet.getLastRow() - 1);
+  const events = count ? sheet.getRange(2, 1, count, STUDENT_AUDIT_HEADERS.length).getDisplayValues() : [];
+  const event = events.find(function(row) { return row[0] === id && row[3] === "applied"; });
+  if (!event || (!event[5] && !event[8])) throw new Error("Applied backup event was not found");
+  const backup = JSON.parse(event[8] || DriveApp.getFileById(event[5]).getBlob().getDataAsString());
+  if (backup.eventId !== id || !Array.isArray(backup.students)) throw new Error("Backup identity mismatch");
+  const requested = backup.students.filter(function(student) { return String(student.className || "").trim() === wantedClass; });
+  if (!requested.length || requested.length > 100) throw new Error("Select a class with 1–100 backed-up students");
+  const students = getStudentsSheet_();
+  const existingCount = Math.max(0, students.getLastRow() - 1);
+  const existing = existingCount ? students.getRange(2, 1, existingCount, 2).getDisplayValues() : [];
+  const ids = new Set(existing.map(function(row) { return String(row[0] || ""); }));
+  const codes = new Set(existing.map(function(row) { return String(row[1] || ""); }));
+  const missing = requested.filter(function(student) { return !ids.has(String(student.id || "")); });
+  const pendingIds = new Set();
+  const pendingCodes = new Set();
+  const conflicts = missing.filter(function(student) {
+    const studentId = String(student.id || "");
+    const code = String(student.studentCode || "");
+    const conflict = !studentId || !code || codes.has(code) || pendingIds.has(studentId) || pendingCodes.has(code);
+    pendingIds.add(studentId);
+    pendingCodes.add(code);
+    return conflict;
+  });
+  return { total:requested.length, missing:missing.length, conflicts:conflicts.length,
+    missingStudents:missing.slice(0, 20).map(function(student) {
+      return { id:String(student.id || ""), studentCode:String(student.studentCode || ""), studentName:String(student.studentName || "") };
+    }) };
+}
+
+function restoreMissingStudentsFromAudit_(eventId, className) {
+  const id = String(eventId || "").trim();
+  const wantedClass = String(className || "").trim();
+  if (!id || !wantedClass) throw new Error("Event ID and class are required for a guarded restore");
+  const audit = studentAuditSheet_();
+  const count = Math.max(0, audit.getLastRow() - 1);
+  const events = count ? audit.getRange(2, 1, count, STUDENT_AUDIT_HEADERS.length).getDisplayValues() : [];
+  const event = events.find(function(row) { return row[0] === id && row[3] === "applied"; });
+  if (!event || (!event[5] && !event[8])) throw new Error("Applied backup event was not found");
+  const backup = JSON.parse(event[8] || DriveApp.getFileById(event[5]).getBlob().getDataAsString());
+  if (backup.eventId !== id || !Array.isArray(backup.students)) throw new Error("Backup identity mismatch");
+  const requested = backup.students.filter(function(student) { return String(student.className || "").trim() === wantedClass; });
+  if (!requested.length || requested.length > 100) throw new Error("Select a class with 1–100 backed-up students");
+  const sheet = getStudentsSheet_();
+  const existingCount = Math.max(0, sheet.getLastRow() - 1);
+  const existing = existingCount ? sheet.getRange(2, 1, existingCount, 2).getDisplayValues() : [];
+  const knownIds = new Set(existing.map(function(row) { return row[0]; }));
+  const knownCodes = new Set(existing.map(function(row) { return row[1]; }));
+  const missing = requested.filter(function(student) { return !knownIds.has(String(student.id || "")); });
+  missing.forEach(function(student) {
+    if (!student.id || !student.studentCode || knownIds.has(String(student.id)) || knownCodes.has(String(student.studentCode))) {
+      throw new Error("Restore stopped: missing identity or student code conflict");
+    }
+    knownIds.add(String(student.id));
+    knownCodes.add(String(student.studentCode));
+  });
+  if (!missing.length) return { restored:0, skipped:requested.length };
+  const auditRow = auditBeforeStudentChange_("restore", [], "admin-app", "from " + id + " · " + wantedClass);
+  ensureRows_(sheet, sheet.getLastRow() + missing.length);
+  sheet.getRange(sheet.getLastRow() + 1, 1, missing.length, HEADERS.length).setValues(missing.map(studentToRow_));
+  auditAppliedStudentChange_(auditRow, "restored " + missing.length + " missing records from " + id);
+  return { restored:missing.length, skipped:requested.length - missing.length };
 }
 
 function withWriteLock_(work) {
@@ -814,8 +1039,8 @@ function mergeStudents_(incomingStudents) {
       if (createdAt) students[keyIndex].createdAt = createdAt;
       return;
     }
-    // A different record with the same normalized Khmer name is a duplicate.
-    if (students.some(function(existing) { return sameStudentName_(existing, student); })) return;
+    // A name alone is not an identity; students can share a Khmer name.
+    if (students.some(function(existing) { return sameStudentIdentity_(existing, student); })) return;
     student.photo = savePhotoToDrive_(student.photo, student);
     students.push(student);
   });
@@ -829,7 +1054,7 @@ function upsertStudent_(student) {
   const sheet = getStudentsSheet_();
   assignMissingStudentCodes_(sheet, 2, sheet.getLastRow());
   const lastRow = sheet.getLastRow();
-  const identityRows = lastRow >= 2 ? sheet.getRange(2, 1, lastRow - 1, 3).getDisplayValues() : [];
+  const identityRows = lastRow >= 2 ? sheet.getRange(2, 1, lastRow - 1, 6).getDisplayValues() : [];
   const matchingIndex = identityRows.findIndex(function(row) { return row[0] === key; });
   const academicYear = studentCodeAcademicYear_();
   if (lastRow >= 2) {
@@ -838,6 +1063,11 @@ function upsertStudent_(student) {
         const existing = rowToStudent_(sheet.getRange(matchingIndex + 2, 1, 1, HEADERS.length).getValues()[0]);
         student.photo = photoForStoredRecord_(student, existing);
         const merged = mergeStudentRecord_(existing, student);
+        if (identityRows.some(function(row, index) {
+          return index !== matchingIndex && sameStudentIdentity_({
+            studentName:row[2], gender:row[3], dob:row[4], className:row[5]
+          }, merged);
+        })) throw new Error("Student with matching name, gender, date of birth and class already exists");
         merged.studentCode = allocateStudentCode_(merged.className, existing.studentCode,
           identityRows.filter(function(_row, index) { return index !== matchingIndex; }).map(function(row) { return row[1]; }), academicYear);
         merged.createdAt = existing.createdAt || student.createdAt;
@@ -847,11 +1077,12 @@ function upsertStudent_(student) {
     }
     const splitNames = sheet.getRange(2, HEADERS.indexOf("studentSurname") + 1, count, 2).getDisplayValues();
     for (let i = 0; i < identityRows.length; i++) {
-      if (sameStudentName_({
+      if (sameStudentIdentity_({
         studentName:identityRows[i][2],
+        gender:identityRows[i][3], dob:identityRows[i][4], className:identityRows[i][5],
         studentSurname:splitNames[i][0],
         studentGivenName:splitNames[i][1]
-      }, student)) return;
+      }, student)) throw new Error("Student with matching name, gender, date of birth and class already exists");
     }
   }
   student.photo = savePhotoToDrive_(student.photo, student);
@@ -1056,6 +1287,7 @@ function patchStudentFields_(patches) {
     columns[field] = sheet.getRange(2, HEADERS.indexOf(field) + 1, lastRow - 1, 1).getValues();
   });
   const touched = {};
+  const previous = [];
   let changed = 0, missing = 0, skipped = 0;
   patches.forEach(function(patch) {
     const id = String((patch && patch.id) || "").trim();
@@ -1068,14 +1300,28 @@ function patchStudentFields_(patches) {
       const current = String(columns[field][index][0] || "").trim();
       if (current === next) return;
       if (onlyIfEmpty.indexOf(field) >= 0 && current) { skipped++; return; }
+      previous.push([id, field, current]);
       columns[field][index][0] = next;
       touched[field] = true;
       changed++;
     });
   });
+  if (!changed) return { changed:0, missing:missing, skipped:skipped };
+  // Audit before writing: the previous value of every changed cell, small enough to keep in
+  // the audit row itself (bulk Drive snapshots are not needed for two text columns).
+  const beforeJson = JSON.stringify({ version:1, action:"patch-fields", previous:previous });
+  if (beforeJson.length > 45000) throw new Error("Too many changes in one request; send smaller batches");
+  const auditSheet = studentAuditSheet_();
+  const auditRow = auditSheet.getLastRow() + 1;
+  auditSheet.getRange(auditRow, 1, 1, STUDENT_AUDIT_HEADERS.length).setValues([[
+    Utilities.getUuid(), new Date().toISOString(), "patch-fields", "prepared",
+    previous.map(function(item) { return item[0]; }).filter(function(id, i, all) { return all.indexOf(id) === i; }).join(","),
+    "", "admin-app", "fields " + Object.keys(touched).join("+") + " · " + changed + " cells", beforeJson
+  ]]);
   Object.keys(touched).forEach(function(field) {
     sheet.getRange(2, HEADERS.indexOf(field) + 1, lastRow - 1, 1).setValues(columns[field]);
   });
+  auditAppliedStudentChange_(auditRow, "fields " + Object.keys(touched).join("+") + " · " + changed + " cells");
   return { changed:changed, missing:missing, skipped:skipped };
 }
 
@@ -1105,7 +1351,8 @@ function moveStudentClass_(recordId, change) {
 
 function writeStudents_(students) {
   const sheet = getStudentsSheet_();
-  const sorted = sortStudents_(normalizeStudentCodes_(dedupeStudentsByName_(students.map(normalizeIncomingStudent_))));
+  // Never remove an existing row merely because another student has the same name.
+  const sorted = sortStudents_(normalizeStudentCodes_(students.map(normalizeIncomingStudent_)));
   ensureRows_(sheet, Math.max(2, sorted.length + 1));
   if (sheet.getLastRow() > 1) {
     sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.length).clearContent();
@@ -1181,20 +1428,47 @@ function studentNameKey_(student) {
     .replace(/[\s\u00A0]+/g, "");
 }
 
-function sameStudentName_(left, right) {
-  const leftName = studentNameKey_(left);
-  return !!leftName && leftName === studentNameKey_(right);
+function studentDobKey_(value) {
+  if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
+    return typeof Utilities !== "undefined"
+      ? Utilities.formatDate(value, "Asia/Phnom_Penh", "yyyy-MM-dd")
+      : value.toISOString().slice(0, 10);
+  }
+  const text = String(value || "").trim().replace(/[០-៩]/g, function(digit) {
+    return String(digit.charCodeAt(0) - 0x17E0);
+  });
+  const iso = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  const local = text.match(/^(\d{1,2})[-/]([^-/]+)[-/](\d{4})$/);
+  if (!iso && !local) return text.toLowerCase();
+  const months = { "មករា":1, "កុម្ភៈ":2, "កុម្ភះ":2, "មីនា":3, "មេសា":4,
+    "ឧសភា":5, "មិថុនា":6, "កក្កដា":7, "សីហា":8, "កញ្ញា":9, "តុលា":10,
+    "វិច្ឆិកា":11, "ធ្នូ":12, jan:1, feb:2, mar:3, apr:4, may:5, jun:6,
+    jul:7, aug:8, sep:9, oct:10, nov:11, dec:12 };
+  const year = Number(iso ? iso[1] : local[3]);
+  const token = local ? local[2].trim().replace(/^ខែ/, "").toLowerCase() : "";
+  const month = Number(iso ? iso[2] : (/^\d{1,2}$/.test(token) ? token : months[token] || 0));
+  const day = Number(iso ? iso[3] : local[1]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return text.toLowerCase();
+  return String(year).padStart(4, "0") + "-" + String(month).padStart(2, "0") + "-" + String(day).padStart(2, "0");
 }
 
-function dedupeStudentsByName_(students) {
-  const names = {};
-  return students.filter(function(student) {
-    const key = studentNameKey_(student);
-    if (!key) return true;
-    if (names[key]) return false;
-    names[key] = true;
-    return true;
-  });
+function studentIdentityKey_(student) {
+  const name = studentNameKey_(student);
+  const rawGender = String(student && student.gender || "")
+    .replace(/[\u200B-\u200D\u2060\uFEFF\s]/g, "").toLowerCase();
+  const gender = ["male", "m"].indexOf(rawGender) !== -1 ? "ប្រុស"
+    : (["female", "f"].indexOf(rawGender) !== -1 ? "ស្រី" : rawGender);
+  const dob = studentDobKey_(student && student.dob);
+  const className = String(student && student.className || "")
+    .replace(/[០-៩]/g, function(digit) { return String(digit.charCodeAt(0) - 0x17E0); })
+    .replace(/^\s*(?:ថ្នាក់ទី|ថ្នាក់|ទី)\s*/, "").replace(/\s+/g, "").toUpperCase();
+  return name && gender && dob && className ? JSON.stringify([name, gender, dob, className]) : "";
+}
+
+function sameStudentIdentity_(left, right) {
+  const key = studentIdentityKey_(left);
+  return !!key && key === studentIdentityKey_(right);
 }
 
 function sortStudents_(students) {

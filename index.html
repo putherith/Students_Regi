@@ -3399,6 +3399,7 @@
             .attendance-export-tools .btn { flex:1 1 100%; justify-content:center; }
         }
         .roster-preview { margin-top:16px; overflow-x:auto; border-radius:10px; background:var(--surface-2); }
+        .roster-preview .sl-page { box-sizing:border-box; width:210mm; margin:0 auto 18px; padding:15mm; background:#fff; color:#000; box-shadow:var(--shadow-sm); }
         .school-roster-page { box-sizing:border-box; width:194mm; min-width:0; max-width:none; min-height:281mm; margin:0 auto 18px; padding:8mm; background:#fff; color:#111; box-shadow:var(--shadow-sm); font-family:"Khmer OS Siemreap","Siemreap",sans-serif; }
         .roster-document-header { display:grid; grid-template-columns:1fr 1fr; gap:14px; min-height:92px; font-size:12px; line-height:1.65; }
         .roster-document-header .kingdom { text-align:center; font-weight:700; }
@@ -4818,7 +4819,7 @@
                 </label>
                 <button id="print-class-report-btn" class="btn btn-secondary" type="button"><ion-icon name="print-outline" aria-hidden="true"></ion-icon> បោះពុម្ពរបាយការណ៍</button>
                 <button id="print-grade-roster-btn" class="btn btn-secondary" type="button" hidden><ion-icon name="list-outline" aria-hidden="true"></ion-icon> បោះពុម្ពបញ្ជីតាមកម្រិត</button>
-                <button id="print-simple-class-roster-btn" class="btn btn-ghost" type="button" title="បោះពុម្ពតែ ៥ ជួរឈរ សម្រាប់ថ្នាក់ដែលបានជ្រើស"><ion-icon name="list-outline" aria-hidden="true"></ion-icon> បញ្ជី ៥ ជួរឈរ</button>
+                <button id="print-simple-class-roster-btn" class="btn btn-ghost" type="button" title="បោះពុម្ពបញ្ជីឈ្មោះសិស្សថ្នាក់ដែលបានជ្រើស តាមទម្រង់សាលា"><ion-icon name="list-outline" aria-hidden="true"></ion-icon> បញ្ជីថ្នាក់នេះ</button>
                 <button id="download-class-report-btn" class="btn btn-ghost" type="button"><ion-icon name="download-outline" aria-hidden="true"></ion-icon> ទាញ Excel</button>
                 <button id="download-grade-roster-btn" class="btn btn-ghost" type="button" hidden><ion-icon name="grid-outline" aria-hidden="true"></ion-icon> ទាញបញ្ជីតាមកម្រិត Excel</button>
                 <button id="download-class-roster-btn" class="btn btn-ghost" type="button"><ion-icon name="document-outline" aria-hidden="true"></ion-icon> ទាញទម្រង់ A4</button>
@@ -5398,7 +5399,7 @@
             <strong>វិទ្យាល័យសុខអានព្រៃមេលង</strong>
             <span>ប្រព័ន្ធរដ្ឋបាល និងគ្រប់គ្រងព័ត៌មានសិស្ស</span>
         </div>
-        <span class="footer-version">កំណែ 2.1.85</span>
+        <span class="footer-version">កំណែ 2.1.86</span>
     </footer>
 
 </main><!-- end .app -->
@@ -10794,46 +10795,57 @@
     }
 
     function classRosterDocumentHtml(group, previewOnly=false) {
+        const spec = rosterListSpec(group);
+        // The on-screen preview of a whole grade shows only the first printed page.
+        if (previewOnly) spec.rows = spec.rows.slice(0, ROSTER_FIRST_PAGE_ROWS);
+        return window.SchoolDocument.studentList(spec);
+    }
+
+    const ROSTER_FIRST_PAGE_ROWS = 28;
+
+    /* The school's class-list form (same as the Digital Class print): one row per student
+       with guardian, phone and a blank "other" column. Khmer digits, except the dates of
+       birth and phone numbers, which stay in Latin digits. Used for print, HTML and Excel. */
+    function rosterListSpec(group) {
         const byGrade = group.key.startsWith("grade:");
         const students = sortedRosterStudents(group);
-        const perPage = byGrade ? 22 : 25;
-        const pages = Math.max(1, Math.ceil(students.length / perPage));
         const academicYear = `${toKhmerDigits(appSettings.academicYearStart)}-${toKhmerDigits(appSettings.academicYearStart + 1)}`;
         const classLabel = byGrade ? group.name : group.key === "unassigned" ? "មិនទាន់កំណត់ថ្នាក់" : `ថ្នាក់ទី ${group.name}`;
-        const teacher = byGrade ? "................................" : appSettings.classTeachers[group.name] || "................................";
-        const principal = appSettings.principalName || "................................";
-        // One full-width table keeps 12pt Khmer names legible on A4.
-        const columns = byGrade ? [5, 14, 31, 7, 15, 9, 19] : [6, 16, 36, 8, 16, 18];
-        const colgroup = `<colgroup>${columns.map(width => `<col style="width:${width}%">`).join("")}</colgroup>`;
-        const headings = `<th>ល.រ</th><th>អត្តលេខ</th><th>គោត្តនាម និងនាម</th><th>ភេទ</th><th>ថ្ងៃខែឆ្នាំកំណើត</th>${byGrade ? "<th>ថ្នាក់</th>" : ""}<th>សាលាមកពី</th>`;
-        const fitCell = (value, extraClass="") => `<td class="roster-fit-cell ${extraClass}"><span class="roster-fit-text">${esc(value || "")}</span></td>`;
-        const cells = (student, index) => `<td class="roster-center">${index + 1}</td>${fitCell(studentVisibleId(student), "roster-center")}${fitCell(studentFullName(student), "roster-name")}${fitCell(student.gender, "roster-center")}${fitCell(reportShortDate(student.dob), "roster-center")}${byGrade ? fitCell(student.className, "roster-center") : ""}${fitCell(student.fromSchool, "roster-school")}`;
-        return Array.from({ length:previewOnly ? 1 : pages }, (_, page) => {
-            const start = page * perPage;
-            const rows = students.slice(start, start + perPage).map((student, row) =>
-                `<tr>${cells(student, start + row)}</tr>`).join("") || `<tr><td colspan="${byGrade ? 7 : 6}" class="roster-center">មិនមានសិស្ស</td></tr>`;
-            const doc = window.SchoolDocument;
-            return `<section class="school-roster-page">
-                ${doc.header({ title:`បញ្ជីឈ្មោះសិស្ស ${classLabel}`, subtitle:`ឆ្នាំសិក្សា ${academicYear}` })}
-                <table class="roster-table sd-table">${colgroup}<thead><tr>${headings}</tr></thead><tbody>${rows}</tbody></table>
-                ${doc.footer({
-                    note:`* បញ្ជីនេះមានសិស្សសរុប ${toKhmerDigits(students.length)} នាក់ ស្រី ${toKhmerDigits(group.female)} នាក់${pages > 1 ? ` · ទំព័រ ${toKhmerDigits(page + 1)}/${toKhmerDigits(pages)}` : ""}`,
-                    year:String(appSettings.issueDate || "").slice(0, 4) || new Date().getFullYear(),
-                    // Signatures close the list, so only the last page carries them.
-                    signatures:previewOnly || page === pages - 1 ? [
-                        { lines:["បានឃើញ និងឯកភាព", "នាយកសាលា"], name:principal },
-                        { lines:[byGrade ? "អ្នករៀបចំបញ្ជី" : "គ្រូបន្ទុកថ្នាក់"], name:teacher, dated:true }
-                    ] : []
-                })}
-            </section>`;
-        }).join("");
+        const phone = value => { const text = String(value || "").trim(); return /^0*$/.test(text) ? "" : text; };
+        const columns = byGrade ? [
+            { header:"ល.រ", width:5.5, align:"center" }, { header:"គោត្តនាម និងនាម", width:23, align:"left" },
+            { header:"ភេទ", width:7, align:"center" }, { header:"ថ្ងៃខែឆ្នាំកំណើត", width:17, align:"center" },
+            { header:"ថ្នាក់", width:7, align:"center" }, { header:"អាណាព្យាបាល", width:16, align:"left" },
+            { header:"ទូរស័ព្ទ", width:14.5, align:"left" }, { header:"ផ្សេងៗ", width:10, align:"left" }
+        ] : [
+            { header:"ល.រ", width:5.7, align:"center" }, { header:"គោត្តនាម និងនាម", width:24.1, align:"left" },
+            { header:"ភេទ", width:7.6, align:"center" }, { header:"ថ្ងៃខែឆ្នាំកំណើត", width:21.1, align:"center" },
+            { header:"អាណាព្យាបាល", width:17.2, align:"left" }, { header:"ទូរស័ព្ទ", width:15.3, align:"left" },
+            { header:"ផ្សេងៗ", width:9, align:"left" }
+        ];
+        const rows = students.map((student, index) => [
+            toKhmerDigits(index + 1), studentFullName(student), student.gender || "", reportShortDate(student.dob),
+            ...(byGrade ? [student.className || ""] : []), student.guardianName || "", phone(student.contact), ""
+        ]);
+        return {
+            title:"បញ្ជីឈ្មោះសិស្ស",
+            subtitle:`${classLabel} · ឆ្នាំសិក្សា ${academicYear}`,
+            columns, rows,
+            total:students.length,
+            female:students.filter(student => student.gender === "ស្រី").length,
+            male:students.filter(student => student.gender === "ប្រុស").length,
+            principal:appSettings.principalName || "",
+            teacherTitle:byGrade ? "អ្នករៀបចំបញ្ជី" : "គ្រូបន្ទុកថ្នាក់",
+            teacher:byGrade ? "" : appSettings.classTeachers[group.name] || "",
+            date:new Date()
+        };
     }
 
     function classReportRosterHtml(group) {
         if (!group) return "";
         const byGrade = group.key.startsWith("grade:");
         const title = byGrade ? `តាមកម្រិត${group.name}` : `ថ្នាក់ ${group.name}`;
-        const pageCount = Math.ceil(group.students.length / (byGrade ? 22 : 25));
+        const pageCount = Math.ceil(group.students.length / ROSTER_FIRST_PAGE_ROWS);
         return `<h3>បញ្ជីឈ្មោះសិស្ស${esc(title)}</h3>${byGrade && pageCount > 1 ? `<p class="class-report-hint">បង្ហាញទំព័រទី ១ ក្នុងចំណោម ${pageCount} ទំព័រ។ បោះពុម្ព ឬទាញចេញ ដើម្បីបានបញ្ជីពេញ។</p>` : ""}<div class="roster-preview">${classRosterDocumentHtml(group, byGrade)}</div>`;
     }
 
@@ -10867,21 +10879,10 @@
 
     function classRosterPrintCss() {
         return `<style>
-            @page { size:A4 portrait; margin:8mm; }
-            body { color:#111; }
-            .school-roster-page { box-sizing:border-box; display:flex; flex-direction:column; width:194mm; min-width:0; max-width:none; min-height:281mm; height:auto; margin:0 auto; padding:0; box-shadow:none; break-after:page; page-break-after:always; font-family:"Khmer OS Siemreap","Siemreap",sans-serif; }
-            .school-roster-page:last-child { break-after:auto; page-break-after:auto; }
-            ${window.SchoolDocument.css()}
-            .school-roster-page .sd-footer { margin-top:auto; padding-top:2mm; }
-            .roster-table { width:100%; table-layout:fixed; border-collapse:collapse; }
-            .roster-table th,.roster-table td { box-sizing:border-box; height:7mm; padding:.4mm 1mm; border:.25mm solid #000; color:#000; font-size:9.5pt; line-height:1.45; vertical-align:middle; white-space:normal; }
-            .roster-table td.roster-name { text-align:left; }
-            .roster-table td.roster-name .roster-fit-text { display:block; width:100%; font-size:12pt; font-weight:700; line-height:1.3; white-space:normal; overflow-wrap:anywhere; transform:none !important; }
-            .roster-table th { height:9mm; text-align:center; font-size:9pt; font-weight:700; white-space:normal; }
-            .roster-table .roster-center { text-align:center; }
-            .roster-table .roster-fit-text { display:inline-block; max-width:none; white-space:nowrap; transform-origin:left center; }
-            .roster-table .roster-center .roster-fit-text { transform-origin:center center; }
-            @media screen { body { padding:12px; background:#e7ebf1; } .school-roster-page { margin:0 auto 14px; padding:8mm; width:210mm; min-height:297mm; height:auto; background:#fff; box-shadow:0 4px 18px #0002; } }
+            @page { size:A4 portrait; margin:15mm 15mm 12mm; }
+            body { color:#000; }
+            ${window.SchoolDocument.studentListCss()}
+            @media screen { body { padding:12px; background:#e7ebf1; } .sl-page { box-sizing:border-box; width:210mm; min-height:297mm; margin:0 auto 14px; padding:15mm; background:#fff; box-shadow:0 4px 18px #0002; } }
         </style>`;
     }
 
@@ -11029,28 +11030,14 @@
             : "បញ្ជីឈ្មោះសិស្សតាមកម្រិតថ្នាក់");
     }
 
+    // Prints the selected class on the school's class-list form (same as the main roster print).
     function printSimpleClassRoster() {
         const { selected } = selectedClassReport();
         if (reportMode !== "class" || !selected || selected.key === "unassigned") {
-            showToast("សូមជ្រើសថ្នាក់មួយសម្រាប់បោះពុម្ពបញ្ជី ៥ ជួរឈរ", "warning");
+            showToast("សូមជ្រើសថ្នាក់មួយសម្រាប់បោះពុម្ពបញ្ជី", "warning");
             return;
         }
-        if (!window.StudentSimpleClassRoster) {
-            showToast("មុខងារបោះពុម្ពមិនទាន់ផ្ទុក។ សូម Refresh ហើយសាកម្ដងទៀត។", "error");
-            return;
-        }
-        const students = sortedRosterStudents(selected).map(student => ({
-            name:studentFullName(student),
-            gender:student.gender,
-            dob:reportShortDate(student.dob),
-            contact:student.contact
-        }));
-        const year = Number(appSettings.academicYearStart);
-        const academicYear = Number.isInteger(year) ? `${toKhmerDigits(year)}–${toKhmerDigits(year + 1)}` : "—";
-        printWindow(`បញ្ជីឈ្មោះសិស្សថ្នាក់ ${selected.name}`,
-            window.StudentSimpleClassRoster.printHtml({className:selected.name, academicYear, students,
-                teacher:appSettings.classTeachers[selected.name] || "", principal:appSettings.principalName || "",
-                year:String(appSettings.issueDate || "").slice(0, 4) || new Date().getFullYear()}));
+        printAdminRosters([selected], `បញ្ជីឈ្មោះសិស្សថ្នាក់ ${selected.name}`);
     }
 
     function downloadClassReport() {
@@ -11143,23 +11130,6 @@
         showToast(`ទាញទម្រង់ A4 ${groups.length} ${reportMode === "grade" ? "កម្រិតថ្នាក់" : "ថ្នាក់"}រួច`, "success");
     }
 
-    const standardExcelColumns = [
-        { header:"ល.រ", width:6, type:"integer", value:(student, index) => index + 1 },
-        { header:"អត្តលេខ", width:16, type:"code", align:"center", value:student => studentVisibleId(student) },
-        { header:"គោត្តនាម និងនាម", width:24, value:student => studentFullName(student) },
-        { header:"ឈ្មោះឡាតាំង", width:23, value:student => student.studentLatinName },
-        { header:"ភេទ", width:8, align:"center", value:student => student.gender },
-        { header:"ថ្ងៃខែឆ្នាំកំណើត", width:15, type:"date", align:"center", value:student => normDate(student.dob) },
-        { header:"ថ្នាក់", width:9, align:"center", value:student => student.className },
-        { header:"ប្រភេទថ្នាក់", width:18, value:student => student.classTrack },
-        { header:"សាលាមកពី", width:24, value:student => student.fromSchool },
-        { header:"លេខទូរស័ព្ទ", width:16, type:"code", align:"center", value:student => student.contact },
-        { header:"ឈ្មោះអាណាព្យាបាល", width:22, value:student => student.guardianName },
-        { header:"អាសយដ្ឋានបច្ចុប្បន្ន", width:34, value:student => addressText(student, "current") },
-        { header:"លេខពាក្យ", width:13, type:"code", align:"center", value:student => student.applicationNumber },
-        { header:"កំណត់សម្គាល់", width:30, value:student => student.note }
-    ];
-
     const detailedExcelColumns = [
         { header:"ល.រ", width:6, type:"integer", value:(student, index) => index + 1 },
         { header:"អត្តលេខ", width:16, type:"code", align:"center", value:student => studentVisibleId(student) },
@@ -11222,22 +11192,23 @@
             return;
         }
         const byGrade = groups[0]?.key.startsWith("grade:");
+        // Same class-list form as the printed roster (one sheet per class or grade).
         const sheets = groups.map(group => {
-            const students = sortedRosterStudents(group);
+            const spec = rosterListSpec(group);
             return {
                 name:group.name,
-                title:byGrade ? `បញ្ជីឈ្មោះសិស្សតាមកម្រិត${group.name}` : `បញ្ជីឈ្មោះសិស្សថ្នាក់ ${group.name}`,
-                subtitle:`ឆ្នាំសិក្សា ${appSettings.academicYearStart}-${appSettings.academicYearStart + 1}`,
-                meta:workbookMeta(students),
-                columns:standardExcelColumns.map(({ value, ...column }) => column),
-                rows:excelRows(students, standardExcelColumns),
-                paperSize:9,
-                fitToWidth:1
+                layout:"student-list",
+                title:spec.title,
+                subtitle:spec.subtitle,
+                columns:spec.columns,
+                rows:spec.rows,
+                footer:{ total:spec.total, female:spec.female, male:spec.male, dateLine:window.SchoolDocument.listDateLine(spec.date),
+                    principal:spec.principal, teacherTitle:spec.teacherTitle, teacher:spec.teacher }
             };
         });
         const blob = window.StudentExport.styledWorkbook({ title:byGrade ? "បញ្ជីឈ្មោះសិស្សតាមកម្រិតថ្នាក់" : "បញ្ជីឈ្មោះសិស្សតាមថ្នាក់", sheets });
         downloadWorkbookFile(blob, rosterDownloadName(groups, "xlsx"));
-        showToast(`ទាញ Excel ${groups.length} ${byGrade ? "កម្រិតថ្នាក់" : "ថ្នាក់"}រួច · មានតម្រង និងក្បាលតារាងជាប់`, "success");
+        showToast(`ទាញ Excel ${groups.length} ${byGrade ? "កម្រិតថ្នាក់" : "ថ្នាក់"}រួច · តាមទម្រង់បញ្ជីសាលា`, "success");
     }
 
     function downloadStudentExcel() {
@@ -11950,7 +11921,7 @@
                 }
             }));
             if (win.closed) return;
-            const isRoster = !!win.document.querySelector(".school-roster-page");
+            const isRoster = !!win.document.querySelector(".school-roster-page, .sl-page");
             // Card preparation must not delay or change administrative rosters.
             if (!isRoster) await window.StudentCardTemplate.preparePhotos(win.document);
             if (isRoster) await Promise.race([

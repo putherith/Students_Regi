@@ -8,13 +8,14 @@ const start = html.indexOf('    function reportShortDate(value) {');
 const end = html.indexOf('    function renderClassReport() {', start);
 assert.ok(start >= 0 && end > start, 'Roster functions exist');
 
+const khmer = value => String(value).replace(/\d/g, digit => '០១២៣៤៥៦៧៨៩'[Number(digit)]);
 const context = {
-    appSettings:{ academicYearStart:2026, issueDate:'2026-10-20', principalName:'នាយក', classTeachers:{ '8B':'គ្រូ' } },
+    appSettings:{ academicYearStart:2026, issueDate:'2026-10-20', principalName:'ហ៊យ សូត្រា', classTeachers:{ '7A':'ឈូក ស្រីមុំ' } },
     normDate:value => value,
     compareKhmer:(a, b) => String(a).localeCompare(String(b), 'en', { numeric:true }),
     studentVisibleId:student => student.studentCode,
     studentFullName:student => student.name,
-    toKhmerDigits:value => String(value),
+    toKhmerDigits:khmer,
     window:{},
     esc:value => String(value).replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[character]),
     Date
@@ -23,47 +24,52 @@ vm.createContext(context);
 vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'assets', 'school-document.js'), 'utf8'), context);
 vm.runInContext(html.slice(start, end), context);
 
-const makeGroup = count => ({
-    key:'class:8B', name:'8B', male:count - 18, female:18,
+const makeGroup = (count, key = 'class:7A', name = '7A') => ({
+    key, name, male:count - 21, female:21,
     students:Array.from({ length:count }, (_, index) => ({
-        studentCode:`9022508${String(index + 1).padStart(3, '0')}`,
+        studentCode:`9022607${String(index + 1).padStart(3, '0')}`,
         name:`សិស្ស ${index + 1}`,
-        gender:index < 18 ? 'ស្រី' : 'ប្រុស',
-        dob:'2011-02-25', fromSchool:'សាលាមុន'
+        gender:index < 21 ? 'ស្រី' : 'ប្រុស',
+        dob:'2014-08-26', className:name, guardianName:index === 4 ? 'ឡុង កែវ' : '', contact:index === 4 ? '11992971' : index === 14 ? '0' : ''
     }))
 });
 
-const onePage = context.classRosterDocumentHtml(makeGroup(25));
-assert.equal((onePage.match(/class="school-roster-page"/g) || []).length, 1);
-assert.equal((onePage.match(/<tr>/g) || []).length, 26, 'One header and 25 rows per A4 page');
-assert.match(onePage, /ព្រះរាជាណាចក្រកម្ពុជា/, 'Kingdom motto');
-assert.match(onePage, /ជាតិ សាសនា ព្រះមហាក្សត្រ/);
-assert.match(onePage, /មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ/, 'Department on the left');
-assert.match(onePage, /វិទ្យាល័យសុខអានព្រៃមេលង/);
-assert.match(onePage, /class="sd-title">បញ្ជីឈ្មោះសិស្ស ថ្នាក់ទី 8B/);
-assert.match(onePage, /class="roster-table sd-table"/);
-assert.match(onePage, /បញ្ជីនេះមានសិស្សសរុប 25 នាក់ ស្រី 18 នាក់/);
-assert.match(onePage, /ព\.ស\./, 'Lunar date line');
-assert.match(onePage, /ព្រៃមេលង, ថ្ងៃទី\.+ ខែ\.+ ឆ្នាំ២០២៦/, 'Solar date line');
-assert.match(onePage, /គ្រូបន្ទុកថ្នាក់/);
-assert.match(onePage, /បានឃើញ និងឯកភាព/);
-assert.match(onePage, /នាយកសាលា/);
-assert.match(onePage, /សិស្ស 25/);
+// The school's class-list form (Digital Class print): see README / the PDF sample.
+const list = context.classRosterDocumentHtml(makeGroup(42));
+assert.equal((list.match(/class="sl-page"/g) || []).length, 1, 'one flowing document; the header row repeats on each printed page');
+assert.match(list, /<div class="sl-office"><div>មន្ទីរអប់រំ យុវជន និងកីឡា ខេត្តតាកែវ<\/div><div>ការិយាល័យអប់រំ យុវជន និងកីឡា ស្រុកកោះអណ្តែត<\/div><div>វិទ្យាល័យ សុខអាន ព្រៃមេលង<\/div><\/div>/, 'offices on the left');
+assert.match(list, /<div class="sl-kingdom"><div>ព្រះរាជាណាចក្រកម្ពុជា<\/div><div>ជាតិ សាសនា ព្រះមហាក្សត្រ<\/div><div class="sl-ornament">❖ ❖ ❖<\/div><\/div>/, 'kingdom on the right');
+assert.match(list, /<h1 class="sl-title">បញ្ជីឈ្មោះសិស្ស<\/h1>/);
+assert.match(list, /<p class="sl-subtitle">ថ្នាក់ទី 7A · ឆ្នាំសិក្សា ២០២៦-២០២៧<\/p>/);
+const headers = [...list.matchAll(/<th>([^<]+)<\/th>/g)].map(match => match[1]);
+assert.deepEqual(headers, ['ល.រ', 'គោត្តនាម និងនាម', 'ភេទ', 'ថ្ងៃខែឆ្នាំកំណើត', 'អាណាព្យាបាល', 'ទូរស័ព្ទ', 'ផ្សេងៗ']);
+assert.equal((list.match(/<tr>/g) || []).length, 43, 'one header row and 42 students');
+assert.match(list, /<td class="sl-center">១<\/td><td class="sl-left">សិស្ស 1<\/td><td class="sl-center">ស្រី<\/td><td class="sl-center">26\/08\/2014<\/td>/, 'Khmer row number, Latin-digit date of birth');
+assert.doesNotMatch(list, /២៦\/០៨\/២០១៤/, 'dates of birth are never in Khmer digits');
+assert.match(list, /<td class="sl-left">ឡុង កែវ<\/td><td class="sl-left">11992971<\/td>/, 'guardian and phone');
+assert.doesNotMatch(list, /<td class="sl-left">0<\/td>/, 'a placeholder 0 phone is left blank');
+assert.match(list, /<tr class="sl-total"><td colspan="2" class="sl-center">សរុប<\/td><td colspan="5" class="sl-center">៤២ នាក់<\/td><\/tr>/);
+assert.match(list, /ក្នុងនោះ ស្រី ២១ នាក់ · ប្រុស ២១ នាក់/);
+assert.match(list, /បានឃើញ និងឯកភាព<\/div><div>នាយកសាលា<\/div><div class="sl-sign-name">ហ៊យ សូត្រា<\/div>/);
+assert.match(list, /ធ្វើនៅព្រៃមេលង, ថ្ងៃទី [០-៩]{2} ខែ(មករា|កុម្ភៈ|មីនា|មេសា|ឧសភា|មិថុនា|កក្កដា|សីហា|កញ្ញា|តុលា|វិច្ឆិកា|ធ្នូ) ឆ្នាំ[០-៩]{4}<\/div><div>គ្រូបន្ទុកថ្នាក់<\/div><div class="sl-sign-name">ឈូក ស្រីមុំ<\/div>/);
+assert.equal(context.window.SchoolDocument.listDateLine(new Date(2026, 10, 27)), 'ធ្វើនៅព្រៃមេលង, ថ្ងៃទី ២៧ ខែវិច្ឆិកា ឆ្នាំ២០២៦');
+assert.doesNotMatch(list, /ព\.ស\./, 'no lunar date line on the class list');
 
-const threePages = context.classRosterDocumentHtml(makeGroup(65));
-assert.equal((threePages.match(/class="school-roster-page"/g) || []).length, 3);
-assert.match(threePages, /សិស្ស 65/);
-assert.match(threePages, /ទំព័រ 3\/3/);
-assert.equal((threePages.match(/class="sd-signatures"/g) || []).length, 1, "Signatures only on the last page");
-assert.match(context.classRosterPrintCss(), /size:A4 portrait/);
-assert.match(context.classRosterPrintCss(), /\.sd-table th \{ background:#e6e6e6/, 'Light grey header');
-assert.doesNotMatch(context.classRosterPrintCss(), /#173F78|#0F766E/i, 'Black and white only');
+// Grade lists add a class column; the preview shows only the first printed page.
+const grade = context.classRosterDocumentHtml(makeGroup(60, 'grade:7', 'ថ្នាក់ទី៧'));
+assert.deepEqual([...grade.matchAll(/<th>([^<]+)<\/th>/g)].map(match => match[1]),
+    ['ល.រ', 'គោត្តនាម និងនាម', 'ភេទ', 'ថ្ងៃខែឆ្នាំកំណើត', 'ថ្នាក់', 'អាណាព្យាបាល', 'ទូរស័ព្ទ', 'ផ្សេងៗ']);
+assert.match(grade, /អ្នករៀបចំបញ្ជី/);
+assert.equal((context.classRosterDocumentHtml(makeGroup(60, 'grade:7', 'ថ្នាក់ទី៧'), true).match(/<tr>/g) || []).length, 29, 'preview: header + 28 rows');
+
+const css = context.classRosterPrintCss();
+assert.match(css, /size:A4 portrait; margin:15mm 15mm 12mm/);
+assert.match(css, /\.sl-table thead \{ display:table-header-group; \}/, 'header row repeats on each page');
+assert.match(css, /\.sl-table th, \.sl-table td \{[^}]*background:#fff;[^}]*font-weight:400;/, 'plain white header, not grey or bold');
 assert.match(html, /data-sidebar-view="report"/, 'Roster is reached through the Reports navigation');
 assert.match(html, /id="report-mode-class"/, 'Class mode remains available in Reports');
-assert.match(html, /id="class-report-select"/);
 assert.match(html, /id="download-class-roster-btn"/);
-assert.match(onePage, /width:36%/);
-assert.match(html, /function fitRosterText\(root\)/);
+assert.match(html, /querySelector\("\.school-roster-page, \.sl-page"\)/, 'print window treats the list as a roster');
 
 const downloadStart = html.indexOf('    function rosterDownloadName(groups, extension) {');
 const downloadEnd = html.indexOf('    // ===================== FILTERS', downloadStart);
@@ -77,15 +83,18 @@ context.document = { body:{ append:() => {} }, createElement:() => ({ click:() =
 context.URL = { createObjectURL:() => 'blob:test', revokeObjectURL:() => {} };
 context.setTimeout = () => {};
 vm.runInContext('downloadWorkbookFile = (blob, name) => { globalThis.__name = name; };', context);
-context.downloadClassRosterExcel([makeGroup(91)]);
-assert.equal(workbookSpec.sheets.length, 1);
-assert.equal(workbookSpec.sheets[0].rows.length, 91);
-assert.equal(workbookSpec.sheets[0].rows[90][0], 91);
-assert.equal(workbookSpec.sheets[0].subtitle, 'ឆ្នាំសិក្សា 2026-2027');
-assert.doesNotMatch(workbookSpec.sheets[0].subtitle, /វិទ្យាល័យ/, 'School is in the ministry rows, not repeated');
+context.downloadClassRosterExcel([makeGroup(42)]);
+const sheet = workbookSpec.sheets[0];
+assert.equal(sheet.layout, 'student-list', 'Excel uses the same class-list form');
+assert.equal(sheet.rows.length, 42);
+assert.deepEqual(Array.from(sheet.rows[4]), ['៥', 'សិស្ស 5', 'ស្រី', '26/08/2014', 'ឡុង កែវ', '11992971', '']);
+assert.equal(sheet.subtitle, 'ថ្នាក់ទី 7A · ឆ្នាំសិក្សា ២០២៦-២០២៧');
+assert.equal(sheet.footer.total, 42);
+assert.match(sheet.footer.dateLine, /^ធ្វើនៅព្រៃមេលង, ថ្ងៃទី /);
 assert.match(context.__name, /\.xlsx$/);
+
 let downloadedBlob;
-context.selectedClassReport = () => ({ selected:makeGroup(65), rows:[makeGroup(65)] });
+context.selectedClassReport = () => ({ selected:makeGroup(42), rows:[makeGroup(42)] });
 context.reportMode = 'class';
 context.URL = { createObjectURL:blob => { downloadedBlob = blob; return 'blob:test'; }, revokeObjectURL:() => {} };
 context.document = { body:{ append:() => {} }, createElement:() => ({ click:() => {}, remove:() => {} }) };
@@ -94,10 +103,9 @@ context.setTimeout = () => {};
 context.downloadClassRosterHtml();
 downloadedBlob.text().then(downloadedHtml => {
     assert.match(downloadedHtml, /<html lang="km">/);
-    assert.match(downloadedHtml, /<table class="roster-table sd-table">/);
+    assert.match(downloadedHtml, /<table class="sl-table">/);
     assert.match(downloadedHtml, /size:A4 portrait/);
-    assert.match(downloadedHtml, /<script>function fitRosterText/);
-    assert.equal((downloadedHtml.match(/class="school-roster-page"/g) || []).length, 3);
+    assert.equal((downloadedHtml.match(/class="sl-page"/g) || []).length, 1);
     const downloadedScript = downloadedHtml.match(/<script>([\s\S]*?)<\/script>/);
     assert.ok(downloadedScript);
     new vm.Script(downloadedScript[1]);
@@ -107,5 +115,5 @@ downloadedBlob.text().then(downloadedHtml => {
         fs.writeFileSync(output, downloadedHtml);
         console.log(`Local visual fixture: ${output}`);
     }
-    console.log('Class roster print/export: ministry header, 25-row A4 pages, signatures and Excel spec');
+    console.log('Class roster: school class-list form (offices left, kingdom right, 7 columns, total, dated signatures) for print, HTML and Excel');
 }).catch(error => { console.error(error); process.exitCode = 1; });

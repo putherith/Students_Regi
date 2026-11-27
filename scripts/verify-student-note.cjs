@@ -38,6 +38,11 @@ const sheet = {
     }
 };
 context.getStudentsSheet_ = () => sheet;
+// patchfields records the previous values in the audit sheet before writing.
+const audit = [];
+context.studentAuditSheet_ = () => ({ getLastRow:() => audit.length + 1, getRange:row => ({ setValues:values => { audit[row - 2] = values[0]; }, setValue:() => {} }) });
+context.Utilities = { getUuid:() => 'uuid-1' };
+context.auditAppliedStudentChange_ = row => { audit[row - 2][3] = 'applied'; };
 const before = JSON.stringify(rows);
 
 // patchfields writes only note / Latin name, never other cells or updatedAt.
@@ -54,6 +59,10 @@ assert.equal(rows[1][col('fatherName')], '', 'fields outside the whitelist are i
 const changedCells = [];
 JSON.parse(before).forEach((cells, r) => cells.forEach((cell, c) => { if (rows[r][c] !== cell) changedCells.push(headers[c]); }));
 assert.deepEqual(changedCells.sort(), ['note', 'studentLatinName'], 'only note and Latin-name cells changed');
+assert.equal(audit.length, 1, 'one audit row per patch request');
+assert.equal(audit[0][2], 'patch-fields');
+assert.equal(audit[0][3], 'applied');
+assert.deepEqual(JSON.parse(audit[0][8]).previous, [['s1', 'note', ''], ['s1', 'studentLatinName', '']], 'audit keeps the previous values');
 
 // An app version from before the note field (no "note" key) cannot erase it.
 context.upsertStudent_({ id:'s1', studentCode:'9022607001', className:'7A', studentName:'សិស្ស មួយ', studentSurname:'សិស្ស', studentGivenName:'មួយ', fatherName:'ឪពុកថ្មី' });
