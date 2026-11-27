@@ -145,7 +145,7 @@
     <border><left style="thin"><color rgb="FF000000"/></left><right style="thin"><color rgb="FF000000"/></right><top style="thin"><color rgb="FF000000"/></top><bottom style="thin"><color rgb="FF000000"/></bottom><diagonal/></border>
   </borders>
   <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
-  <cellXfs count="11">
+  <cellXfs count="13">
     <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
     <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
     <xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
@@ -157,6 +157,8 @@
     <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>
     <xf numFmtId="0" fontId="5" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
     <xf numFmtId="0" fontId="5" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>
   </cellXfs>
   <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
   <dxfs count="0"/>
@@ -168,7 +170,72 @@
         "មន្ទីរអប់រំ យុវជន និងកីឡាខេត្តតាកែវ", "វិទ្យាល័យសុខអានព្រៃមេលង"];
     const TABLE_HEADER_ROW = 10;
 
+    const LIST_OFFICE_LINES = ["មន្ទីរអប់រំ យុវជន និងកីឡា ខេត្តតាកែវ", "ការិយាល័យអប់រំ យុវជន និងកីឡា ស្រុកកោះអណ្តែត", "វិទ្យាល័យ សុខអាន ព្រៃមេលង"];
+    const LIST_KINGDOM_LINES = ["ព្រះរាជាណាចក្រកម្ពុជា", "ជាតិ សាសនា ព្រះមហាក្សត្រ", "❖ ❖ ❖"];
+    const LIST_HEADER_ROW = 8;
+    const isList = sheet => sheet.layout === "student-list";
+    const headerRowOf = sheet => isList(sheet) ? LIST_HEADER_ROW : TABLE_HEADER_ROW;
+    const khmerDigits = value => String(value ?? "").replace(/\d/g, digit => "០១២៣៤៥៦៧៨៩"[Number(digit)]);
+    // Last row of a list sheet: data, total, breakdown, blank, date, two title rows, gap, names.
+    const listLastRow = sheet => LIST_HEADER_ROW + Math.max(1, (sheet.rows || []).length) + 8;
+
+    function listWorksheetXml(sheet) {
+        const columns = sheet.columns, rows = Array.isArray(sheet.rows) ? sheet.rows : [];
+        const footer = sheet.footer || {};
+        const last = columnName(columns.length - 1);
+        const rightStart = columnName(Math.max(3, columns.length - 3));
+        const merges = [];
+        const merged = (from, to, row, text, style) => {
+            merges.push(`<mergeCell ref="${from}${row}:${to}${row}"/>`);
+            const start = columns.findIndex((_, i) => columnName(i) === from), end = columns.findIndex((_, i) => columnName(i) === to);
+            return Array.from({ length:end - start + 1 }, (_, k) => k === 0
+                ? inlineCell(`${from}${row}`, text, style) : `<c r="${columnName(start + k)}${row}" s="${style}"/>`).join("");
+        };
+        const letterhead = [0, 1, 2].map(i => `<row r="${i + 1}" ht="${i === 2 ? 18 : 22}" customHeight="1">${merged("A", "C", i + 1, LIST_OFFICE_LINES[i], 11)}${merged(rightStart, last, i + 1, LIST_KINGDOM_LINES[i], i === 2 ? 11 : 9)}</row>`).join("");
+        const header = `<row r="${LIST_HEADER_ROW}" ht="26" customHeight="1">${columns.map((column, i) => inlineCell(`${columnName(i)}${LIST_HEADER_ROW}`, column.header, 6)).join("")}</row>`;
+        const body = (rows.length ? rows : [[sheet.emptyText || "មិនមានសិស្ស"]]).map((cells, r) => {
+            const row = LIST_HEADER_ROW + 1 + r;
+            if (!rows.length) return `<row r="${row}" ht="24" customHeight="1">${merged("A", last, row, cells[0], 6)}</row>`;
+            return `<row r="${row}" ht="24" customHeight="1">${columns.map((column, i) => inlineCell(`${columnName(i)}${row}`, cells[i] ?? "", column.align === "left" ? 5 : 6)).join("")}</row>`;
+        }).join("");
+        const t = LIST_HEADER_ROW + Math.max(1, rows.length) + 1;
+        const footerRows = [
+            `<row r="${t}" ht="24" customHeight="1">${merged("A", "B", t, "សរុប", 6)}${merged("C", last, t, `${khmerDigits(footer.total ?? rows.length)} នាក់`, 6)}</row>`,
+            `<row r="${t + 1}" ht="22" customHeight="1">${merged("A", last, t + 1, `ក្នុងនោះ ស្រី ${khmerDigits(footer.female ?? 0)} នាក់ · ប្រុស ${khmerDigits(footer.male ?? 0)} នាក់`, 12)}</row>`,
+            `<row r="${t + 2}" ht="12" customHeight="1"/>`,
+            `<row r="${t + 3}" ht="22" customHeight="1">${merged(rightStart, last, t + 3, footer.dateLine || "", 11)}</row>`,
+            `<row r="${t + 4}" ht="22" customHeight="1">${merged("A", "C", t + 4, "បានឃើញ និងឯកភាព", 11)}${merged(rightStart, last, t + 4, footer.teacherTitle || "គ្រូបន្ទុកថ្នាក់", 11)}</row>`,
+            `<row r="${t + 5}" ht="22" customHeight="1">${merged("A", "C", t + 5, "នាយកសាលា", 11)}</row>`,
+            `<row r="${t + 6}" ht="52" customHeight="1"/>`,
+            `<row r="${t + 7}" ht="22" customHeight="1">${merged("A", "C", t + 7, footer.principal || "", 11)}${merged(rightStart, last, t + 7, footer.teacher || "", 11)}</row>`
+        ].join("");
+        // Column widths come as percentages of the printed A4 width (about 95 characters).
+        const cols = columns.map((column, i) => `<col min="${i + 1}" max="${i + 1}" width="${Math.max(4, Math.round((Number(column.width) || 10) * 0.95 * 10) / 10)}" customWidth="1"/>`).join("");
+        return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>
+  <dimension ref="A1:${last}${listLastRow(sheet)}"/>
+  <sheetViews><sheetView workbookViewId="0" showGridLines="0"/></sheetViews>
+  <sheetFormatPr defaultRowHeight="20"/>
+  <cols>${cols}</cols>
+  <sheetData>
+    ${letterhead}
+    <row r="4" ht="14" customHeight="1"/>
+    <row r="5" ht="30" customHeight="1">${merged("A", last, 5, sheet.title || "បញ្ជីឈ្មោះសិស្ស", 1)}</row>
+    <row r="6" ht="22" customHeight="1">${merged("A", last, 6, sheet.subtitle || "", 11)}</row>
+    <row r="7" ht="6" customHeight="1"/>
+    ${header}
+    ${body}
+    ${footerRows}
+  </sheetData>
+  <mergeCells count="${merges.length}">${merges.join("")}</mergeCells>
+  <pageMargins left="0.59" right="0.59" top="0.59" bottom="0.47" header="0.2" footer="0.2"/>
+  <pageSetup paperSize="9" orientation="portrait" fitToWidth="1" fitToHeight="0"/>
+</worksheet>`;
+    }
+
     function worksheetXml(sheet, sheetIndex) {
+        if (isList(sheet)) return listWorksheetXml(sheet);
         const columns = sheet.columns;
         const rows = Array.isArray(sheet.rows) ? sheet.rows : [];
         const lastColumn = columnName(columns.length - 1);
@@ -252,7 +319,7 @@
   <Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
   <Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>
   <Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>
-  ${sheets.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/tables/table${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml"/>`).join("")}
+  ${sheets.map((sheet, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>${isList(sheet) ? "" : `<Override PartName="/xl/tables/table${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml"/>`}`).join("")}
 </Types>`);
         addText("_rels/.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>`);
         addText("docProps/core.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${xml(spec.title || "បញ្ជីសិស្ស")}</dc:title><dc:creator>វិទ្យាល័យសុខអានព្រៃមេលង</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">${createdAt}</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">${createdAt}</dcterms:modified></cp:coreProperties>`);
@@ -260,14 +327,17 @@
         const definedNames = sheets.map((sheet, i) => {
             const quoted = `'${sheet.name.replace(/'/g, "''")}'`;
             const lastColumn = columnName(sheet.columns.length - 1);
-            const lastRow = 5 + Math.max(1, (sheet.rows || []).length);
-            return `<definedName name="_xlnm.Print_Titles" localSheetId="${i}">${quoted}!$1:$5</definedName><definedName name="_xlnm.Print_Area" localSheetId="${i}">${quoted}!$A$1:$${lastColumn}$${lastRow}</definedName>`;
+            // Repeat the table header row on every printed page.
+            const headerRow = headerRowOf(sheet);
+            const lastRow = isList(sheet) ? listLastRow(sheet) : headerRow + Math.max(1, (sheet.rows || []).length);
+            return `<definedName name="_xlnm.Print_Titles" localSheetId="${i}">${quoted}!$${headerRow}:$${headerRow}</definedName><definedName name="_xlnm.Print_Area" localSheetId="${i}">${quoted}!$A$1:$${lastColumn}$${lastRow}</definedName>`;
         }).join("");
         addText("xl/workbook.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView xWindow="0" yWindow="0" windowWidth="24000" windowHeight="12000"/></bookViews><sheets>${sheets.map((sheet, i) => `<sheet name="${xml(sheet.name)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("")}</sheets><definedNames>${definedNames}</definedNames><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`);
         addText("xl/_rels/workbook.xml.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("")}<Relationship Id="rId${sheets.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
         addText("xl/styles.xml", workbookStyles);
         sheets.forEach((sheet, i) => {
             addText(`xl/worksheets/sheet${i + 1}.xml`, worksheetXml(sheet, i + 1));
+            if (isList(sheet)) return;   // the class-list form has no Excel table or filter
             addText(`xl/worksheets/_rels/sheet${i + 1}.xml.rels`, `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/table" Target="../tables/table${i + 1}.xml"/></Relationships>`);
             addText(`xl/tables/table${i + 1}.xml`, tableXml(sheet, i + 1));
         });

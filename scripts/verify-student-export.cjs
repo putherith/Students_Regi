@@ -99,5 +99,38 @@ function localZipEntries(bytes) {
     assert.match(styles, /Khmer OS Siemreap/);
     assert.equal(new DataView(workbookBytes.buffer).getUint32(workbookBytes.length - 22, true), 0x06054b50);
     assert.notEqual(new DataView(workbookBytes.buffer).getUint16(12, true), 0, 'ZIP date must be valid for Microsoft Excel');
-    console.log('Photo ZIP and styled Excel workbook exports passed');
+    const workbookXml = new TextDecoder().decode(entries.get('xl/workbook.xml'));
+    assert.match(workbookXml, /_xlnm\.Print_Titles" localSheetId="0">'[^']+'!\$10:\$10</, 'the table header repeats on printed pages');
+
+    // The school class-list form (same as the printed roster): no Excel table, white header, total and signatures.
+    const listBook = context.window.StudentExport.styledWorkbook({ title:'បញ្ជីឈ្មោះសិស្ស', sheets:[{
+        name:'7A', layout:'student-list', title:'បញ្ជីឈ្មោះសិស្ស', subtitle:'ថ្នាក់ទី 7A · ឆ្នាំសិក្សា ២០២៦-២០២៧',
+        columns:[
+            { header:'ល.រ', width:5.7, align:'center' }, { header:'គោត្តនាម និងនាម', width:24.1, align:'left' },
+            { header:'ភេទ', width:7.6, align:'center' }, { header:'ថ្ងៃខែឆ្នាំកំណើត', width:21.1, align:'center' },
+            { header:'អាណាព្យាបាល', width:17.2, align:'left' }, { header:'ទូរស័ព្ទ', width:15.3, align:'left' }, { header:'ផ្សេងៗ', width:9, align:'left' }
+        ],
+        rows:[['១', 'កន រដ្ឋា', 'ប្រុស', '26/08/2014', '', '', ''], ['២', 'កែវ ណាន់តាន់', 'ស្រី', '17/07/2014', 'ឡុង កែវ', '11992971', '']],
+        footer:{ total:2, female:1, male:1, dateLine:'ធ្វើនៅព្រៃមេលង, ថ្ងៃទី ២៧ ខែវិច្ឆិកា ឆ្នាំ២០២៦', principal:'ហ៊យ សូត្រា', teacherTitle:'គ្រូបន្ទុកថ្នាក់', teacher:'ឈូក ស្រីមុំ' }
+    }] });
+    const listEntries = localZipEntries(new Uint8Array(await listBook.arrayBuffer()));
+    assert.ok(!listEntries.has('xl/tables/table1.xml'), 'class-list sheet has no Excel table or filter');
+    const list = new TextDecoder().decode(listEntries.get('xl/worksheets/sheet1.xml'));
+    const listTypes = new TextDecoder().decode(listEntries.get('[Content_Types].xml'));
+    assert.doesNotMatch(listTypes, /table1\.xml/);
+    assert.match(list, /<c r="A1" t="inlineStr" s="11"><is><t>មន្ទីរអប់រំ យុវជន និងកីឡា ខេត្តតាកែវ<\/t>/, 'offices on the left');
+    assert.match(list, /<c r="E1" t="inlineStr" s="9"><is><t>ព្រះរាជាណាចក្រកម្ពុជា<\/t>/, 'kingdom on the right');
+    assert.match(list, /<c r="E3" t="inlineStr" s="11"><is><t>❖ ❖ ❖<\/t>/);
+    assert.match(list, /<c r="A8" t="inlineStr" s="6"><is><t>ល\.រ<\/t>/, 'white, non-bold header row 8');
+    assert.match(list, /<c r="D9" t="inlineStr" s="6"><is><t>26\/08\/2014<\/t>/, 'date of birth stays as Latin-digit text');
+    assert.match(list, /<c r="A11" t="inlineStr" s="6"><is><t>សរុប<\/t>/);
+    assert.match(list, /<c r="C11" t="inlineStr" s="6"><is><t>២ នាក់<\/t>/);
+    assert.match(list, /ក្នុងនោះ ស្រី ១ នាក់ · ប្រុស ១ នាក់/);
+    assert.match(list, /ធ្វើនៅព្រៃមេលង, ថ្ងៃទី ២៧ ខែវិច្ឆិកា ឆ្នាំ២០២៦/);
+    assert.match(list, /ហ៊យ សូត្រា/);
+    assert.match(list, /ឈូក ស្រីមុំ/);
+    assert.match(list, /<mergeCell ref="A11:B11"\/><mergeCell ref="C11:G11"\/>/);
+    assert.match(list, /paperSize="9" orientation="portrait" fitToWidth="1"/);
+    assert.match(new TextDecoder().decode(listEntries.get('xl/workbook.xml')), /'7A'!\$8:\$8</, 'list header row 8 repeats on printed pages');
+    console.log('Photo ZIP, styled Excel workbook and class-list Excel exports passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });
